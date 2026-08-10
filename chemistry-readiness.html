@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Chemistry Readiness</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+:root{--paper:#EEF1F0;--panel:#FFF;--ink:#16232B;--soft:#4A5D66;--rule:#C9D3D1;--rulesoft:#DFE6E4;--alert:#B5533C;--focus:#2E7D6B;}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.wrap{max-width:620px;margin:0 auto;padding:20px 18px 80px}
+h1{font-size:30px;line-height:1.12;letter-spacing:-.02em;margin:6px 0 14px;font-weight:600}
+h2{font-size:26px;line-height:1.15;margin:4px 0 6px;font-weight:600}
+p{line-height:1.55}
+.mono,.eyebrow,.conf-label,.bar-t,.mod-time,.q-count{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.bar{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--rule)}
+.bar-in{max-width:620px;margin:0 auto;padding:12px 18px 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.bar-mod{display:flex;align-items:baseline;gap:10px;min-width:0}
+.bar-n{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ink)}
+.bar-t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-r{display:flex;align-items:center;gap:12px}
+.barsave{background:none;border:1px solid var(--rule);border-radius:3px;padding:6px 10px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);cursor:pointer;white-space:nowrap}
+.timer{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--alert)}
+.track{height:2px;background:var(--rulesoft)}
+.fill{height:2px;background:#2E7D6B;transition:width .3s ease}
+.lede{font-size:17px;color:var(--soft);margin:0 0 18px}
+.honest{border-left:3px solid #C9A227;padding:2px 0 2px 14px;margin:0 0 20px}
+.honest p{margin:0;font-size:15px}
+.rules{list-style:none;padding:0;margin:0 0 26px;border-top:1px solid var(--rulesoft)}
+.rules li{border-bottom:1px solid var(--rulesoft);padding:11px 0;font-size:14.5px;color:var(--soft);line-height:1.45}
+.mod-n{font-family:'IBM Plex Mono',monospace;font-size:56px;font-weight:600;line-height:1;color:var(--rule)}
+.mod-time{margin:8px 0 16px}
+.mod-note{font-size:15.5px;color:var(--soft);margin:0 0 22px;white-space:pre-wrap}
+.warn{border:1px solid var(--alert);color:var(--alert);border-radius:3px;padding:11px 13px;font-size:14px;line-height:1.45;margin:0 0 22px}
+.warn.tight{margin:14px 0 0}
+.ok{border:1px solid var(--focus);color:var(--focus);border-radius:3px;padding:11px 13px;font-size:14px;margin:0 0 22px}
+.q-head{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--rule);padding-bottom:8px;margin-bottom:18px}
+.q-id{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;letter-spacing:.04em}
+.q-prompt{font-size:18px;line-height:1.48;white-space:pre-wrap;margin:0 0 18px}
+.paper-note{background:var(--panel);border:1px dashed var(--rule);border-radius:3px;padding:11px 13px;font-size:14px;color:var(--soft);line-height:1.45;margin:0 0 16px}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;background:var(--panel);border:1px solid var(--rulesoft);border-radius:3px;padding:13px 14px;font:inherit;font-size:15.5px;color:var(--ink);cursor:pointer}
+.opt.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--ink)}
+.opt-k{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--soft);min-width:14px;padding-top:2px}
+.opt.on .opt-k{color:var(--ink);font-weight:600}
+.opt-v{flex:1;line-height:1.4}
+.in,.ta{width:100%;background:var(--panel);border:1px solid var(--rulesoft);border-radius:3px;padding:13px 14px;font-family:'IBM Plex Mono',monospace;font-size:16px;color:var(--ink);margin-bottom:20px}
+.ta{font-family:'IBM Plex Sans',sans-serif;line-height:1.5;resize:vertical}
+.in:focus,.ta:focus{outline:2px solid var(--focus);outline-offset:1px;border-color:transparent}
+.conf-block{border-top:1px solid var(--rulesoft);padding-top:16px;margin-bottom:8px}
+.conf-label{display:block;margin-bottom:10px}
+.conf-row{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.conf-btn{display:flex;align-items:center;gap:9px;border:1px solid var(--rulesoft);background:transparent;color:var(--soft);border-radius:3px;padding:11px 12px;font:inherit;font-size:13.5px;cursor:pointer;text-align:left}
+.conf-code{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--rulesoft)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.saved{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#2E7D6B;letter-spacing:.08em}
+.go{background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:3px;padding:14px 22px;font-family:'IBM Plex Sans',sans-serif;font-size:15.5px;font-weight:500;cursor:pointer;width:100%}
+.go.sm{width:auto;padding:11px 20px;font-size:14.5px}
+.go.alt{background:transparent;color:var(--ink);margin-top:8px}
+.go:disabled{opacity:.3;cursor:not-allowed}
+.ghost{background:none;border:none;color:var(--soft);font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;cursor:pointer;padding:12px 0;width:100%;text-decoration:underline;text-underline-offset:3px}
+.ghost.sm{width:auto;padding:11px 4px}
+.ghost:disabled{opacity:.3;cursor:not-allowed;text-decoration:none}
+.hint{font-size:13px;color:#C9A227;margin-top:12px;line-height:1.4}
+.u1-rule{background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:15px;margin-bottom:18px}
+.u1-rule p{font-size:15px;margin:0 0 9px}
+.u1-body{font-size:16px;margin:0 0 13px}
+.u1-struct{font-family:'IBM Plex Mono',monospace;font-size:15px;line-height:1.5;background:var(--panel);border:1px solid var(--rulesoft);border-radius:3px;padding:16px;margin:0 0 14px;overflow-x:auto}
+.steps{padding-left:20px;margin:0 0 24px}
+.steps li{font-size:15.5px;line-height:1.5;margin-bottom:10px;color:var(--soft)}
+details{margin:18px 0}
+summary{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);cursor:pointer;padding:8px 0}
+.raw{background:var(--panel);border:1px solid var(--rulesoft);border-radius:3px;padding:13px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;max-height:300px;overflow:auto;white-space:pre-wrap;color:var(--soft)}
+@media(max-width:400px){h1{font-size:26px}.conf-row{grid-template-columns:1fr}.mod-n{font-size:46px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.locked-note{background:var(--panel);border:1px solid var(--rulesoft);border-radius:3px;padding:11px 13px;font-size:13.5px;color:var(--soft);line-height:1.45;margin:0 0 16px}
+.locked-show{border-top:1px solid var(--rulesoft);padding-top:14px}
+.locked-row{display:flex;gap:12px;padding:7px 0;font-size:14.5px}
+.locked-k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);min-width:108px;padding-top:3px}
+.locked-v{flex:1;color:var(--ink)}
+</style>
+</head><body><div id="root"></div><script>
+var STUDY_METHODS=[
+  "Reread notes", "Rewatch lecture", "Rewrite notes", "Highlight",
+  "Flashcards", "Work problems from scratch", "Redo problems I got wrong",
+  "Explain out loud to someone", "Watch YouTube",
+];
+var MODULES = [
+  {
+    id: "m0",
+    n: "00",
+    title: "Before we start",
+    time: "10 to 15 minutes, untimed",
+    note: "No right answers here, and no clock. This part only works if it is honest. It is separate from the timed sections, so take your time.",
+    timed: false,
+    confidence: false,
+    items: [
+      { id: "Q1", type: "text", prompt: "In Gen Chem I and II, roughly how many hours per week did you study outside of class?" },
+      { id: "Q2", type: "multi", prompt: "When you studied, what did you actually do? Pick everything that applies.", options: STUDY_METHODS },
+      { id: "Q3", type: "long", prompt: "When you got an exam back, what did you do with it?" },
+      { id: "Q4", type: "text", prompt: "How many times did you go to your Gen Chem professor's office hours in a semester?" },
+      { id: "Q5", type: "single", prompt: "On a Gen Chem exam, which happened more often?", options: [
+        "I ran out of time",
+        "I finished with time left and did not use it to check",
+        "I finished and checked my work",
+        "I knew the material but blanked",
+      ] },
+      { id: "Q6", type: "text", prompt: "What was the hardest single topic in Gen Chem for you?" },
+      { id: "Q7", type: "long", prompt: "What is the last thing you remember genuinely clicking, where you thought \"oh, I get it now\"?" },
+      { id: "Q8", type: "long", prompt: "Finish this sentence: when a chemistry problem looks unfamiliar, the first thing I usually do is..." },
+      { id: "Q9", type: "long", prompt: "The semester you took Gen Chem I, how many total credit hours were you carrying, and what were the other courses?" },
+      { id: "Q10", type: "long", prompt: "Same question for the semester you took Gen Chem II." },
+      { id: "Q11", type: "single", prompt: "During those semesters, how many days per week did you actually touch chemistry?", options: ["1", "2", "3", "4", "5", "6", "7"] },
+      { id: "Q12", type: "single", prompt: "This summer you took Physics alone, then Philosophy alone. How many days per week did you touch physics?", options: ["1", "2", "3", "4", "5", "6", "7"] },
+      { id: "Q13", type: "long", prompt: "What felt different about taking one course at a time? Anything counts, even if it seems small." },
+      { id: "Q14", type: "long", prompt: "Were you working, playing a sport, or carrying any other regular commitment during the Gen Chem semesters? During the summer?" },
+      { id: "Q15", type: "text", prompt: "In a normal semester, when do you usually start studying for an exam?" },
+      { id: "Q16", type: "long", prompt: "This fall, what is your full schedule? List every course and its credit hours." },
+      { id: "Q17", type: "long", prompt: "During a normal semester, roughly how many hours per week are already committed before studying happens? Include class and lab time, work, commuting, organizations, church, family responsibilities, exercise, and other fixed commitments.\n\nA rough number is fine. This is only used for planning your week, never for scoring." },
+    ],
+  },
+  {
+    id: "m1",
+    n: "01",
+    title: "Math, fast",
+    time: "15 minutes, hard stop",
+    note: "No calculator. This one is about speed, not difficulty. If something stalls you for more than 45 seconds, skip it. Leaving a blank is better than guessing.",
+    timed: 15 * 60,
+    confidence: false,
+    items: [
+      { id: "M1", type: "short", prompt: "3/4 + 1/6 =" },
+      { id: "M2", type: "short", prompt: "What is 2/5 of 350?" },
+      { id: "M3", type: "short", prompt: "0.08 × 250 =" },
+      { id: "M4", type: "short", prompt: "Write 0.00047 in scientific notation." },
+      { id: "M5", type: "short", prompt: "(3.0 × 10⁵)(2.0 × 10⁻⁸) =" },
+      { id: "M6", type: "short", prompt: "(8.0 × 10⁻⁶) ÷ (2.0 × 10⁻²) =" },
+      { id: "M7", type: "short", prompt: "Solve for x:  5x − 3 = 2x + 12" },
+      { id: "M8", type: "short", prompt: "Solve for T:  PV = nRT" },
+      { id: "M9", type: "short", prompt: "Solve for x:  1/x = 4/20" },
+      { id: "M10", type: "short", prompt: "If a/b = 3/7 and b = 21, what is a?" },
+      { id: "M11", type: "short", prompt: "log(1000) =" },
+      { id: "M12", type: "short", prompt: "log(10⁻⁵) =" },
+      { id: "M13", type: "short", prompt: "If log(x) = −2, what is x?" },
+      { id: "M14", type: "short", prompt: "−log(1.0 × 10⁻⁹) =" },
+      { id: "M15", type: "short", prompt: "Estimate to one decimal place:  −log(4.0 × 10⁻⁵) =" },
+      { id: "M16", type: "short", prompt: "2⁻³ =" },
+      { id: "M17", type: "short", prompt: "Simplify:  (x³)(x⁵) / x²" },
+      { id: "M18", type: "short", prompt: "Convert 0.045 L to mL." },
+      { id: "M19", type: "short", prompt: "A reaction produces 12 grams every 4 minutes. How many grams in 15 minutes?" },
+      { id: "M20", type: "short", prompt: "18 is what percent of 240?" },
+    ],
+  },
+  {
+    id: "m2",
+    n: "02",
+    title: "Structure and bonding",
+    time: "25 minutes, hard stop",
+    note: "No calculator needed. Rate your confidence on every question before you move on. Once you tap Next, that answer and rating are locked.",
+    timed: 25 * 60,
+    confidence: true,
+    items: [
+      { id: "S1", type: "single", prompt: "How many valence electrons does a neutral nitrogen atom have?", options: ["3", "5", "7", "2"] },
+      { id: "S2", type: "draw", prompt: "Draw the complete Lewis structure for methanol, CH₃OH. Show every bond and every lone pair." },
+      { id: "S3", type: "single", prompt: "A nitrogen atom in a molecule has four single bonds and no lone pairs. What is its formal charge?", options: ["−1", "0", "+1", "+2"] },
+      { id: "S4", type: "single", prompt: "Which oxygen below carries a formal charge of −1?\n\n(i) oxygen with 2 bonds and 2 lone pairs\n(ii) oxygen with 1 bond and 3 lone pairs\n(iii) oxygen with 3 bonds and 1 lone pair", options: ["i", "ii", "iii", "None of them"] },
+      { id: "S5", type: "draw", prompt: "For the nitrate ion, NO₃⁻, draw one resonance structure and write the formal charge next to every atom. Then check that the formal charges add up to the overall charge." },
+      { id: "S6", type: "single", prompt: "Two structures are drawn. Which change would mean they are NOT true resonance structures of each other?", options: [
+        "Only the position of electrons differs",
+        "A hydrogen atom moved from one carbon to another",
+        "A lone pair became a pi bond",
+        "A pi bond became a lone pair",
+      ] },
+      { id: "S7", type: "single", prompt: "When two resonance contributors are compared, which one contributes more to the actual structure?", options: [
+        "The one with more separated charges",
+        "The one with complete octets and negative charge on the more electronegative atom",
+        "The one that looks more symmetric",
+        "The one with negative charge on the less electronegative atom",
+      ] },
+      { id: "S8", type: "single", prompt: "Rank in order of increasing electronegativity: C, N, O, F", options: ["F < O < N < C", "C < N < O < F", "C < O < N < F", "N < C < O < F"] },
+      { id: "S9", type: "single", prompt: "CO₂ contains two polar C=O bonds. Is CO₂ a polar molecule?", options: [
+        "Yes, because the individual bonds are polar",
+        "No, because the molecule is linear and the two bond dipoles cancel",
+        "Yes, because oxygen is much more electronegative than carbon",
+        "No, because carbon and oxygen have similar electronegativity",
+      ] },
+      { id: "S10", type: "single", prompt: "What is the molecular geometry around nitrogen in NH₃, and the approximate bond angle?", options: [
+        "Trigonal planar, 120°", "Tetrahedral, 109.5°", "Trigonal pyramidal, about 107°", "Bent, about 104.5°",
+      ] },
+      { id: "S11", type: "single", prompt: "In CH₂=CH-CH₃, what is the hybridization of each carbon, reading left to right?", options: [
+        "sp³, sp³, sp³", "sp², sp², sp³", "sp², sp³, sp³", "sp, sp², sp³",
+      ] },
+      { id: "S12", type: "single", prompt: "An sp² hybridized carbon has what geometry and what approximate bond angle?", options: [
+        "Tetrahedral, 109.5°", "Trigonal planar, 120°", "Linear, 180°", "Bent, 120°",
+      ] },
+      { id: "S13", type: "single", prompt: "In an amide, the nitrogen is sp² hybridized rather than sp³, and the group is flat. Why?", options: [
+        "Nitrogen is always sp² when it has three bonds",
+        "It is bonded to a carbon that has a double bond, and that forces it flat",
+        "The nitrogen lone pair is delocalized into the carbonyl pi system",
+        "Nitrogen has a smaller radius than carbon",
+      ] },
+      { id: "S14", type: "single", prompt: "Rank these by increasing boiling point: propane (CH₃CH₂CH₃), ethanol (CH₃CH₂OH), dimethyl ether (CH₃OCH₃).", options: [
+        "propane < ethanol < dimethyl ether",
+        "propane < dimethyl ether < ethanol",
+        "dimethyl ether < propane < ethanol",
+        "ethanol < dimethyl ether < propane",
+      ] },
+      { id: "S15", type: "single", prompt: "Which of these can act as a hydrogen bond DONOR?", options: ["CH₃OCH₃", "CH₃CH₂OH", "CH₃F", "(CH₃)₃N"] },
+      { id: "S16", type: "long", prompt: "Which is more soluble in water, 1-butanol (4 carbons, one OH) or 1-octanol (8 carbons, one OH)? Explain in one sentence." },
+      { id: "S17", type: "single", prompt: "Which atom has the largest atomic radius?", options: ["C", "N", "O", "Si"] },
+      { id: "S18", type: "long", prompt: "In a carboxylate ion (RCOO⁻), both carbon-to-oxygen bonds are the same length. That length is shorter than a normal C-O single bond but longer than a normal C=O double bond. Explain why, in two or three sentences." },
+    ],
+  },
+  {
+    id: "mr",
+    n: "R",
+    title: "Retrieval check",
+    time: "About 4 minutes. Start of Session B.",
+    note: "If you have not taken a real break since the last section, take one now. At least 15 minutes, and a different day is better. The last two sections carry the most weight in the whole thing, and answering them tired is the single easiest way to make the results wrong.\n\nNo clock on this part. No multiple choice either, on purpose.",
+    timed: false,
+    confidence: false,
+    items: [
+      { id: "R0a", noConf: true, type: "text", prompt: "First, a quick check before Module 3 starts.\n\nHow long has it been since you finished Session A? Hours or days is fine." },
+      { id: "R0b", noConf: true, type: "single", prompt: "Between Session A and now, did you look back at any Module 2 material, look anything up, review notes, or talk the questions over with anyone?\n\nIf you did, that is completely fine and not a problem. It just changes how this next part gets read.", options: [
+        "Not at all",
+        "A little, in passing",
+        "Yes, I reviewed some of it",
+        "Yes, I reviewed a lot of it",
+      ] },
+      { id: "R1", noConf: true, type: "short", prompt: "Without looking anything up: what is the formal charge on an oxygen atom that has three bonds and one lone pair?\n\nNo multiple choice on these three, on purpose. \"I do not remember\" is a real answer and a useful one." },
+      { id: "R2", noConf: true, type: "short", prompt: "Without looking anything up: a central atom has three atoms bonded to it and one lone pair. What is the molecular geometry, and how does its bond angle compare with the ideal tetrahedral angle of 109.5°?" },
+      { id: "R3", noConf: true, type: "long", prompt: "Without looking anything up: when you compare two resonance contributors, what makes one more important than the other? List as many factors as you can remember." },
+    ],
+  },
+  {
+    id: "m3",
+    n: "03",
+    title: "Acids, bases, and where electrons go",
+    time: "22 minutes, hard stop",
+    note: "Calculator allowed here. Keep rating your confidence. Once you tap Next, that answer and rating are locked.",
+    timed: 22 * 60,
+    confidence: true,
+    items: [
+      { id: "A1", type: "single", prompt: "What is the conjugate BASE of HCO₃⁻?", options: ["H₂CO₃", "CO₃²⁻", "H₂O", "OH⁻"] },
+      { id: "A2", type: "short", prompt: "A weak acid has Ka = 1.8 × 10⁻⁵. What is its pKa?" },
+      { id: "A3", type: "single", prompt: "Acid X has pKa 4. Acid Y has pKa 10. Which is the stronger acid?", options: [
+        "X, because a lower pKa means a stronger acid",
+        "Y, because a higher pKa means a stronger acid",
+        "They are equally strong",
+        "Cannot tell without knowing the concentrations",
+      ] },
+      { id: "A4", type: "single", prompt: "Which is the stronger BASE: the conjugate base of an acid with pKa 4, or the conjugate base of an acid with pKa 16?", options: [
+        "The conjugate base of the pKa 4 acid",
+        "The conjugate base of the pKa 16 acid",
+        "They are equal",
+        "Cannot tell",
+      ] },
+      { id: "A5", type: "long", prompt: "Rank these by increasing acidity and name the single factor that explains the ranking:  CH₃CH₃,  CH₃OH,  CH₃COOH" },
+      { id: "A6", type: "single", prompt: "Acetic acid (CH₃COOH) is far more acidic than ethanol (CH₃CH₂OH). What is the best explanation?", options: [
+        "Acetic acid contains more oxygen atoms",
+        "Acetic acid is a carboxylic acid and carboxylic acids are acidic",
+        "The acetate conjugate base is stabilized by resonance across two oxygens",
+        "Acetic acid has a higher molecular weight",
+      ] },
+      { id: "A7", type: "long", prompt: "Which is more acidic, acetic acid (CH₃COOH) or chloroacetic acid (ClCH₂COOH)? Explain your reasoning in one or two sentences." },
+      { id: "A8", type: "single", prompt: "In an acid-base equilibrium, which side is favored?", options: [
+        "The side with the stronger acid", "The side with the weaker acid", "The side with more molecules", "Neither, they are always 50/50",
+      ] },
+      { id: "A9", type: "single", prompt: "In CH₃-Br, which atom is electron-poor, and therefore the site an electron-rich species would attack?", options: [
+        "The bromine", "The carbon bonded to bromine", "The hydrogens", "Neither, the molecule is neutral overall",
+      ] },
+      { id: "A10", type: "single", prompt: "Which is the best description of a nucleophile?", options: [
+        "A species with an empty orbital that wants electrons",
+        "A species with a lone pair or negative charge that donates electrons",
+        "Any positively charged ion",
+        "Any molecule that contains a double bond",
+      ] },
+      { id: "A11", type: "draw", prompt: "Hydroxide (HO⁻) reacts with CH₃-Br to give CH₃-OH and Br⁻. Using arrows, show where the electrons start and where they end up.\n\nWords are fine instead of arrows: which electrons move, from what, to what." },
+      { id: "A12", type: "single", prompt: "For a reaction at standard conditions, ΔG° is less than zero. What does that tell you?", options: [
+        "The reaction is fast",
+        "At equilibrium, products are favored over reactants, but this says nothing about how fast the reaction happens",
+        "The reaction happens instantly at room temperature",
+        "The activation energy is low",
+      ] },
+      { id: "A13", type: "single", prompt: "On a reaction energy diagram, which quantity determines the RATE of the reaction?", options: [
+        "The difference in energy between reactants and products",
+        "The height of the barrier from reactants to the transition state",
+        "The total energy released",
+        "The energy of the products alone",
+      ] },
+      { id: "A14", type: "long", prompt: "Phenol is an OH group attached directly to a benzene ring. Cyclohexanol is an OH group attached to a saturated six-carbon ring. Phenol is roughly a million times more acidic than cyclohexanol.\n\nYou have not studied phenol. Using only what you know about why some conjugate bases are more stable than others, propose an explanation. Two or three sentences." },
+    ],
+  },
+  {
+    id: "m4",
+    n: "04",
+    title: "Unfamiliar problems",
+    time: "About 20 minutes",
+    note: "This part is not about right answers. It is about showing your thinking. Write down the wrong turns too. A messy page with visible dead ends is worth more here than a clean answer.",
+    timed: false,
+    confidence: false,
+    items: [
+      { id: "U1", type: "long", isU1: true, prompt: "Apply a rule you have just been given." },
+      { id: "U2a", type: "long", prompt: "A solution is made by dissolving 4.60 g of a compound in enough water to make 250.0 mL. The resulting solution has a pH of 2.87. What is the molar mass of the compound?\n\nDo not try to solve this. It may or may not contain enough information to be solvable, and deciding that is part of the task.\n\n(a) What do you already know that is relevant to this problem?" },
+      { id: "U2b", type: "long", prompt: "(b) What specific piece of information, assumption, or formula would you need in order to finish it? If you think something is missing, say what." },
+      { id: "U2c", type: "long", prompt: "(c) What would your very first move be if you had to start?" },
+      { id: "U3", type: "long", prompt: "A rate of reaction is measured as 0.024 mol/L per second. Express this rate in millimoles per liter per minute.\n\nThen answer: how do you know your answer is right?" },
+      { id: "U4a", type: "long", prompt: "Think back over Modules 2 and 3. Which single question are you least confident you got right, and why?" },
+      { id: "U4b", type: "long", prompt: "Which question did you mark \"I know this\" but now feel less sure about?" },
+      { id: "U4c", type: "long", prompt: "Was there any point where you felt yourself giving up rather than working through it? Which question?" },
+    ],
+  },
+];
+var CONF=[{code:"A",label:"I know this",c:"#2E7D6B"},{code:"B",label:"I think I know this",c:"#6BA292"},{code:"C",label:"I am unsure",c:"#C9A227"},{code:"D",label:"I guessed",c:"#B5533C"}];
+var TOTAL=MODULES.reduce(function(n,m){return n+m.items.length},0);
+var KEY="ochem-diagnostic-v13";
+var S={screen:"intro",mi:0,ii:0,responses:{},saveOk:null,timeUp:false,enter:Date.now(),msg:""};
+
+function storeOk(){try{localStorage.setItem("__t","1");localStorage.removeItem("__t");return true}catch(e){return false}}
+function save(){if(S.screen==="intro"){return}try{localStorage.setItem(KEY,JSON.stringify({mi:S.mi,ii:S.ii,screen:S.screen,responses:S.responses}));S.saveOk=true}catch(e){S.saveOk=false}}
+function load(){try{var r=localStorage.getItem(KEY);if(!r)return;var o=JSON.parse(r);var mi=Math.min(Math.max(o.mi||0,0),MODULES.length-1);var ii=Math.min(Math.max(o.ii||0,0),MODULES[mi].items.length-1);S.responses=o.responses||{};S.mi=mi;S.ii=ii;if(o.screen)S.screen=o.screen}catch(e){}}
+
+function mod(){return MODULES[S.mi]}
+function item(){return mod().items[S.ii]}
+function cur(){return S.responses["r:"+item().id]||{}}
+function answered(){return Object.keys(S.responses).filter(function(k){return k.indexOf("r:")===0}).length}
+
+function record(patch){var id=item().id,k="r:"+id,p=S.responses[k]||{};var ms=(p.ms||0)+(Date.now()-S.enter);S.enter=Date.now();var o={};for(var x in p)o[x]=p[x];for(var y in patch)o[y]=patch[y];o.ms=ms;S.responses[k]=o;save()}
+
+function remaining(){var m=mod();if(!m.timed)return null;var st=S.responses[m.id+"-start"];if(!st)return m.timed;return m.timed-Math.floor((Date.now()-st)/1000)}
+function startClock(){var m=mod();if(m.timed&&!S.responses[m.id+"-start"]){S.responses[m.id+"-start"]=Date.now();save()}}
+
+function esc(t){var d=document.createElement("div");d.textContent=t==null?"":String(t);return d.innerHTML}
+
+function buildExport(){
+  var L=[];L.push("ORGANIC CHEMISTRY READINESS DIAGNOSTIC v1.3 + v1.4");L.push("Raw response export. Score against the administrator manuals.");
+  L.push("Saved: "+new Date().toLocaleString());L.push("Items answered: "+answered()+" of "+TOTAL);
+  if(answered()<TOTAL)L.push("*** PARTIAL EXPORT. Not finished. Later files from this student supersede this one. ***");
+  L.push("");
+  MODULES.forEach(function(m){
+    L.push(new Array(53).join("="));L.push("MODULE "+m.n+"  "+m.title);
+    var st=S.responses[m.id+"-start"];if(st)L.push("Module started: "+new Date(st).toLocaleTimeString());
+    L.push(new Array(53).join("="));
+    m.items.forEach(function(it){
+      var r=S.responses["r:"+it.id]||{};var secs=r.ms?Math.round(r.ms/1000):0;var a=r.answer;
+      if(Object.prototype.toString.call(a)==="[object Array]")a=a.join("; ");
+      if(a===undefined||a==="")a="[BLANK]";
+      L.push("");L.push("["+it.id+"]  time "+secs+"s"+(r.conf?"  confidence "+r.conf:"")+(it.type==="draw"?"  (PAPER: see photo)":""));
+      L.push(String(a));
+    });L.push("")});
+  return L.join("\n")}
+
+function download(){try{var b=new Blob([buildExport()],{type:"text/plain"});var u=URL.createObjectURL(b);var a=document.createElement("a");a.href=u;a.download="diagnostic-responses.txt";document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(u)},1000);flash("File saved to your downloads")}catch(e){flash("Could not save a file. Use the text box below and copy it by hand.")}}
+function copyTxt(){var t=buildExport();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){flash("Copied")},function(){flash("Copy did not work. Use Save as a file instead.")})}else{flash("Copy did not work. Use Save as a file instead.")}}
+function flash(m){S.msg=m;render();setTimeout(function(){S.msg="";render()},2600)}
+
+function advance(){var m=mod();var it=item();
+  if(m.confidence&&it&&!it.noConf){var k="r:"+it.id;if(S.responses[k]&&!S.responses[k].locked){S.responses[k].locked=true}}
+  var ni=S.ii+1;
+  if(ni<m.items.length&&!(m.timed&&S.timeUp)){S.ii=ni}
+  else if(S.mi+1<MODULES.length){S.mi=S.mi+1;S.ii=0;S.screen="modIntro";S.timeUp=false}
+  else{S.screen="done"}
+  S.enter=Date.now();save();render();window.scrollTo(0,0)}
+function back(){if(S.ii>0){S.ii--}else if(S.mi>0){S.mi--;S.ii=MODULES[S.mi].items.length-1}S.enter=Date.now();save();render();window.scrollTo(0,0)}
+function reset(){if(!confirm("Clear everything and start over? This cannot be undone."))return;try{localStorage.removeItem(KEY)}catch(e){}S.responses={};S.mi=0;S.ii=0;S.screen="intro";S.timeUp=false;render()}
+
+function render(){
+  var m=MODULES[S.mi];var H="";
+  if(S.screen!=="intro"&&S.screen!=="done"){
+    var rem=remaining();var pct=(answered()/TOTAL)*100;
+    H+='<div class="bar"><div class="bar-in"><div class="bar-mod"><span class="bar-n">'+m.n+'</span><span class="bar-t">'+esc(m.title)+'</span></div><div class="bar-r"><button class="barsave" onclick="download()">Save my work</button>'+
+       (rem!==null&&S.screen==="question"?'<div class="timer'+(rem<=60?" low":"")+'">'+(rem>0?Math.floor(rem/60)+":"+("0"+(rem%60)).slice(-2):"TIME")+'</div>':"")+
+       '</div></div><div class="track"><div class="fill" style="width:'+pct+'%"></div></div></div>'}
+  H+='<div class="wrap">';
+  if(S.msg)H+='<div class="ok">'+esc(S.msg)+'</div>';
+
+  if(S.screen==="intro"){
+    H+='<div class="eyebrow">Chemistry readiness</div><h1>This is not a test you can fail.</h1>'+
+    '<p class="lede">Nothing here goes on a transcript. No one is grading you. The only thing it does is work out which three or four things are actually worth your time before classes start, so you do not spend a single day reviewing something you already know.</p>'+
+    '<div class="honest"><p><strong>Guessing quietly is what breaks it.</strong> If you mark high confidence on something you actually guessed, this thing will decide you already have it and skip teaching it to you. Rate your confidence honestly and you get a better plan out the other end. That is the whole trade.</p></div>'+
+    '<ul class="rules"><li>No notes, no textbook, no internet, no AI. Phone in another room if it is not this one.</li>'+
+    '<li>Calculator only where a section says so. Module 01 is no calculator.</li>'+
+    '<li>'+(storeOk()?"Your place saves automatically on this device. You can close it and come back.":'This browser is not saving automatically. Use the "Save my work" button at the top after every section and keep the files.')+'</li>'+
+    '<li>Section 00 is untimed. Do it whenever, ideally the day before the rest.</li>'+
+    '<li>Then two blocks of about 40 minutes: sections 01 and 02, a real break, then 03 and 04.</li>'+
+    '<li>If you do not know something, say so and move on. A blank is real information.</li></ul>'+
+    '<button class="go" onclick="S.screen=\'modIntro\';save();render()">Start</button>'+
+    (answered()>0?'<button class="ghost" onclick="reset()">Clear '+answered()+' saved answers and start over</button>':"")}
+
+  else if(S.screen==="modIntro"){
+    H+='<div class="mod-n">'+m.n+'</div><h2>'+esc(m.title)+'</h2><div class="mod-time">'+esc(m.time)+'</div><p class="mod-note">'+esc(m.note)+'</p>';
+    if(!storeOk()&&S.mi>0)H+='<div class="warn"><strong>This browser is not saving your progress automatically.</strong> Before you go on, save what you have so far as a file. Do it again after every section, and send your mom every file.<button class="go alt" onclick="download()">Save my work so far</button></div>';
+    if(m.timed)H+='<div class="warn">The clock starts when you tap through and it does not pause. If it runs out, the section closes wherever you are. That is intentional.</div>';
+    H+='<button class="go" onclick="startClock();S.screen=\'question\';S.enter=Date.now();save();render()">'+(m.timed?"Start the clock":"Begin")+'</button>'}
+
+  else if(S.screen==="question"){
+    var it=item(),c=cur();
+    if(m.timed&&remaining()<=0)S.timeUp=true;
+    H+='<div class="q-head"><span class="q-id">'+it.id+'</span><span class="q-count">'+(S.ii+1)+' / '+m.items.length+'</span></div>';
+    if(it.isU1){H+='<div class="u1-rule"><div class="eyebrow">A rule you have not learned yet</div>'+
+      '<p>When HBr adds across a carbon-carbon double bond, the reaction goes through a positively charged carbon called a <strong>carbocation</strong>. Carbocations are more stable when the positive carbon has more carbon groups attached to it. A carbon with three attached carbons is much more stable than one with two, which is much more stable than one with one.</p>'+
+      '<p><strong>The reaction produces whichever product comes from the more stable carbocation.</strong></p></div>'+
+      '<p class="u1-body">Now apply it. Here is 2-methyl-2-butene. You do not need to know the naming system, just read the structure.</p>'+
+      '<pre class="u1-struct">        CH\u2083\n         |\n  CH\u2083 \u2500 C \u2550 CH \u2500 CH\u2083</pre>'+
+      '<p class="u1-body">The double bond connects the second carbon (the one carrying the extra CH\u2083 branch) to the third carbon (the one carrying one H).</p>'+
+      '<p class="u1-body">When HBr adds, the H attaches to one of those two carbons and the Br attaches to the other, giving two possible products. <strong>Which product forms in larger amount, and why?</strong></p>'+
+      '<p class="u1-body">Label which carbon becomes positive in each case and count how many carbon groups are attached to it. Draw on paper if that helps, photograph it, and describe your reasoning below.</p>'}
+    else{H+='<p class="q-prompt">'+esc(it.prompt)+'</p>'}
+    if(it.type==="draw")H+='<div class="paper-note">Draw this on paper, write <strong>'+it.id+'</strong> next to it, and photograph it when you finish. Then describe what you drew below.</div>';
+    if(c.locked){H+='<div class="locked-note">You already answered this one and rated your confidence, so it is locked now. You can read it, but changing it after the fact would break what this measures.</div>'}
+    if(it.type==="single"&&!c.locked){H+='<div class="opts">';it.options.forEach(function(o,k){H+='<button class="opt'+(c.answer===o?" on":"")+'" onclick="record({answer:'+JSON.stringify(o).replace(/"/g,"&quot;")+'});render()"><span class="opt-k">'+String.fromCharCode(97+k)+'</span><span class="opt-v">'+esc(o)+'</span></button>'});H+='</div>'}
+    if(it.type==="multi"&&!c.locked){var arr=c.answer||[];H+='<div class="opts">';it.options.forEach(function(o,k){var on=arr.indexOf(o)>-1;H+='<button class="opt'+(on?" on":"")+'" onclick="toggleMulti('+JSON.stringify(o).replace(/"/g,"&quot;")+');render()"><span class="opt-k">'+(on?"\u2713":"")+'</span><span class="opt-v">'+esc(o)+'</span></button>'});H+='</div>'}
+    if((it.type==="short"||it.type==="text")&&!c.locked)H+='<input class="in" type="text" value="'+esc(c.answer||"")+'" placeholder="Your answer" oninput="record({answer:this.value})">';
+    if((it.type==="long"||it.type==="draw")&&!c.locked)H+='<textarea class="ta" rows="'+(it.type==="draw"?4:6)+'" placeholder="'+(it.type==="draw"?"Describe what you drew":"Take as much space as you need")+'" oninput="record({answer:this.value})">'+esc(c.answer||"")+'</textarea>';
+    if(c.locked){var lab=(CONF.filter(function(x){return x.code===c.conf})[0]||{}).label||"";
+      var av=Object.prototype.toString.call(c.answer)==="[object Array]"?c.answer.join("; "):(c.answer||"left blank");
+      H+='<div class="locked-show"><div class="locked-row"><span class="locked-k">Your answer</span><span class="locked-v">'+esc(av)+'</span></div>'+
+         (c.conf?'<div class="locked-row"><span class="locked-k">Your confidence</span><span class="locked-v">'+esc(c.conf+" "+lab)+'</span></div>':"")+'</div>'}
+    if(m.confidence&&!it.noConf&&!c.locked){H+='<div class="conf-block"><span class="conf-label">How confident are you?</span><div class="conf-row">';
+      CONF.forEach(function(cf){var on=c.conf===cf.code;H+='<button class="conf-btn" style="'+(on?"border-color:"+cf.c+";background:"+cf.c+";color:#fff":"")+'" onclick="record({conf:\''+cf.code+'\'});render()"><span class="conf-code">'+cf.code+'</span><span>'+cf.label+'</span></button>'});H+='</div></div>'}
+    var gate=m.confidence&&!it.noConf&&!c.conf&&!c.locked;
+    H+='<div class="nav"><button class="ghost sm" onclick="back()"'+(S.mi===0&&S.ii===0?" disabled":"")+'>Back</button><div class="nav-r">'+
+       (S.saveOk===true?'<span class="saved">Saved</span>':"")+
+       (!m.timed?'<button class="ghost sm" onclick="advance()">Skip</button>':"")+
+       '<button class="go sm" onclick="advance()"'+(gate?" disabled":"")+'>'+(S.ii+1===m.items.length?"Finish section":"Next")+'</button></div></div>';
+    if(gate)H+='<div class="hint">Pick a confidence level to continue. That rating is half the data.</div>';
+    if(S.timeUp)H+='<div class="warn tight">Time is up for this section. Tap Finish section.</div>';
+    if(!storeOk())H+='<div class="warn tight">This browser is not saving automatically. Use "Save my work" at the top before you close this page.</div>'}
+
+  else if(S.screen==="done"){
+    H+='<div class="eyebrow">Finished</div><h1>That is all of it.</h1>'+
+    '<p class="lede">You answered '+answered()+' of '+TOTAL+'. Blanks are fine and they count as information.</p>'+
+    '<ol class="steps"><li>Photograph any paper work you did, especially the drawings and Module 04 scratch. Keep the cross-outs.</li>'+
+    '<li>Save or copy your responses below and send them, with the photos, to your mom.</li></ol>'+
+    '<button class="go" onclick="download()">Save my responses as a file</button>'+
+    '<button class="go alt" onclick="copyTxt()">Or copy them</button>'+
+    '<details><summary>See what gets sent</summary><pre class="raw">'+esc(buildExport())+'</pre></details>'+
+    '<button class="ghost" onclick="reset()">Clear everything and start over</button>'}
+  H+='</div>';
+  document.getElementById("root").innerHTML=H;
+  var f=document.querySelector(".in,.ta");if(f&&document.activeElement===document.body){}
+}
+function toggleMulti(o){var c=cur();var arr=(c.answer||[]).slice();var i=arr.indexOf(o);if(i>-1)arr.splice(i,1);else arr.push(o);record({answer:arr})}
+load();render();
+setInterval(function(){if(S.screen==="question"&&mod().timed)render()},1000);
+window.addEventListener("beforeunload",function(e){if(S.screen!=="intro"&&S.screen!=="done"&&!storeOk()){e.preventDefault();e.returnValue=""}});
+</script></body></html>
