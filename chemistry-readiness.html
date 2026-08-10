@@ -372,7 +372,7 @@ function render(){
   if(S.screen!=="intro"&&S.screen!=="done"){
     var rem=remaining();var pct=(answered()/TOTAL)*100;
     H+='<div class="bar"><div class="bar-in"><div class="bar-mod"><span class="bar-n">'+m.n+'</span><span class="bar-t">'+esc(m.title)+'</span></div><div class="bar-r"><button class="barsave" onclick="download()">Save my work</button>'+
-       (rem!==null&&S.screen==="question"?'<div class="timer'+(rem<=60?" low":"")+'">'+(rem>0?Math.floor(rem/60)+":"+("0"+(rem%60)).slice(-2):"TIME")+'</div>':"")+
+       (rem!==null&&S.screen==="question"?'<div class="timer'+(rem<=60?" low":"")+'" id="timerbox">'+(rem>0?Math.floor(rem/60)+":"+("0"+(rem%60)).slice(-2):"TIME")+'</div>':"")+
        '</div></div><div class="track"><div class="fill" style="width:'+pct+'%"></div></div></div>'}
   H+='<div class="wrap">';
   if(S.msg)H+='<div class="ok">'+esc(S.msg)+'</div>';
@@ -445,6 +445,14 @@ function render(){
 }
 function toggleMulti(o){var c=cur();var arr=(c.answer||[]).slice();var i=arr.indexOf(o);if(i>-1)arr.splice(i,1);else arr.push(o);record({answer:arr})}
 load();render();
-setInterval(function(){if(S.screen==="question"&&mod().timed)render()},1000);
+function tick(){
+  if(S.screen!=="question")return;
+  var m=mod();if(!m.timed)return;
+  var rem=remaining();
+  if(rem<=0){ if(!S.timeUp){S.timeUp=true;render()} return; }
+  var el=document.getElementById("timerbox");
+  if(el){ el.className="timer"+(rem<=60?" low":""); el.textContent=Math.floor(rem/60)+":"+("0"+(rem%60)).slice(-2); }
+}
+setInterval(tick,1000);
 window.addEventListener("beforeunload",function(e){if(S.screen!=="intro"&&S.screen!=="done"&&!storeOk()){e.preventDefault();e.returnValue=""}});
 </script></body></html>
