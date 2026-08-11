@@ -1,123 +1,401 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#140d20">
-<title>AStarryia's Chemistry Coach</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#12091d" />
+<title>AStarryia's Organic Chemistry Prep</title>
 <style>
-:root{--bg:#0e0916;--panel:#171020;--panel2:#21152e;--purple:#9d63ff;--purple2:#c5a4ff;--text:#f8f5ff;--muted:#b9adc8;--green:#48d597;--yellow:#f2c45c;--red:#ff6e7c;--line:#352747;--white:#fff;--ink:#17121d}
-*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 80% 0,#2a1640 0,transparent 34%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-button,input,textarea{font:inherit}.app{max-width:1200px;margin:auto;min-height:100vh}.top{position:sticky;top:0;z-index:20;background:#0e0916e8;backdrop-filter:blur(14px);border-bottom:1px solid var(--line);padding:14px 18px;display:flex;justify-content:space-between;align-items:center}.brand{font-weight:800}.brand b{color:var(--purple2)}.streak{font-size:13px;color:var(--muted)}
-.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 58px)}aside{border-right:1px solid var(--line);padding:18px;background:#110b19}.hello{padding:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#21142f,#15101e);margin-bottom:18px}.hello small{color:var(--muted)}.hello h2{margin:4px 0;color:var(--purple2)}
-.nav button{width:100%;text-align:left;border:0;background:transparent;color:var(--muted);padding:11px 12px;border-radius:10px;cursor:pointer}.nav button.on{background:#2a1940;color:white}.mastery{margin-top:20px}.mastery h4{font-size:11px;letter-spacing:.12em;color:var(--muted)}.skill{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:6px 0}.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px}.red{background:var(--red)}.yellow{background:var(--yellow)}.green{background:var(--green)}
-main{padding:24px}.hero{display:grid;grid-template-columns:1.05fr 1.3fr;gap:18px}.teacher,.board,.card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(145deg,#1b1226,#130e1b);overflow:hidden}.teacher{min-height:420px;position:relative;padding:24px;display:flex;flex-direction:column;justify-content:flex-end}.teacher:before{content:"Dr. Merissa Wilson";position:absolute;top:22px;left:22px;color:var(--purple2);font-weight:800;font-size:20px}.teacher:after{content:"AI Chemistry Coach";position:absolute;top:49px;left:22px;color:var(--muted);font-size:12px}.avatar{margin:auto auto 8px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#c69c84 0 17%,#6e4739 18% 23%,#171019 24% 46%,#f7f7f7 47% 68%,#171019 69%);box-shadow:0 0 70px #9d63ff44;border:4px solid #ffffff14}.teacher p{color:var(--muted);line-height:1.5}.teacher strong{color:white}
-.board{background:#f8f5ef;color:var(--ink);padding:24px;min-height:420px}.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7953a7;font-weight:800}.board h1{font-size:30px;margin:8px 0}.board .rule{background:#eee5fb;border-left:4px solid #8b56d9;padding:12px 14px;border-radius:8px;margin:15px 0}.formula{font-family:Georgia,serif;font-size:25px;padding:18px;text-align:center;border:2px dashed #b89bdd;border-radius:12px;margin:14px 0}.board p,.board li{line-height:1.55}.actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer}.primary{background:var(--purple);color:white}.secondary{background:#2a1c38;color:white;border:1px solid #4a3560}.light{background:#ede4fa;color:#3a2354}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.card{padding:18px}.card h3{margin:4px 0 10px}.card p{color:var(--muted);font-size:14px;line-height:1.5}.day{cursor:pointer}.day.active{outline:2px solid var(--purple)}.pill{display:inline-block;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;background:#2c2037;color:var(--purple2)}.progress{height:8px;background:#2b2035;border-radius:20px;overflow:hidden;margin-top:12px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),#d69cff);width:0}
-.practice{margin-top:18px}.q{font-size:19px;line-height:1.45}.choice{display:block;width:100%;margin:8px 0;padding:12px;border:1px solid var(--line);background:#1d1428;color:white;border-radius:11px;text-align:left;cursor:pointer}.choice.correct{border-color:var(--green);background:#123326}.choice.wrong{border-color:var(--red);background:#35151d}.feedback{padding:12px;border-radius:10px;margin-top:10px;background:#241a30;color:#ddd}.confidence{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px}.confidence button{border:1px solid var(--line);background:#191220;color:#ddd;padding:9px 10px;border-radius:9px}
-.hidden{display:none!important}.screen{display:none}.screen.on{display:block}.planlist{display:grid;gap:12px}.planrow{padding:16px;border:1px solid var(--line);border-radius:15px;background:#171020}.planrow b{color:var(--purple2)}.small{font-size:12px;color:var(--muted)}.whiteboard{background:#faf8f2;color:#201925;min-height:380px;border-radius:18px;padding:20px}.whiteboard textarea{width:100%;min-height:250px;border:0;outline:0;background:transparent;font-size:18px;line-height:1.6;resize:vertical}
-@media(max-width:800px){.layout{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap;width:auto}.mastery{display:none}.hero{grid-template-columns:1fr}.teacher{min-height:330px}.avatar{width:150px;height:150px}.grid{grid-template-columns:1fr}.top{padding:12px}.board h1{font-size:26px}main{padding:15px}}
+  :root{
+    --bg:#0f0718;
+    --panel:#1a0d28;
+    --panel2:#221232;
+    --purple:#a45cff;
+    --purple2:#c49aff;
+    --lav:#e8d7ff;
+    --text:#f8f4fb;
+    --muted:#b9aec2;
+    --cream:#faf6ef;
+    --ink:#201728;
+    --line:#3e2852;
+    --good:#42c98a;
+    --bad:#ff7a90;
+    --warn:#ffd166;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;overflow-x:hidden}
+  button,input{font:inherit}
+  a{color:inherit}
+  .app{max-width:920px;margin:0 auto;min-height:100vh;padding-bottom:88px}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(15,7,24,.96);backdrop-filter:blur(10px);border-bottom:1px solid #2b1839;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .brand{font-weight:800;font-size:clamp(18px,4vw,28px);line-height:1.05;min-width:0}
+  .brand span{color:var(--purple2)}
+  .stats{font-size:14px;color:var(--muted);white-space:nowrap}
+  .hero{margin:26px 18px 18px;padding:28px;border:1px solid #49305d;border-radius:28px;background:linear-gradient(135deg,#2a1639,#180d22)}
+  .hero small{color:var(--muted);font-size:18px}
+  .hero h1{font-size:clamp(34px,8vw,54px);margin:8px 0 6px;color:var(--purple2)}
+  .hero p{font-size:18px;color:var(--muted);margin:0}
+  .nav{display:flex;gap:10px;padding:14px 18px 20px;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{flex:0 0 auto;border:1px solid #4d3560;background:#1b0f28;color:var(--muted);padding:12px 16px;border-radius:14px;cursor:pointer}
+  .nav button.active{background:#35154e;color:#fff;border-color:#4e226c}
+  .coach{margin:0 18px 28px;padding:24px;border-radius:28px;border:1px solid #4a305b;background:linear-gradient(135deg,#23122f,#160c20)}
+  .coachgrid{display:grid;grid-template-columns:1fr 230px;gap:22px;align-items:center}
+  .coach h2{font-size:32px;margin:0;color:var(--purple2)}
+  .coach .role{color:var(--muted);margin:4px 0 18px}
+  .avatar{width:210px;height:210px;border-radius:50%;margin:auto;background:
+      radial-gradient(circle at 50% 35%,#b88b74 0 18%,#8e5f50 19% 28%,#160d16 29% 56%,#f8f8f8 57% 72%,#171119 73%);
+      box-shadow:0 0 45px rgba(164,92,255,.28), inset 0 0 0 6px #25152e}
+  .coachcopy{font-size:20px;line-height:1.55;color:var(--muted)}
+  .coachcopy b{color:white}
+  .btnrow{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+  .btn{border:0;border-radius:16px;padding:15px 20px;font-weight:800;cursor:pointer}
+  .btn.primary{background:var(--purple);color:white}
+  .btn.secondary{background:#2d193b;color:white;border:1px solid #56346c}
+  .btn.ghost{background:transparent;color:var(--purple2);border:1px solid #5f4275}
+  .section{margin:0 18px 26px}
+  .lessoncard{background:var(--cream);color:var(--ink);border-radius:28px;overflow:hidden}
+  .lessonhead{padding:30px 30px 20px}
+  .eyebrow{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#7a539b;font-weight:900}
+  .lessonhead h2{font-size:clamp(30px,7vw,48px);margin:10px 0 8px}
+  .lessonhead p{font-size:18px;line-height:1.5;color:#5f5264}
+  .progress{height:8px;background:#e8def2;margin:0 30px 26px;border-radius:99px;overflow:hidden}
+  .progress>div{height:100%;background:var(--purple);width:0;transition:.25s}
+  .teachstage{padding:0 30px 30px}
+  .whiteboard{background:white;border:1px solid #e8dfec;border-radius:20px;padding:22px;margin:16px 0;box-shadow:0 10px 30px rgba(42,20,52,.08)}
+  .whiteboard h3{margin:0 0 10px;font-size:22px}
+  .equation{font-family:Georgia,serif;font-size:clamp(28px,8vw,46px);text-align:center;padding:18px 8px;word-break:break-word}
+  .teacherline{background:#f1e7ff;border-left:5px solid var(--purple);padding:16px 18px;border-radius:12px;font-size:18px;line-height:1.55;margin:14px 0}
+  .question{margin:18px 0;padding:20px;background:#fff;border:1px solid #e7ddeb;border-radius:18px}
+  .question h4{margin:0 0 12px;font-size:20px}
+  .choices{display:grid;gap:10px}
+  .choice{width:100%;text-align:left;border:1px solid #d9cde0;background:#fff;border-radius:12px;padding:14px;cursor:pointer}
+  .choice:hover{border-color:#a678c6}
+  .choice.correct{border-color:var(--good);background:#ecfff6}
+  .choice.wrong{border-color:var(--bad);background:#fff0f3}
+  .feedback{display:none;margin-top:12px;padding:14px;border-radius:12px;line-height:1.45}
+  .feedback.show{display:block}
+  .feedback.good{background:#e9fff4;color:#176844}
+  .feedback.bad{background:#fff0f3;color:#86253b}
+  .inputrow{display:flex;gap:10px;flex-wrap:wrap}
+  .inputrow input{flex:1 1 180px;border:1px solid #d8cadf;border-radius:12px;padding:14px;background:white;min-width:0}
+  .inputrow button{flex:0 0 auto}
+  .statusbox{padding:18px;border-radius:16px;background:#f3ebff;color:#4f3566;margin:16px 0}
+  .daygrid{display:grid;gap:16px}
+  .day{border:1px solid #3d2850;border-radius:24px;background:#1a0d25;padding:22px}
+  .day h3{margin:6px 0;font-size:26px}
+  .day p{color:var(--muted);line-height:1.45}
+  .day .tag{display:inline-block;background:#38224a;color:var(--purple2);border-radius:999px;padding:7px 11px;font-size:12px;font-weight:900}
+  .barline{height:8px;background:#2d1b3a;border-radius:99px;overflow:hidden;margin-top:16px}
+  .barline>div{height:100%;width:0;background:var(--purple)}
+  .panel{display:none}
+  .panel.active{display:block}
+  .practiceBox,.diagnosticBox{margin:0 18px 28px;padding:26px;border-radius:24px;background:#1a0d25;border:1px solid #41294f}
+  .practiceBox h2,.diagnosticBox h2{margin-top:0}
+  .small{font-size:14px;color:var(--muted)}
+  .footer-note{margin:24px 18px;color:#82778d;font-size:13px;line-height:1.45}
+  @media(max-width:700px){
+    .coachgrid{grid-template-columns:1fr}
+    .avatar{width:170px;height:170px;order:-1}
+    .coach{padding:20px}
+    .hero{padding:22px}
+    .lessonhead,.teachstage{padding-left:20px;padding-right:20px}
+    .progress{margin-left:20px;margin-right:20px}
+    .coachcopy{font-size:17px}
+    .topbar{align-items:flex-start}
+    .stats{font-size:12px;margin-top:3px}
+  }
+  @media(max-width:390px){
+    .brand{font-size:18px}
+    .hero h1{font-size:34px}
+    .coach h2{font-size:27px}
+    .btn{width:100%}
+    .btnrow{display:grid}
+  }
 </style>
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="brand"><b>✦ AStarryia's</b> Organic Chemistry Prep</div><div class="streak">🔥 <span id="streak">1</span> day streak · <span id="xp">0</span> XP</div></header>
-<div class="layout">
-<aside>
-<div class="hello"><small>Welcome back,</small><h2>AStarryia ✦</h2><div class="small">Your plan is built from your August 11 readiness diagnostic.</div></div>
-<div class="nav">
-<button class="on" data-screen="today">⌂ Today</button><button data-screen="plan">▣ 9-Day Plan</button><button data-screen="practice">✎ Practice</button><button data-screen="whiteboard">□ Whiteboard</button><button data-screen="progress">◉ Progress</button>
+  <header class="topbar">
+    <div class="brand"><span>✦ AStarryia's</span> Organic Chemistry Prep</div>
+    <div class="stats">🔥 <span id="streak">1</span> day streak · <span id="xp">0</span> XP</div>
+  </header>
+
+  <section class="hero">
+    <small>Welcome back,</small>
+    <h1>AStarryia ✦</h1>
+    <p>Your plan is built from your August 11 readiness diagnostic.</p>
+  </section>
+
+  <nav class="nav">
+    <button class="active" data-panel="today">⌂ Today</button>
+    <button data-panel="plan">▣ 9-Day Plan</button>
+    <button data-panel="practice">✎ Practice</button>
+    <button data-panel="whiteboard">□ Whiteboard</button>
+    <button data-panel="diagnostic">✓ Diagnostic</button>
+  </nav>
+
+  <main>
+    <section id="today" class="panel active">
+      <div class="coach">
+        <div class="coachgrid">
+          <div>
+            <h2>Dr. Merissa Wilson</h2>
+            <div class="role">AI Chemistry Coach</div>
+            <div class="coachcopy">
+              <b>Hey AStarryia.</b> We are not restarting General Chemistry. We are rebuilding the exact foundation skills your diagnostic showed are getting in your way.
+            </div>
+            <div class="btnrow">
+              <button class="btn primary" id="teachBtn">Teach me today's lesson</button>
+              <button class="btn secondary" id="practiceFirstBtn">Practice first</button>
+            </div>
+          </div>
+          <div class="avatar" aria-label="Dr. Merissa Wilson avatar placeholder"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="lessoncard">
+          <div class="lessonhead">
+            <div class="eyebrow">Today's lesson · Day 1 of 9</div>
+            <h2>Chemistry Math Reset</h2>
+            <p>Rebuild the math fluency underneath chemistry so the calculations stop stealing attention from the chemistry itself.</p>
+          </div>
+          <div class="progress"><div id="lessonProgress"></div></div>
+          <div class="teachstage" id="teachStage">
+            <div class="statusbox">
+              Tap <b>Teach me today's lesson</b> above. You will get a worked example, then a partially guided problem, then an independent problem, then a chemistry transfer problem.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="plan" class="panel">
+      <div class="section">
+        <div class="daygrid" id="dayGrid"></div>
+      </div>
+    </section>
+
+    <section id="practice" class="panel">
+      <div class="practiceBox">
+        <div class="eyebrow">Practice lab</div>
+        <h2>Quick retrieval practice</h2>
+        <p class="small">This section uses closed-note practice. Your progress is saved on this device.</p>
+        <div id="practiceArea"></div>
+      </div>
+    </section>
+
+    <section id="whiteboard" class="panel">
+      <div class="practiceBox">
+        <div class="eyebrow">Whiteboard</div>
+        <h2>Work it out where you can see it</h2>
+        <p class="small">Use paper or the scratch area below. The point is to externalize the steps rather than hold them in your head.</p>
+        <textarea id="scratch" style="width:100%;min-height:260px;border-radius:18px;padding:16px;background:#fff;color:#201728;border:0" placeholder="Write your steps, rules, or reasoning here..."></textarea>
+        <div class="btnrow"><button class="btn secondary" id="saveScratch">Save whiteboard</button></div>
+      </div>
+    </section>
+
+    <section id="diagnostic" class="panel">
+      <div class="diagnosticBox">
+        <div class="eyebrow">Readiness diagnostic</div>
+        <h2>Your original diagnostic stays intact.</h2>
+        <p class="small">Use it only when you intentionally want to review or retake the readiness diagnostic. It remains separate from the teaching score.</p>
+        <div class="btnrow">
+          <a class="btn primary" href="chemistry-readiness.html" style="text-decoration:none;display:inline-block">Open readiness diagnostic</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer-note">
+    Version 2 teaching prototype. Progress is stored locally on this device. The diagnostic score is not changed by lesson activity.
+  </div>
 </div>
-<div class="mastery"><h4>MY MASTERY</h4><div id="skills"></div></div>
-</aside>
-<main>
-<section id="today" class="screen on">
-<div class="hero">
-<div class="teacher"><div class="avatar" aria-label="Dr. Merissa Wilson AI Chemistry Coach illustration"></div><p><strong>Hey AStarryia.</strong> I am Dr. Merissa Wilson, your AI Chemistry Coach. We are not restarting General Chemistry. We are rebuilding the exact skills your diagnostic showed are getting in your way.</p><div class="actions"><button class="btn primary" onclick="startLesson()">Teach me today's lesson</button><button class="btn secondary" onclick="showScreen('practice')">Practice first</button></div></div>
-<div class="board"><div class="eyebrow">Today's lesson · <span id="dayLabel"></span></div><h1 id="lessonTitle"></h1><div class="rule" id="lessonGoal"></div><div id="lessonBody"></div><div class="actions"><button class="btn light" onclick="nextTeach()">Next teaching step →</button><button class="btn light" onclick="reteach()">I still don't get it</button></div></div>
-</div>
-<div class="grid" id="dayCards"></div>
-</section>
 
-<section id="plan" class="screen"><div class="eyebrow">Personalized rebuild</div><h1>Your 9-Day Plan</h1><p class="small">About 90–120 focused minutes a day, broken into blocks. Every day starts closed-note.</p><div id="planRows" class="planlist"></div></section>
-
-<section id="practice" class="screen"><div class="card practice"><div class="eyebrow">Independent retrieval</div><h1>Practice without looking it up</h1><p class="small">Try first. Help comes after an attempt. That is part of your new learning system.</p><div id="practiceBox"></div></div></section>
-
-<section id="whiteboard" class="screen"><div class="eyebrow">Work it out</div><h1>Scratch Whiteboard</h1><div class="whiteboard"><textarea id="notes" placeholder="Write what you know, what is being asked, the rule that might apply, and your first move..."></textarea></div><div class="actions" style="margin-top:12px"><button class="btn primary" onclick="saveNotes()">Save board</button><button class="btn secondary" onclick="document.getElementById('notes').value=''">Clear</button></div></section>
-
-<section id="progress" class="screen"><div class="eyebrow">Mastery, not completion</div><h1>Your Progress</h1><div class="grid" id="progressCards"></div><div class="card" style="margin-top:16px"><h3>The rule</h3><p>Green means you can produce it independently. Yellow means you understand it but are inconsistent. Red means it still needs rebuilding. Watching a lesson does not turn a skill green. Producing it does.</p></div></section>
-</main></div></div>
 <script>
-const DAYS=[
-{title:"Chemistry Math Reset",status:"yellow",goal:"Make the basic math fast enough that it stops stealing working memory from chemistry.",teach:[
-"Start with a short fluency block: fractions, decimals, percentages, exponents, scientific notation and logs.",
-"Then use dimensional analysis. Write the starting unit, multiply by conversion factors, and make unwanted units cancel.",
-"Do not judge success by whether a worked example looks familiar. Close it and solve a new one from blank paper."
-],q:"Convert 0.024 mol/L/s to mmol/L/min.",choices:["1.44 mmol/L/min","24 mmol/L/min","1440 mmol/L/min","0.0004 mmol/L/min"],answer:2,why:"Multiply by 1000 mmol/mol and 60 s/min: 0.024 × 1000 × 60 = 1440 mmol/L/min."},
-{title:"Lewis Structures From Zero",status:"red",goal:"Build structures independently: valence electrons → total → skeleton → bonds → lone pairs → octets.",teach:[
-"Count every valence electron first. For an ion, adjust the total for charge.",
-"Choose a skeleton, connect atoms with single bonds, then complete terminal-atom octets before the central atom.",
-"If the central atom lacks an octet, convert neighboring lone pairs into multiple bonds when chemically appropriate."
-],q:"What should you do FIRST when drawing a Lewis structure?",choices:["Guess the molecular shape","Count total valence electrons","Assign hybridization","Calculate pKa"],answer:1,why:"The electron budget controls everything that follows."},
-{title:"Formal Charge",status:"red",goal:"Assign charge quickly from a structure instead of relying on recognition.",teach:[
-"Use one procedure every time: formal charge = valence electrons − nonbonding electrons − number of bonds.",
-"For oxygen: two bonds usually means 0, one bond usually means −1, and three bonds usually means +1.",
-"For nitrogen: three bonds plus a lone pair is usually 0; four bonds is usually +1."
-],q:"An oxygen has three bonds and one lone pair. What is its formal charge?",choices:["−1","0","+1","+2"],answer:2,why:"O has 6 valence electrons. FC = 6 − 2 nonbonding electrons − 3 bonds = +1."},
-{title:"Resonance",status:"red",goal:"Move electrons without moving atoms, then decide which contributors matter most.",teach:[
-"Resonance structures keep the same atom connectivity. Electrons move; atoms do not.",
-"Common moves are lone pair → pi bond and pi bond → lone pair. Curved arrows begin at electrons.",
-"Better contributors favor full octets, fewer unnecessary charges, and negative charge on more electronegative atoms."
-],q:"Which change means two drawings are NOT resonance structures?",choices:["A lone pair becomes a pi bond","A pi bond becomes a lone pair","A hydrogen moves to another carbon","Only electrons change position"],answer:2,why:"Moving an atom changes connectivity. Resonance moves electrons, not atoms."},
-{title:"Geometry + Hybridization + Polarity",status:"red",goal:"Connect electron domains to geometry, hybridization and whole-molecule polarity.",teach:[
-"Use electron domains around the atom: four domains → sp3, three → sp2, two → sp.",
-"Geometry matters for polarity. Polar bonds do not automatically make a polar molecule.",
-"CO2 has polar C=O bonds, but its linear geometry makes the equal bond dipoles cancel."
-],q:"Why is CO2 nonpolar?",choices:["C and O have equal electronegativity","Its bonds are nonpolar","It is linear and the bond dipoles cancel","Carbon has no valence electrons"],answer:2,why:"Bond polarity and molecular polarity are different questions. Symmetry can cancel bond dipoles."},
-{title:"Acid/Base Engine",status:"yellow",goal:"Build from your pKa strength and make the WHY independently retrievable.",teach:[
-"Lower pKa means stronger acid. The stronger acid has the weaker conjugate base.",
-"Acid loses H+ to make its conjugate base. Base gains H+ to make its conjugate acid.",
-"To explain acidity, compare conjugate-base stability: resonance, electronegativity, induction and related stabilizing effects."
-],q:"An acid with pKa 4 is compared with one at pKa 10. Which is stronger?",choices:["pKa 4","pKa 10","Equal","Cannot tell"],answer:0,why:"Lower pKa corresponds to the stronger acid."},
-{title:"Electrons: The Language of Orgo",status:"red",goal:"See electron-rich and electron-poor sites and make arrows tell the electron story.",teach:[
-"A nucleophile donates an electron pair. Look for lone pairs, negative charge, or electron-rich pi bonds.",
-"An electrophile accepts electron density. Look for positive or partial-positive centers.",
-"Curved arrows start at electrons and point to where those electrons go. Never start an arrow at a positive charge."
-],q:"In CH3–Br, where would an electron-rich nucleophile attack?",choices:["The bromine atom","The carbon bonded to bromine","A hydrogen","Nowhere"],answer:1,why:"The C–Br bond is polarized, leaving the carbon electron-poor and susceptible to nucleophilic attack."},
-{title:"Transfer Day",status:"red",goal:"Apply a rule you were just given instead of searching for a memorized example.",teach:[
-"Before solving, write four things: What does the rule say? What features matter? What outcomes are possible? What is my first move?",
-"Give yourself 3–5 minutes before looking anything up. The struggle is training transfer, not wasting time.",
-"After feedback, redo from blank paper and then solve a parallel problem."
-],q:"A new rule says tertiary carbocations are more stable than secondary, which are more stable than primary. Which carbocation should be favored?",choices:["Primary","Secondary","Tertiary","All equal"],answer:2,why:"Apply the stated rule directly: tertiary > secondary > primary."},
-{title:"Closed-Note Readiness Check",status:"yellow",goal:"Prove what is independently available now and identify anything that still needs tutoring.",teach:[
-"No videos or notes first. Mix math, Lewis structures, formal charge, resonance, hybridization, polarity, acid/base, nucleophile/electrophile and arrows.",
-"Classify each skill honestly: GREEN independent, YELLOW inconsistent, RED cannot yet produce independently.",
-"Any remaining red skill becomes an immediate tutoring or office-hours target. The goal is readiness, not a fake perfect score."
-],q:"Which result deserves GREEN status?",choices:["I recognize it when I see the answer","I can do it independently from a blank page","I watched the lesson twice","I feel familiar with the vocabulary"],answer:1,why:"Mastery here means independent production, not familiarity."}
+const KEY='astarryia-ochem-v2';
+let state = JSON.parse(localStorage.getItem(KEY)||'{}');
+state.xp = state.xp || 0;
+state.day1 = state.day1 || {step:0, correct:0, complete:false};
+state.scratch = state.scratch || '';
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+function setXP(n){ state.xp += n; save(); document.getElementById('xp').textContent=state.xp; }
+document.getElementById('xp').textContent = state.xp;
+document.getElementById('scratch').value = state.scratch;
+
+const DAYS = [
+ ['DAY 1','Chemistry Math Reset','Fractions, proportions, scientific notation, exponents, logs, and unit conversion.'],
+ ['DAY 2','Lewis Structures + Formal Charge','Build complete structures, show lone pairs, and calculate formal charge instead of guessing from appearance.'],
+ ['DAY 3','Resonance Foundations','Separate resonance contributors from moving atoms and use electron movement correctly.'],
+ ['DAY 4','Polarity + Intermolecular Forces','Connect electronegativity, molecular shape, polarity, hydrogen bonding, and solubility.'],
+ ['DAY 5','Geometry + Hybridization','Connect electron domains to molecular geometry and hybridization.'],
+ ['DAY 6','Acid/Base Engine','Build from pKa direction, conjugate pairs, equilibrium, and conjugate-base stability.'],
+ ['DAY 7','Electrons: The Language of Orgo','Identify electron-rich and electron-poor sites and make electron-flow arrows tell the story.'],
+ ['DAY 8','Transfer Day','Apply a rule you were just given instead of searching for a memorized case.'],
+ ['DAY 9','Closed-Note Readiness Check','Prove what is independently available now and identify anything that still needs tutoring.']
 ];
-const skillNames=["Lewis Structures","Formal Charge","Resonance","Hybridization","Polarity","Acid/Base","Nuc/Electrophile","Arrow Pushing","Math Fluency","Transfer Skills"];
-let state=JSON.parse(localStorage.getItem("coach-state")||'{"day":0,"xp":0,"done":[],"streak":1,"teachStep":0,"mastery":{}}');
-function persist(){localStorage.setItem("coach-state",JSON.stringify(state))}
-function showScreen(id){document.querySelectorAll(".screen").forEach(x=>x.classList.remove("on"));document.getElementById(id).classList.add("on");document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.screen===id));if(id==="practice")renderPractice()}
-document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>showScreen(b.dataset.screen));
-function render(){
-let d=DAYS[state.day];document.getElementById("dayLabel").textContent=`Day ${state.day+1} of 9`;document.getElementById("lessonTitle").textContent=d.title;document.getElementById("lessonGoal").textContent=d.goal;document.getElementById("xp").textContent=state.xp;document.getElementById("streak").textContent=state.streak;
-renderTeach();document.getElementById("dayCards").innerHTML=DAYS.map((x,i)=>`<div class="card day ${i===state.day?'active':''}" onclick="setDay(${i})"><span class="pill">DAY ${i+1}</span><h3>${x.title}</h3><p>${x.goal}</p><div class="progress"><i style="width:${state.done.includes(i)?100:0}%"></i></div></div>`).join("");
-document.getElementById("planRows").innerHTML=DAYS.map((x,i)=>`<div class="planrow"><b>Day ${i+1} · ${x.title}</b><div class="small">${x.goal}</div></div>`).join("");
-let base={ "Lewis Structures":"red","Formal Charge":"red","Resonance":"red","Hybridization":"red","Polarity":"yellow","Acid/Base":"green","Nuc/Electrophile":"red","Arrow Pushing":"red","Math Fluency":"yellow","Transfer Skills":"red"};
-document.getElementById("skills").innerHTML=skillNames.map(n=>{let s=state.mastery[n]||base[n];return `<div class="skill"><span><i class="dot ${s}"></i>${n}</span><span>${s.toUpperCase()}</span></div>`}).join("");
-document.getElementById("progressCards").innerHTML=DAYS.map((x,i)=>`<div class="card"><span class="pill">DAY ${i+1}</span><h3>${x.title}</h3><p>${state.done.includes(i)?"Practice check completed":"Not yet completed"}</p></div>`).join("");
+const grid=document.getElementById('dayGrid');
+grid.innerHTML=DAYS.map((d,i)=>`<div class="day"><span class="tag">${d[0]}</span><h3>${d[1]}</h3><p>${d[2]}</p><div class="barline"><div style="width:${i===0 && state.day1.complete ? 100 : 0}%"></div></div></div>`).join('');
+
+document.querySelectorAll('.nav button').forEach(b=>{
+ b.onclick=()=>{
+   document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
+   b.classList.add('active');
+   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+   document.getElementById(b.dataset.panel).classList.add('active');
+ };
+});
+
+const stage=document.getElementById('teachStage');
+const prog=document.getElementById('lessonProgress');
+
+const steps = [
+ ()=>{
+   stage.innerHTML = `
+    <div class="teacherline"><b>Dr. Merissa:</b> First I want the math underneath chemistry to feel automatic. We are starting with scientific notation because it shows up everywhere in chemistry.</div>
+    <div class="whiteboard">
+      <h3>Worked example</h3>
+      <div class="equation">0.00047 = 4.7 × 10<sup>−4</sup></div>
+      <p>Move the decimal four places to the right to make a number between 1 and 10. Because the original number was smaller than 1, the exponent is negative.</p>
+    </div>
+    <div class="question">
+      <h4>Try one with choices</h4>
+      <p>Write 0.00082 in scientific notation.</p>
+      <div class="choices">
+       <button class="choice" data-ok="0">8.2 × 10<sup>4</sup></button>
+       <button class="choice" data-ok="1">8.2 × 10<sup>−4</sup></button>
+       <button class="choice" data-ok="0">82 × 10<sup>−5</sup></button>
+      </div>
+      <div id="f1" class="feedback"></div>
+    </div>`;
+   bindChoices('f1',1);
+   prog.style.width='25%';
+ },
+ ()=>{
+   stage.innerHTML = `
+    <div class="teacherline"><b>Dr. Merissa:</b> Good. Now we remove some support. This time you produce the exponent yourself.</div>
+    <div class="whiteboard"><h3>Guided problem</h3><div class="equation">0.0063 = 6.3 × 10<sup>?</sup></div></div>
+    <div class="question">
+      <h4>What exponent belongs there?</h4>
+      <div class="inputrow"><input id="expAns" inputmode="numeric" placeholder="Example: -3"><button class="btn primary" id="checkExp">Check</button></div>
+      <div id="f2" class="feedback"></div>
+    </div>`;
+   document.getElementById('checkExp').onclick=()=>{
+      const v=document.getElementById('expAns').value.trim().replace('−','-');
+      const fb=document.getElementById('f2');
+      if(v==='-3'){fb.className='feedback show good';fb.innerHTML='Correct. Three places to the right, so the exponent is −3.'; setXP(10); nextButton(fb);}
+      else {fb.className='feedback show bad';fb.innerHTML='Not yet. Count the moves: 0.0063 → 6.3 is three places to the right. Because the original number is less than 1, the exponent is negative. Try again.';}
+   };
+   prog.style.width='50%';
+ },
+ ()=>{
+   stage.innerHTML = `
+    <div class="teacherline"><b>Dr. Merissa:</b> Now no example is sitting beside you. This is retrieval.</div>
+    <div class="question">
+      <h4>Independent problem</h4>
+      <p>Write 0.0000059 in scientific notation.</p>
+      <div class="inputrow"><input id="indAns" placeholder="Your answer"><button class="btn primary" id="checkInd">Check</button></div>
+      <div id="f3" class="feedback"></div>
+    </div>`;
+   document.getElementById('checkInd').onclick=()=>{
+     const raw=document.getElementById('indAns').value.toLowerCase().replace(/\s/g,'').replace('×','x').replace('−','-');
+     const ok = raw.includes('5.9') && (raw.includes('10^-6') || raw.includes('10-6') || raw.includes('e-6'));
+     const fb=document.getElementById('f3');
+     if(ok){fb.className='feedback show good';fb.innerHTML='Yes. 5.9 × 10⁻⁶. That means you can produce the rule without answer choices.';setXP(15);nextButton(fb);}
+     else{fb.className='feedback show bad';fb.innerHTML='Not yet. First make 5.9. Count how many decimal moves it took from 0.0000059. Then decide the sign from whether the original number was below or above 1.';}
+   };
+   prog.style.width='75%';
+ },
+ ()=>{
+   stage.innerHTML = `
+    <div class="teacherline"><b>Dr. Merissa:</b> Last step. Same math, but now inside chemistry. This tells us whether the skill transfers.</div>
+    <div class="question">
+      <h4>Chemistry transfer</h4>
+      <p>A concentration is 0.000025 mol/L. Write it in scientific notation.</p>
+      <div class="choices">
+        <button class="choice" data-ok="1">2.5 × 10<sup>−5</sup> mol/L</button>
+        <button class="choice" data-ok="0">2.5 × 10<sup>5</sup> mol/L</button>
+        <button class="choice" data-ok="0">25 × 10<sup>−6</sup> mol/L</button>
+      </div>
+      <div id="f4" class="feedback"></div>
+    </div>`;
+   bindChoices('f4',4,true);
+   prog.style.width='100%';
+ }
+];
+
+function nextButton(container, complete=false){
+  if(container.querySelector('.nextstep')) return;
+  const btn=document.createElement('button');
+  btn.className='btn secondary nextstep';
+  btn.style.marginTop='12px';
+  btn.textContent = complete ? 'Finish Day 1 block' : 'Next teaching step →';
+  btn.onclick=()=>{
+    if(complete){
+      state.day1.complete=true; state.day1.step=4; save(); setXP(25);
+      stage.innerHTML='<div class="statusbox"><b>Day 1 block complete.</b> You completed worked-example → guided → independent → chemistry transfer practice. Tomorrow should begin with a short closed-note retrieval check before new teaching.</div>';
+      renderPractice();
+      grid.querySelector('.barline>div').style.width='100%';
+    }else{
+      state.day1.step=Math.min((state.day1.step||0)+1,3); save(); renderStep();
+    }
+  };
+  container.appendChild(btn);
 }
-function renderTeach(){let d=DAYS[state.day],i=Math.min(state.teachStep,d.teach.length-1);document.getElementById("lessonBody").innerHTML=`<p><strong>Step ${i+1} of ${d.teach.length}</strong></p><p>${d.teach[i]}</p>`}
-function startLesson(){state.teachStep=0;persist();renderTeach();window.scrollTo({top:0,behavior:"smooth"})}
-function nextTeach(){let d=DAYS[state.day];state.teachStep=(state.teachStep+1)%d.teach.length;persist();renderTeach()}
-function reteach(){let d=DAYS[state.day];let extras=["Say it in plain English first, then attach the chemistry vocabulary. Your job is to understand the relationship, not memorize a fancy sentence.","Draw one example by hand. Point to each atom or electron group while you say what it is doing. Make the invisible part visible.","Use the worked rule on one tiny example, close the explanation, and immediately reproduce it from memory."];document.getElementById("lessonBody").innerHTML=`<div class="rule"><strong>Different explanation:</strong> ${extras[state.day%extras.length]}</div><p>${d.teach[Math.min(state.teachStep,d.teach.length-1)]}</p>`}
-function setDay(i){state.day=i;state.teachStep=0;persist();render();window.scrollTo({top:0,behavior:"smooth"})}
-function renderPractice(){let d=DAYS[state.day];document.getElementById("practiceBox").innerHTML=`<div class="q">${d.q}</div>${d.choices.map((c,i)=>`<button class="choice" onclick="answer(${i},this)">${String.fromCharCode(65+i)}. ${c}</button>`).join("")}<div id="fb"></div>`}
-function answer(i,el){let d=DAYS[state.day];document.querySelectorAll(".choice").forEach(x=>x.disabled=true);el.classList.add(i===d.answer?"correct":"wrong");if(i!==d.answer)document.querySelectorAll(".choice")[d.answer].classList.add("correct");document.getElementById("fb").innerHTML=`<div class="feedback"><strong>${i===d.answer?"Yes.":"Not yet."}</strong> ${d.why}<div class="confidence"><span>How confident were you?</span><button onclick="finishPractice('A')">I knew it</button><button onclick="finishPractice('B')">I thought I knew it</button><button onclick="finishPractice('C')">Unsure</button><button onclick="finishPractice('D')">Guessed</button></div></div>`}
-function finishPractice(c){if(!state.done.includes(state.day)){state.done.push(state.day);state.xp+=100}let maps=[["Math Fluency"],["Lewis Structures"],["Formal Charge"],["Resonance"],["Hybridization","Polarity"],["Acid/Base"],["Nuc/Electrophile","Arrow Pushing"],["Transfer Skills"],[]];maps[state.day].forEach(n=>state.mastery[n]=c==="A"?"green":c==="B"?"yellow":"red");persist();render();document.getElementById("fb").innerHTML+=`<div class="feedback">Saved. Now redo a similar problem from blank paper before you call this mastered.</div>`}
-function saveNotes(){localStorage.setItem("coach-notes",document.getElementById("notes").value);alert("Whiteboard saved on this device.")}
-document.getElementById("notes").value=localStorage.getItem("coach-notes")||"";
-render();
+function bindChoices(fid, stepNum, complete=false){
+  document.querySelectorAll('#teachStage .choice').forEach(c=>{
+    c.onclick=()=>{
+      const ok=c.dataset.ok==='1';
+      document.querySelectorAll('#teachStage .choice').forEach(x=>x.disabled=true);
+      c.classList.add(ok?'correct':'wrong');
+      const fb=document.getElementById(fid);
+      if(ok){
+        fb.className='feedback show good';
+        fb.innerHTML= complete ? 'Correct. Same rule, chemistry context. That is the transfer we wanted.' : 'Correct. You moved four places and kept the exponent negative because the original number is below 1.';
+        setXP(10);
+        nextButton(fb,complete);
+      } else {
+        fb.className='feedback show bad';
+        fb.innerHTML='Not quite. Ignore the chemistry wording for a moment. Make a number between 1 and 10, count the decimal moves, then decide the sign.';
+        setTimeout(()=>document.querySelectorAll('#teachStage .choice').forEach(x=>x.disabled=false),450);
+      }
+    };
+  });
+}
+function renderStep(){ steps[Math.min(state.day1.step||0,3)](); }
+document.getElementById('teachBtn').onclick=()=>{ state.day1.step=state.day1.step||0; save(); renderStep(); document.querySelector('.lessoncard').scrollIntoView({behavior:'smooth'}); };
+document.getElementById('practiceFirstBtn').onclick=()=>{ document.querySelector('[data-panel="practice"]').click(); };
+
+function renderPractice(){
+ const a=document.getElementById('practiceArea');
+ a.innerHTML=`
+  <div class="question">
+   <h4>Closed-note quick check</h4>
+   <p>Convert 0.0034 to scientific notation.</p>
+   <div class="inputrow"><input id="p1" placeholder="Your answer"><button class="btn primary" id="pc">Check</button></div>
+   <div id="pf" class="feedback"></div>
+  </div>`;
+ document.getElementById('pc').onclick=()=>{
+   const v=document.getElementById('p1').value.toLowerCase().replace(/\s/g,'').replace('×','x').replace('−','-');
+   const ok=v.includes('3.4') && (v.includes('10^-3')||v.includes('10-3')||v.includes('e-3'));
+   const f=document.getElementById('pf');
+   f.className='feedback show '+(ok?'good':'bad');
+   f.innerHTML=ok?'Correct. 3.4 × 10⁻³.':'Not yet. Make 3.4, count three places, and keep the exponent negative.';
+   if(ok)setXP(10);
+ };
+}
+renderPractice();
+
+document.getElementById('saveScratch').onclick=()=>{
+ state.scratch=document.getElementById('scratch').value; save();
+ const b=document.getElementById('saveScratch'); const old=b.textContent;b.textContent='Saved ✓';setTimeout(()=>b.textContent=old,1200);
+};
+
+if(state.day1.complete){
+ prog.style.width='100%';
+ stage.innerHTML='<div class="statusbox"><b>Day 1 teaching block is complete on this device.</b> Use Practice for retrieval. Day 2 should open only after the next-day retrieval check.</div>';
+}
 </script>
-</body></html>
+</body>
+</html>
