@@ -20,5 +20,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Run teaching engine tests
+      - name: Run Student Model and IDK Router tests
         run: node test-student-model.js
+
+      - name: Run Watch Mode tests
+        run: node test-watch-mode.js
