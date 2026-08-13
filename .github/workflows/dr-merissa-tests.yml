@@ -25,3 +25,5 @@ jobs:
 
       - name: Run Watch Mode tests
         run: node test-watch-mode.js
+      - name: Run Build Together tests
+        run: node test-build-together.js
