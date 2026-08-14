@@ -1,0 +1,40 @@
+const assert=require('assert'),fs=require('fs');
+const D=require('./day1-session.js'),M=require('./molecule-stage.js'),SM=require('./student-model-idk-router.js'),W=require('./watch-mode.js'),BT=require('./build-together.js');
+const html=fs.readFileSync('astarryia-day1-foundation-reset.html','utf8');let passed=0;
+function test(name,fn){fn();passed++;console.log('PASS ',name)}
+function stateFor(key,hydrogenOrder){const t=M.TARGETS[key],s=M.emptyState(),ids=[];t.atoms.forEach((a,i)=>{ids.push(a.el+(a.el==='H'?(hydrogenOrder?hydrogenOrder.shift():i):i));s.atoms.push({id:ids[i],el:a.el,x:0,y:0})});const used={};t.atoms.forEach((a,i)=>a.neighbors.forEach(el=>{const j=t.atoms.findIndex((b,k)=>k!==i&&b.el===el&&b.neighbors.includes(a.el)&&!used[[Math.min(i,k),Math.max(i,k)].join(':')]);if(j>=0){used[[Math.min(i,j),Math.max(i,j)].join(':')]=1;s.bonds.push({id:'b'+s.bonds.length,a:ids[i],b:ids[j]})}}));t.atoms.forEach((a,i)=>{for(let n=0;n<a.lonePairs;n++)s.lonePairs.push({id:'lp'+s.lonePairs.length,atomId:ids[i]})});return s}
+
+test('1 correct math answer',()=>assert(D.classifyAnswer('3.0',{a:['3'],numberOnly:true}).correct));
+test('2 incorrect math answer',()=>assert.equal(D.classifyAnswer('4',{a:['3'],numberOnly:true}).errorCode,'CONCEPT'));
+test('3 x = 3 is format only',()=>assert.equal(D.classifyAnswer('X = 3',{a:['3'],numberOnly:true}).errorCode,'FORMAT_ONLY'));
+test('4 invalid x is nonnumeric',()=>assert.equal(D.classifyAnswer('x',{a:['3'],numberOnly:true}).errorCode,'NONNUMERIC'));
+test('5 blank is distinct',()=>assert.equal(D.classifyAnswer(' ',{a:['3'],numberOnly:true}).errorCode,'BLANK'));
+test('6 repeated concepts are countable but format is not',()=>{let s={misconceptionLog:{}};assert.equal(D.recordMisconception(s,'a','CONCEPT'),1);assert.equal(D.recordMisconception(s,'a','CONCEPT'),2);assert.equal(D.recordMisconception(s,'a','FORMAT_ONLY'),0)});
+test('7 IDK has three distinct teaching routes',()=>{const t={concept:'c',start:'s',example:'e'};assert.equal(D.idkIntervention('concept',t).action,'RETEACH_CONCEPT');assert.equal(D.idkIntervention('start',t).action,'MODEL_FIRST_DECISION');assert.equal(D.idkIntervention('example',t).action,'WATCH_MODE_EXAMPLE')});
+test('8 feedback requires explicit acknowledgement',()=>assert(html.includes('Okay — try again')&&html.includes('Okay — let me correct it')));
+test('9 no instructional transition timeout remains',()=>assert(!/setTimeout\((?:newGymProblem|render|nextChem|completeDay1)/.test(html)));
+test('10 molecule correction preserves state',()=>assert(html.includes('Keep your correct work')));
+test('11 3/3 branch',()=>assert.equal(D.branchMath('probe',3,3),'cleared'));
+test('12 2/3 verification branch',()=>{assert.equal(D.branchMath('probe',2,3),'targeted');assert.equal(D.branchMath('verification',2,2),'cleared')});
+test('13 mini guided independent branch exists',()=>{assert.equal(D.branchMath('probe',1,3),'mini');assert(html.includes('startGuided()'));assert(html.includes('MATH_GUIDED'))});
+test('14 50 and 60 minute policies',()=>{let s={mathStartedAt:0};assert.equal(D.mathTimePolicy(s,50*60000),'probe_only');assert.equal(D.mathTimePolicy(s,60*60000),'hard_cap')});
+test('15 Watch pacing is learner controlled',()=>{let seq=W.WATCH_SEQUENCES.NH3,s=W.createWatchSession(seq);W.begin(s,seq,1);let i=s.currentIndex;assert.equal(s.currentIndex,i);W.next(s,seq,2);assert.equal(s.currentIndex,i+1)});
+test('16 Build Together starts empty',()=>{let p=BT.BUILD_PLANS.NH3,s=BT.createBuildTogetherSession(p);assert.equal(s.currentIndex,0);assert.equal(s.correctActionIds.length,0)});
+test('17 Guided starts empty',()=>assert.deepEqual(D.freshStage('H2O','guided').atoms,[]));
+test('18 Build Alone starts empty',()=>assert.deepEqual(D.freshStage('CH3OH','alone').atoms,[]));
+test('19 Build Alone scaffolds absent in generated DOM',()=>{assert.deepEqual(D.scaffoldingFor('alone'),[]);assert(html.includes("mode===\"guided\"||mode===\"together\""))});
+test('20 H2O correct construction',()=>assert(M.verifyStructure(stateFor('H2O'),M.TARGETS.H2O).correct));
+test('21 CH3OH correct construction',()=>assert(M.verifyStructure(stateFor('CH3OH'),M.TARGETS.CH3OH).correct));
+test('22 CH3NH2 correct construction',()=>assert(M.verifyStructure(stateFor('CH3NH2'),M.TARGETS.CH3NH2).correct));
+test('23 equivalent hydrogen ordering accepted',()=>{let s=stateFor('CH3OH',[4,3,2,1]);assert(M.verifyStructure(s,M.TARGETS.CH3OH).correct)});
+test('24 duplicate and fabricated atom references rejected',()=>{let s=stateFor('H2O');s.bonds.push({id:'dup',a:s.bonds[0].a,b:s.bonds[0].b});assert.equal(M.verifyStructure(s,M.TARGETS.H2O).reason,'invalid_state');s=stateFor('H2O');s.bonds[0].b='H99';assert.equal(M.verifyStructure(s,M.TARGETS.H2O).reason,'invalid_state')});
+test('25 fresh molecule state does not leak',()=>{let a=D.freshStage('H2O','guided');a.atoms.push('O');assert.deepEqual(D.freshStage('CH3OH','alone').atoms,[])});
+test('26 fresh mode state does not leak',()=>{let a=D.freshStage('NH3','together');a.bonds.push('x');assert.deepEqual(D.freshStage('H2O','guided').bonds,[])});
+test('27 refresh preserves model and legitimate progress',()=>{let d={step:'math',mathStatus:{logs:'Cleared'},studentModel:{logs:{state:'TEACHING'}},stage:{bad:true}},s=D.safeSession(d,{mathStatus:{},misconceptionLog:{}});assert.equal(s.mathStatus.logs,'Cleared');assert.equal(s.studentModel.logs.state,'TEACHING');assert.equal(s.stage,null)});
+test('28 completion exactly once',()=>{let s={};assert(D.completeDay(s));assert(!D.completeDay(s));assert.equal(s.completionCount,1)});
+test('29 completion never restarts',()=>{let s={};D.completeDay(s);assert.equal(s.position,'summary');assert(html.includes('Nothing starts again automatically'))});
+test('30 chemistry misconceptions are specific',()=>{let s=stateFor('H2O');s.lonePairs=[];assert.equal(M.detectMisconception(s,M.TARGETS.H2O).code,'NO_LONE_PAIRS')});
+test('meaningless explanation rejected and evidence accepted',()=>{assert(!D.meaningfulExplanation('ok',[['8'],['lone pair']]));assert(D.meaningfulExplanation('8 total leaves two lone pairs',[['8'],['lone pair']]))});
+test('skip cannot clear or master',()=>assert(html.includes('Skipped. This one gets logged')));
+test('canonical sequence names every chemistry rung',()=>['Watch · I Do','Build Together · We Do','Guided · build with support','Build Alone · no scaffolds','Fresh mastery check'].forEach(x=>assert(html.includes(x))));
+console.log(`=== SUMMARY: ${passed} passed, 0 failed ===`);
