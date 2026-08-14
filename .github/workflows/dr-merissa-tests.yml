@@ -27,3 +27,11 @@ jobs:
         run: node test-watch-mode.js
       - name: Run Build Together tests
         run: node test-build-together.js
+      - name: Run integrated Day 1 session tests
+        run: node test-day1-session.js
+      - name: Run Day 1 learner acceptance tests
+        run: node test-day1-acceptance.js
+      - name: Run adversarial Day 1 learner tests
+        run: node test-day1-adversarial.js
+      - name: Run manual-certification repair regressions
+        run: node test-day1-repair.js
