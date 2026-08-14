@@ -263,12 +263,12 @@ function completionEvent(session){
   };
 }
 
-if(typeof module!=="undefined"){
-  module.exports={
+var BuildTogether = {
     BUILD_STATUS:BUILD_STATUS,ACTION:ACTION,BUILD_PLANS:BUILD_PLANS,
     validatePlan:validatePlan,createBuildTogetherSession:createBuildTogetherSession,
     currentAction:currentAction,currentPrompt:currentPrompt,begin:begin,
     submitAction:submitAction,diagnoseWrongAction:diagnoseWrongAction,
     interventionSignal:interventionSignal,completionEvent:completionEvent
   };
-}
+if(typeof module!=="undefined" && module.exports) module.exports=BuildTogether;
+if(typeof globalThis!=="undefined") globalThis.BuildTogether=BuildTogether;

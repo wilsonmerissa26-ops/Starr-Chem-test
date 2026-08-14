@@ -329,8 +329,7 @@ function completionEvent(session, sequence) {
   };
 }
 
-if (typeof module !== "undefined") {
-  module.exports = {
+var WatchMode = {
     WATCH_STATUS: WATCH_STATUS,
     WATCH_SEQUENCES: WATCH_SEQUENCES,
     validateSequence: validateSequence,
@@ -345,4 +344,5 @@ if (typeof module !== "undefined") {
     emitNotebookFacts: emitNotebookFacts,
     completionEvent: completionEvent
   };
-}
+if (typeof module !== "undefined" && module.exports) module.exports = WatchMode;
+if (typeof globalThis !== "undefined") globalThis.WatchMode = WatchMode;

@@ -27,6 +27,8 @@ button{cursor:pointer}
 .progress{height:3px;background:var(--rulesoft)}
 .progress>div{height:3px;background:var(--good);width:0;transition:width .25s}
 .save{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--soft);white-space:nowrap}
+.menuBtn{min-height:40px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink);padding:8px 11px;font-weight:600}
+.learningPath{display:flex;gap:5px;overflow-x:auto;margin:8px 0 14px;padding-bottom:3px}.learningPath span{flex:0 0 auto;padding:5px 8px;border:1px solid var(--rule);border-radius:999px;font-size:11px;color:var(--soft)}.learningPath .on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .hero{padding:22px 0 12px}
 .eyebrow,.kicker{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.13em;font-size:10.5px;color:var(--soft)}
 h1{font-size:30px;line-height:1.08;margin:6px 0 8px;letter-spacing:-.02em}
@@ -46,6 +48,9 @@ h3{font-size:18px;margin:4px 0 8px}
 .option{width:100%;text-align:left;padding:12px;border-radius:8px;border:1px solid var(--rulesoft);background:#fff;margin:6px 0;color:var(--ink)}
 .option.on{border-color:var(--ink);box-shadow:inset 3px 0 0 var(--ink)}
 .input{width:100%;padding:12px 13px;border:1px solid var(--rule);border-radius:8px;background:#fff;font-family:'IBM Plex Mono',monospace;font-size:16px}
+.answerTarget{display:flex;align-items:center;gap:10px;font:600 19px 'IBM Plex Mono',monospace;margin-bottom:8px}
+.equation{font-size:clamp(18px,5vw,24px);overflow-x:auto;margin-top:12px}
+sup{font-size:.7em;line-height:0}
 .ta{width:100%;min-height:100px;padding:12px 13px;border:1px solid var(--rule);border-radius:8px;background:#fff;resize:vertical;line-height:1.45}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .spread{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -108,6 +113,7 @@ svg#stage{display:block;width:100%;height:340px;touch-action:none}
         <span>Day 1 · Foundation Reset</span>
       </div>
     </div>
+    <button class="menuBtn" onclick="openDayMenu()">Day 1 Menu</button>
     <div class="save" id="saveStatus">Saved</div>
   </div>
   <div class="progress"><div id="progressFill"></div></div>
@@ -127,6 +133,11 @@ svg#stage{display:block;width:100%;height:340px;touch-action:none}
   </div>
 </div>
 
+<script src="day1-session.js"></script>
+<script src="student-model-idk-router.js"></script>
+<script src="watch-mode.js"></script>
+<script src="build-together.js"></script>
+<script src="molecule-stage.js"></script>
 <script>
 /* ================================
    DATA + STATE
@@ -173,16 +184,16 @@ const MATH_AREAS = [
     id:"algebra", name:"Algebra",
     refresh:"Treat an equation like a balance. Move variable terms together, move plain numbers together, then divide by the coefficient. Write each move on its own line so signs don't disappear.",
     probe:[
-      {q:"4x + 5 = x + 20.  x =", a:["5"]},
+      {q:"4x + 5 = x + 20", solveFor:"x", a:["5"], numberOnly:true},
       {q:"Solve for h: V = lwh", a:["v/(lw)","v/lw","V/(lw)","V/lw"]},
-      {q:"2/x = 6/15.  x =", a:["5"]}
+      {q:"2/x = 6/15", solveFor:"x", a:["5"], numberOnly:true}
     ],
     mini:"Every equation stays true only if the same operation happens to both sides. For linear equations: collect x terms, collect constants, divide. For proportions: cross-multiply, then isolate the variable.",
     independent:[
-      {q:"7x + 2 = 3x + 26.  x =", a:["6"]},
-      {q:"4/x = 8/20.  x =", a:["10"]},
+      {q:"7x + 2 = 3x + 26", solveFor:"x", a:["6"], numberOnly:true},
+      {q:"4/x = 8/20", solveFor:"x", a:["10"], numberOnly:true},
       {q:"Solve for w: P = 2l + 2w", a:["(p-2l)/2","p/2-l","(P-2l)/2","P/2-l"]},
-      {q:"3x - 5 = x + 11.  x =", a:["8"]}
+      {q:"3x - 5 = x + 11", solveFor:"x", a:["8"], numberOnly:true}
     ]
   },
   {
@@ -252,6 +263,10 @@ const MATH_AREAS = [
 ];
 
 const TARGETS = {
+  NH3:{formula:"NH₃", totalElectrons:8, atoms:[
+    {el:"N",neighbors:["H","H","H"],lonePairs:1},
+    {el:"H",neighbors:["N"],lonePairs:0},{el:"H",neighbors:["N"],lonePairs:0},{el:"H",neighbors:["N"],lonePairs:0}
+  ]},
   H2O:{formula:"H₂O", totalElectrons:8, atoms:[
     {el:"O",neighbors:["H","H"],lonePairs:2},
     {el:"H",neighbors:["O"],lonePairs:0},{el:"H",neighbors:["O"],lonePairs:0}
@@ -272,9 +287,43 @@ const TARGETS = {
 };
 
 const VALENCE={H:1,C:4,N:5,O:6};
+const MATH_VERIFY={
+  logs:[{q:"log(100,000) =",a:["5"]},{q:"Estimate to one decimal: −log(3.0×10⁻⁸)",a:["7.5"],tol:.15}],
+  algebra:[{q:"3x − 4 = x + 8",solveFor:"x",a:["6"],numberOnly:true},{q:"5/x = 10/6",solveFor:"x",a:["3"],numberOnly:true}],
+  exponents:[{q:"5⁻² =",a:["1/25","0.04"]},{q:"(b⁵)(b²) ÷ b³ =",a:["b^4","b⁴"]}],
+  sci:[{q:"Write 0.0000452 in scientific notation.",a:["4.52x10^-5","4.52×10⁻⁵","4.52e-5"]},{q:"(5.0×10⁻²)(3.0×10⁵)",a:["1.5x10^4","1.5×10⁴","15000"]}],
+  fractions:[{q:"7/10 − 2/5 =",a:["3/10","0.3"]},{q:"45 is what percent of 180?",a:["25","25%"]}],
+  units:[{q:"Convert 0.008 L to mL. Enter only the number.",a:["8"],numberOnly:true},{q:"Convert 0.0021 mol/s to mmol/min. Enter only the number.",a:["126"],numberOnly:true}]
+};
+const MATH_GUIDED={
+  logs:[{q:"Guided: log(0.001) =",a:["-3"]},{q:"Guided: estimate −log(2.0×10⁻³)",a:["2.7"],tol:.15}],
+  algebra:[{q:"6x − 7 = 2x + 9",solveFor:"x",a:["4"],numberOnly:true},{q:"d = rt",solveFor:"t",a:["d/r"]}],
+  exponents:[{q:"Guided: 4⁻³ =",a:["1/64"]},{q:"Guided: (c⁶)(c²) ÷ c⁴ =",a:["c^4","c⁴"]}],
+  sci:[{q:"Guided: write 45,000 in scientific notation.",a:["4.5x10^4","4.5×10⁴","4.5e4"]},{q:"Guided: (6.0×10³)(2.0×10⁻⁶)",a:["1.2x10^-2","1.2×10⁻²","0.012"]}],
+  fractions:[{q:"Guided: 3/5 + 1/10 =",a:["7/10","0.7"]},{q:"Guided: 35 is what percent of 140?",a:["25","25%"]}],
+  units:[{q:"Guided: convert 0.09 L to mL.",a:["90","90 ml","90ml"]},{q:"Guided: convert 0.006 mol/min to mmol/hour.",a:["360","360 mmol/hour","360mmol/hour"]}]
+};
+const MATH_SUPPORTED={
+  logs:{q:"10 to what power equals 100?",a:["2"],numberOnly:true,prompt:"Complete the backward relationship: 10² = 100, so log(100) = ?"},
+  algebra:{q:"x + 4 = 9",solveFor:"x",a:["5"],numberOnly:true,prompt:"Keep the balance level: subtract 4 from both sides, then enter x."},
+  exponents:{q:"2^3 =",a:["8"],numberOnly:true,prompt:"Write 2 × 2 × 2, then multiply."},
+  sci:{q:"Write 3,000 as a number from 1 to 10 times a power of ten.",a:["3x10^3","3×10³","3e3"],prompt:"Move the decimal three places left."},
+  fractions:{q:"1/2 + 1/2 =",a:["1"],prompt:"The pieces are already the same size, so combine the top numbers."},
+  units:{q:"Convert 1 L to mL.",a:["1000","1000ml","1000 ml"],prompt:"Use the relationship 1 L = 1000 mL."}
+};
+const REPRESENTATION={logs:"Use a powers-of-ten number line: locate the exponent first, then adjust for the front digit.",algebra:"Picture a level balance: every weight removed from one side must be removed from the other.",exponents:"Write the repeated multiplication out in full and use the exponent ladder.",sci:"Use a place-value chart and mark every decimal move.",fractions:"Draw fraction bars with equal-size pieces before combining them.",units:"Write a cancellation map and cross out each old unit only when its conversion factor appears."};
+const CONCEPT_FEEDBACK={
+  logs:"A logarithm asks which power of ten makes the number. Identify the power-of-ten part first; for an estimate, then adjust for the leading digit.",
+  algebra:"Treat the equation as a balance. Name the single operation that moves you toward isolating the requested variable, and apply it to both full sides.",
+  exponents:"Check whether this is evaluation, multiplication, or division. A negative exponent means reciprocal; matching-base products add exponents and quotients subtract them.",
+  sci:"Separate the coefficient from the power of ten. Keep the coefficient between 1 and 10, then check the exponent sign against whether the original value is large or small.",
+  fractions:"For addition or subtraction, make equal-size pieces with a common denominator. For 'of' multiply; for percent use part divided by whole times 100.",
+  units:"Write the relationship before moving the decimal: 1 L = 1000 mL. Convert one unit at a time and cancel the old unit before doing the arithmetic."
+};
 
-let app = {
-  step:"intro",
+function createInitialApp(){return {
+  step:"intro", requireCompletionGate:true,
+  mathAreas:["logs","algebra","exponents","sci","fractions","units"],
   mathIndex:0,
   mathPhase:"refresh",
   mathQuestion:0,
@@ -284,8 +333,14 @@ let app = {
   chemistryPhase:"teach1",
   chemResults:{h2o:false,methanol:false,why:false,mastery:false,masteryWhy:false},
   misconceptionLog:{},
+  studentModel:{},
+  idk:null,
+  masteryMath:null,
+  gymHistory:[],gymAttempts:[],gymCurrent:null,gymReturn:null,
+  mathEvidence:{},instructionStep:0,menuReturn:null,chemistryStarted:false,
   done:false
-};
+};}
+let app = createInitialApp();
 
 function saveApp(){
   try{
@@ -298,8 +353,13 @@ function saveApp(){
 function loadApp(){
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
-    if(raw) app={...app,...JSON.parse(raw)};
+    if(raw) app=Day1Session.safeSession(JSON.parse(raw),app);
   }catch(e){}
+}
+function mathSkill(){
+  const id=currentArea().id;
+  if(!app.studentModel[id]) app.studentModel[id]=StudentModelIdkRouter.createSkill(id);
+  return app.studentModel[id];
 }
 function normalize(s){
   return String(s||"").toLowerCase().replace(/\s+/g,"").replace(/−/g,"-").replace(/×/g,"x");
@@ -313,6 +373,19 @@ function isCorrect(ans,item){
   }
   return item.a.some(a=>normalize(a)===n);
 }
+function mathItemRules(item){
+  const first=String(item.a[0]);
+  return {...item,numberOnly:/^-?\d+(?:\.\d+)?$/.test(first),answers:item.a,
+    correction:"Your value does not satisfy this problem. Return to the worked rule, show the first operation, and keep both sides or units consistent."};
+}
+function mathMarkup(text){
+  return String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/\^(-?\d+)/g,(_,power)=>'<sup>'+power.replace('-', '−')+'</sup>')
+    .replace(/\s+x\s+10/g,' × 10');
+}
+function answerTarget(item){return item.solveFor?`<label class="answerTarget" for="mathAns"><span>${item.solveFor} =</span></label>`:'';}
+function learningPath(active){return `<div class="learningPath" aria-label="Learning progress">${['Learn','Watch','Practice Together','Try It','Try It Alone','Fresh Check'].map(x=>`<span class="${x===active?'on':''}">${x}</span>`).join('')}</div>`}
+function logReference(item){return currentArea().id==='logs'&&/estimate/i.test(item.q)?'<div class="rulebox"><b>Reference for this no-calculator item:</b> log(2) ≈ 0.30 · log(3) ≈ 0.48 · log(5) ≈ 0.70. You are using these values, not being tested on memorizing them.</div>':''}
 function setProgress(p){document.getElementById("progressFill").style.width=Math.max(0,Math.min(100,p))+"%";}
 
 function termSpan(term){
@@ -330,6 +403,7 @@ function closeTerm(){document.getElementById("termModal").classList.remove("show
 function render(){
   saveApp();
   const s=document.getElementById("screen");
+  if(app.step==="math"&&app.mathStartedAt&&Date.now()-app.mathStartedAt>=3600000){MATH_AREAS.forEach(a=>{if(!app.mathStatus[a.id])app.mathStatus[a.id]="Developing"});app.step="break";saveApp();renderBreak(s);return;}
 
   if(app.step==="intro"){
     setProgress(0);
@@ -349,13 +423,15 @@ function render(){
         <div class="card"><div class="kicker">Block A</div><h3>Adaptive Math Reset</h3><p class="muted">Logs, algebra, exponents, scientific notation, fractions/percent, unit conversions.</p></div>
         <div class="card"><div class="kicker">Block B</div><h3>Chemistry Foundation</h3><p class="muted">Valence electrons → bonds → lone pairs → octet reasoning → Lewis structures.</p></div>
       </div>
-      <div class="rulebox"><b>Time rule:</b> Math does not get to eat the whole day. If a skill does not clear quickly, it gets marked Developing and moves to Math Gym later.</div>
+      <div class="rulebox"><b>Your choice is saved.</b> You can continue Math or use the Day 1 Menu to work on Chemistry and return later.</div>
       <button class="btn" onclick="startMath()">Start Day 1</button>
     `;
     return;
   }
 
-  if(app.step==="math"){ renderMath(s); return; }
+  if(app.step==="menu"){renderDayMenu(s);return;}
+
+  if(app.step==="math"){ enforceMathTeachingGate();renderMath(s); return; }
   if(app.step==="break"){ renderBreak(s); return; }
   if(app.step==="chem"){ renderChem(s); return; }
   if(app.step==="mastery"){ renderMastery(s); return; }
@@ -363,8 +439,31 @@ function render(){
   if(app.step==="gym"){ renderMathGym(s); return; }
 }
 
+function areaEvidence(id){if(!app.mathEvidence[id])app.mathEvidence[id]={conceptSeen:false,watchSeen:false,supportedPassed:false,guidedPassed:false};return app.mathEvidence[id]}
+function learnerStatus(id){const status=app.mathStatus[id];if(status)return status;const e=app.mathEvidence[id];return e&&(e.conceptSeen||e.supportedPassed)?"In progress":"Not started"}
+function openDayMenu(){if(app.step!=="menu")app.menuReturn=app.step;app.step="menu";render()}
+function renderDayMenu(s){
+  const mathStarted=app.mathStartedAt||Object.keys(app.mathStatus).length||Object.keys(app.mathEvidence).length;
+  const chemistryStarted=app.chemistryStarted||app.chemistryPhase!=="teach1"||Object.values(app.chemResults).some(Boolean);
+  s.innerHTML=`<div class="hero"><div class="eyebrow">Day 1 Menu</div><h1>Choose what to work on</h1><p class="lede">Your work is saved when you switch. Switching subjects does not mark anything complete.</p></div>
+  <div class="card"><h2>Math Reset</h2><p>${mathStarted?'Ready to continue · '+currentArea().name:'Not started'}</p><div class="mathstatus">${MATH_AREAS.map(a=>`<div class="skill"><b>${a.name}</b><span>${learnerStatus(a.id)}</span></div>`).join('')}</div><button class="btn" onclick="resumeMath()">${mathStarted?'Continue Math':'Start Math'}</button></div>
+  <div class="card"><h2>Chemistry Foundation</h2><p>${chemistryStarted?'Ready to continue':'Available now'}</p><p class="muted">Valence electrons, octets, and Lewis structures.</p><button class="btn" onclick="resumeChemistry()">${chemistryStarted?'Continue Chemistry':'Start Chemistry'}</button></div>`;
+}
+function resumeMath(){app.step="math";if(!app.mathStartedAt)app.mathStartedAt=Date.now();render()}
+function resumeChemistry(){app.chemistryStarted=true;app.step="chem";render()}
+function enforceMathTeachingGate(){
+  const area=currentArea(),skill=app.studentModel[area.id],e=areaEvidence(area.id);
+  app.mathPhase=Day1Session.safeMathPhase(app.mathPhase,skill,e);
+  if(app.mathPhase==="mini"){
+    if(!e.conceptSeen)app.instructionStep=0;
+    else if(!e.watchSeen)app.instructionStep=Math.min(app.instructionStep,1);
+    else if(!e.supportedPassed)app.instructionStep=Math.min(app.instructionStep,2);
+    else app.instructionStep=Math.min(app.instructionStep,3);
+  }
+}
+
 function startMath(){
-  app.step="math"; app.mathIndex=0; app.mathPhase="refresh"; app.mathQuestion=0; app.mathCorrect=0; app.mathAnswers=[];
+  app.step="math"; app.mathStartedAt=app.mathStartedAt||Date.now(); app.mathIndex=0; app.mathPhase="refresh"; app.mathQuestion=0; app.mathCorrect=0; app.mathAnswers=[];
   render();
 }
 function currentArea(){ return MATH_AREAS[app.mathIndex]; }
@@ -381,22 +480,25 @@ function renderMath(s){
       </div>
       <div class="rulebox"><b>No calculator.</b> This is a reset of what should become automatic.</div>
       <button class="btn" onclick="beginProbe()">Give me the 3-question check</button>
-      <button class="btn ghost" onclick="openGymFor('${area.id}')">Practice this skill instead</button>
+      <button class="btn ghost" onclick="openGymFor('${area.id}')">Optional extra practice in Math Gym</button>
     `;
     return;
   }
 
-  if(app.mathPhase==="probe" || app.mathPhase==="independent"){
-    const bank=app.mathPhase==="probe"?area.probe:area.independent;
+  if(app.mathPhase==="probe" || app.mathPhase==="verification" || app.mathPhase==="guided" || app.mathPhase==="independent"){
+    const bank=mathBank(area);
     const item=bank[app.mathQuestion];
-    const label=app.mathPhase==="probe"?"Quick check":"Independent set";
+    const label=app.mathPhase==="probe"?"Quick check":app.mathPhase==="verification"?"Fresh verification":app.mathPhase==="guided"?"Guided practice":"Independent set";
     s.innerHTML=`
-      <div class="hero"><div class="eyebrow">${label} · ${area.name}</div><h1>${item.q}</h1></div>
+      <div class="hero"><div class="eyebrow">${label} · ${area.name}</div>${learningPath(app.mathPhase==='guided'?'Try It':app.mathPhase==='independent'?'Try It Alone':'Fresh Check')}<h1>${item.solveFor?'Solve for '+item.solveFor:mathMarkup(item.q)}</h1>${item.solveFor?'<div class="whiteboard equation">'+mathMarkup(item.q)+'</div>':''}</div>
       <div class="card">
+        ${logReference(item)}
+        ${answerTarget(item)}
         <input class="input" id="mathAns" autocomplete="off" inputmode="text" placeholder="Your answer" />
         <div id="mathFeedback" class="feedback"></div>
         <div class="sectionnav">
-          <button class="btn alt small" onclick="mathSkip()">I don't know</button>
+          ${app.mathPhase==='guided'?'<button class="btn alt small" onclick="showGuidedHint()">Hint</button>':''}
+          <button class="btn alt small" onclick="mathSkip()">I don't know yet</button>
           <button class="btn small" onclick="submitMath()">Check</button>
         </div>
       </div>
@@ -406,15 +508,12 @@ function renderMath(s){
   }
 
   if(app.mathPhase==="mini"){
-    s.innerHTML=`
-      <div class="hero"><div class="eyebrow">Targeted teaching</div><h1>${area.name}</h1></div>
-      <div class="card">
-        <div class="teacher"><div class="avatar">DM</div><div class="bubble">${area.mini}</div></div>
-      </div>
-      <div class="goodbox">We're not calling this mastery. You are going to prove the reset on a fresh independent set.</div>
-      <button class="btn" onclick="startIndependent()">Try it without help</button>
-    `;
+    renderInstruction(s,area);
     return;
+  }
+  if(app.mathPhase==="targeted"){
+    const missed=app.mathAnswers.find(a=>!a.correct);
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Targeted correction</div><h1>${area.name}</h1></div><div class="card"><div class="teacher"><div class="avatar">DM</div><div class="bubble">Your missed response was “${missed?.ans||'blank'}.” ${area.mini}</div></div></div><button class="btn" onclick="startVerification()">Try two fresh verification items</button>`;return;
   }
 
   if(app.mathPhase==="donearea"){
@@ -423,57 +522,128 @@ function renderMath(s){
       <div class="hero"><div class="eyebrow">Area complete</div><h1>${area.name}</h1></div>
       <div class="card">
         <span class="pill ${status==='Cleared'?'good':'warn'}">${status}</span>
-        <p>${status==='Cleared'?'Cleared for today. It stays available in Math Gym and returns later for retrieval.':'Developing. We are not letting this steal chemistry time. It goes to Math Gym for more practice.'}</p>
+        <p>${status==='Cleared'?'Cleared for today. It stays available in Math Gym and returns later for retrieval.':'Developing. Your progress is saved, and this skill remains available for more practice.'}</p>
       </div>
-      <button class="btn" onclick="nextMathArea()">${app.mathIndex===MATH_AREAS.length-1?'Move to chemistry':'Next math area'}</button>
+      <button class="btn" onclick="nextMathArea()">${app.mathIndex===MATH_AREAS.length-1?'Continue to chemistry':'Next math area'}</button>
     `;
   }
 }
 
+function renderInstruction(s,area){
+  const e=areaEvidence(area.id),step=app.instructionStep||0,supported=MATH_SUPPORTED[area.id];
+  if(step===0){
+    const meaning=area.id==='logs'?"A logarithm asks a power question backwards. If 10³ = 1000, then log(1000) = 3. The answer tells us the exponent on 10.":area.mini;
+    const why=area.id==='logs'?"Chemistry uses logarithms to describe very large changes in compact numbers. First we learn the inverse relationship; estimation comes only after that is secure.":"This skill lets you keep later chemistry reasoning focused on the science instead of getting stopped by the mathematical step.";
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Learn · ${area.name}</div>${learningPath('Learn')}<h1>What this idea means</h1></div><div class="card"><div class="teacher"><div class="avatar">DM</div><div class="bubble"><p>${meaning}</p><h3>Why we use it</h3><p>${why}</p></div></div></div><button class="btn" onclick="advanceInstruction(1)">Watch an example</button>`;return;
+  }
+  if(step===1){
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Watch · ${area.name}</div>${learningPath('Watch')}<h1>Follow one example</h1></div><div class="card"><div class="teacher"><div class="avatar">DM</div><div class="bubble">${area.refresh}</div></div></div><div class="goodbox">This example is separate from the fresh item you will solve later.</div><button class="btn" onclick="advanceInstruction(2)">Practice one together</button>`;return;
+  }
+  s.innerHTML=`<div class="hero"><div class="eyebrow">Practice Together · ${area.name}</div>${learningPath('Practice Together')}<h1>${mathMarkup(supported.q)}</h1></div><div class="card"><p>${supported.prompt}</p>${answerTarget(supported)}<input class="input" id="supportedAns" inputmode="text" autocomplete="off"><div id="supportedFb" class="feedback"></div><button class="btn" onclick="checkSupported()">Check this step</button></div>`;
+}
+function advanceInstruction(step){const e=areaEvidence(currentArea().id);if(step>=1)e.conceptSeen=true;if(step>=2)e.watchSeen=true;app.instructionStep=step;render()}
+function checkSupported(){
+  const area=currentArea(),item=MATH_SUPPORTED[area.id],ans=document.getElementById('supportedAns').value,result=Day1Session.classifyAnswer(ans,mathItemRules(item)),skill=mathSkill(),f=document.getElementById('supportedFb'),itemId=area.id+':supported';
+  if(result.correct){
+    areaEvidence(area.id).supportedPassed=true;StudentModelIdkRouter.recordAttempt(skill,itemId,true,null,Date.now(),ans);
+    if(StudentModelIdkRouter.isRemediationActive(skill)){StudentModelIdkRouter.recordRemediationCheck(skill,true,itemId,Date.now());StudentModelIdkRouter.exitRemediation(skill,currentArea().independent.map((x,i)=>({id:area.id+':independent:'+i})));}
+    f.className='feedback show good';f.innerHTML='Correct. You completed the reasoning step with support. Next, you will take more responsibility.<div><button class="btn small" onclick="startGuided()">Continue to guided practice</button></div>';
+  }else{
+    const routed=result.errorCode==='CONCEPT'?(StudentModelIdkRouter.isRemediationActive(skill)?StudentModelIdkRouter.recordRemediationCheck(skill,false,itemId,Date.now()):StudentModelIdkRouter.handleWrongAttempt(skill,itemId,result.errorCode,itemId,Date.now(),ans)):null;
+    f.className='feedback show warn';f.innerHTML=(result.errorCode==='CONCEPT'?CONCEPT_FEEDBACK[area.id]:result.message)+(routed&&(routed.action==='SWITCH_REPRESENTATION'||routed.representation)?'<div class="rulebox"><b>Let’s change the representation:</b> '+REPRESENTATION[area.id]+'</div>':'')+'<div><button class="btn small" onclick="app.instructionStep=0;render()">Review the idea, then try again</button></div>';
+  }
+  document.querySelectorAll('.card input,.card button').forEach(el=>{if(!f.contains(el))el.disabled=true});saveApp();
+}
+
 function beginProbe(){app.mathPhase="probe";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
+function mathBank(area){return app.mathPhase==="probe"?area.probe:app.mathPhase==="verification"?MATH_VERIFY[area.id]:app.mathPhase==="guided"?MATH_GUIDED[area.id]:area.independent}
+function showGuidedHint(){const f=document.getElementById('mathFeedback');f.className='feedback show info';f.textContent='Use the worked rule above one step at a time. '+REPRESENTATION[currentArea().id];}
+function startVerification(){app.mathPhase="verification";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render()}
 function submitMath(){
   const area=currentArea();
-  const bank=app.mathPhase==="probe"?area.probe:area.independent;
+  const bank=mathBank(area);
   const item=bank[app.mathQuestion];
   const ans=document.getElementById("mathAns").value;
-  const good=isCorrect(ans,item);
+  const result=Day1Session.classifyAnswer(ans,mathItemRules(item));
+  const good=result.correct;
   if(good) app.mathCorrect++;
-  app.mathAnswers.push({q:item.q,ans,correct:good});
+  app.mathAnswers.push({q:item.q,ans,correct:good,errorCode:result.errorCode});
+  const skill=mathSkill(),itemId=area.id+":"+app.mathPhase+":"+app.mathQuestion;
+  if(good){
+    StudentModelIdkRouter.recordAttempt(skill,itemId,true,null,Date.now(),ans);
+    if(StudentModelIdkRouter.isRemediationActive(skill)){
+      StudentModelIdkRouter.recordRemediationCheck(skill,true,itemId,Date.now());
+      StudentModelIdkRouter.exitRemediation(skill,bank.map((x,i)=>({id:area.id+":"+app.mathPhase+":"+i})));
+    }
+  }
+  if(!good&&result.errorCode==="CONCEPT"){
+    const key=area.id+":"+item.q;const repeats=Day1Session.recordMisconception(app,key,result.errorCode);
+    const routed=StudentModelIdkRouter.isRemediationActive(skill)
+      ? StudentModelIdkRouter.recordRemediationCheck(skill,false,itemId,Date.now())
+      : StudentModelIdkRouter.handleWrongAttempt(skill,itemId,result.errorCode,itemId,Date.now(),ans);
+    if(repeats>=2||routed.action==="SWITCH_REPRESENTATION")result.message+=" Try a different representation: "+REPRESENTATION[area.id];
+    else result.message=CONCEPT_FEEDBACK[area.id]+" Keep the useful work you already have, then revise only the step that conflicts with this rule.";
+  }
   const f=document.getElementById("mathFeedback");
   f.className="feedback show "+(good?"good":"warn");
-  f.textContent=good?"Correct.":"Not yet. The correct answer is "+item.a[0]+".";
-  setTimeout(()=>{
+  f.innerHTML=(good?"Correct. This matches the rule you just practiced.":result.message)+
+    `<div style="margin-top:10px"><button class="btn small" onclick="ackMath(${good})">${good?'Continue':'Okay — try again'}</button></div>`;
+  document.getElementById("mathAns").disabled=true;
+  document.querySelectorAll('.sectionnav button').forEach(b=>b.disabled=true);
+}
+function ackMath(good){
+  const area=currentArea(),bank=mathBank(area);
+  if(good){
     if(app.mathQuestion+1<bank.length){app.mathQuestion++;render();}
     else finishMathPhase();
-  },650);
+  }else render();
 }
 function mathSkip(){
   const area=currentArea();
-  const bank=app.mathPhase==="probe"?area.probe:area.independent;
+  const bank=mathBank(area);
   const item=bank[app.mathQuestion];
-  app.mathAnswers.push({q:item.q,ans:"[I don't know]",correct:false});
-  if(app.mathQuestion+1<bank.length){app.mathQuestion++;render();}
-  else finishMathPhase();
+  app.mathAnswers.push({q:item.q,ans:"[I don't know]",correct:false,errorCode:"IDK"});
+  routeIdk('concept');
 }
+function routeIdk(reason){
+  const area=currentArea(),itemId=area.id+":"+app.mathPhase+":"+app.mathQuestion;
+  const routerReason={concept:StudentModelIdkRouter.IDK_REASONS.DONT_UNDERSTAND,start:StudentModelIdkRouter.IDK_REASONS.DONT_KNOW_START,example:StudentModelIdkRouter.IDK_REASONS.SHOW_EXAMPLE}[reason];
+  const required=area.id==='logs'?'powers_of_ten':null;
+  const routed=StudentModelIdkRouter.handleIdk(mathSkill(),routerReason,itemId,required,Date.now());
+  app.idk={reason,action:routed.action,origin:itemId};
+  app.mathPhase='mini';app.instructionStep=0;render();
+}
+function advanceAfterIdk(){const bank=mathBank(currentArea());if(app.mathQuestion+1<bank.length){app.mathQuestion++;render()}else finishMathPhase()}
 function finishMathPhase(){
   const area=currentArea();
   if(app.mathPhase==="probe"){
+    if(Day1Session.mathTimePolicy(app,Date.now())!=="adaptive"){
+      app.mathStatus[area.id]=app.mathCorrect===3?"Cleared":"Developing";
+      app.mathPhase="donearea";render();return;
+    }
     if(app.mathCorrect===3){
       app.mathStatus[area.id]="Cleared";
       app.mathPhase="donearea";
-    }else{
-      app.mathPhase="mini";
-    }
+    }else if(app.mathCorrect===2) app.mathPhase="targeted";
+    else app.mathPhase="mini";
+  }else if(app.mathPhase==="verification"){
+    if(app.mathCorrect===2){app.mathStatus[area.id]="Cleared";app.mathPhase="donearea"}else app.mathPhase="mini";
+  }else if(app.mathPhase==="guided"){
+    areaEvidence(area.id).guidedPassed=true;
+    app.mathPhase="independent";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];
   }else{
     app.mathStatus[area.id]=app.mathCorrect>=3?"Cleared":"Developing";
     app.mathPhase="donearea";
   }
   render();
 }
-function startIndependent(){app.mathPhase="independent";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
+function startGuided(){if(!areaEvidence(currentArea().id).supportedPassed){app.mathPhase='mini';app.instructionStep=2;render();return}app.mathPhase="guided";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
+function startIndependent(){if(!Day1Session.independentAllowed(mathSkill(),areaEvidence(currentArea().id))){app.mathPhase='mini';app.instructionStep=0;render();return}app.mathPhase="independent";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
 function nextMathArea(){
   if(app.mathIndex<MATH_AREAS.length-1){
-    app.mathIndex++;app.mathPhase="refresh";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();
+    app.mathIndex++;app.mathPhase="refresh";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];
+    if(Day1Session.mathTimePolicy(app,Date.now())==='hard_cap'){MATH_AREAS.slice(app.mathIndex).forEach(a=>app.mathStatus[a.id]='Developing');app.step='break';}
+    render();
   }else{
     app.step="break";render();
   }
@@ -487,7 +657,7 @@ function renderBreak(s){
     <button class="btn" onclick="startChem()">I'm back. Start chemistry.</button>
   `;
 }
-function startChem(){app.step="chem";app.chemistryPhase="teach1";render();}
+function startChem(){app.chemistryStarted=true;app.step="chem";render();}
 
 function renderChem(s){
   setProgress(58);
@@ -569,10 +739,19 @@ No electrons remain.
 Step 5
 4 bonds × 2 = 8 ✓</div>
       <div class="goodbox">Carbon has four bonds, so eight electrons are around carbon. Each hydrogen has one bond, so two electrons are around each H.</div>
-      <button class="btn" onclick="nextChem('nh3')">Now let me drive NH₃</button>
+      <button class="btn" onclick="nextChem('watchNH3')">Watch NH₃ build one step at a time</button>
     `;
     return;
   }
+
+  if(p==="watchNH3"){
+    const seq=WatchMode.WATCH_SEQUENCES.NH3;
+    if(!app.watchSession){app.watchSession=WatchMode.createWatchSession(seq);WatchMode.begin(app.watchSession,seq,Date.now());}
+    const step=WatchMode.currentStep(app.watchSession,seq),view=step.visual;
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Watch · I Do</div><h1>${seq.title}</h1></div><div class="card"><div class="teacher"><div class="avatar">DM</div><div class="bubble">${step.narration}</div></div><div class="whiteboard">Atoms: ${view.atoms.join(' · ')}\nBonds placed: ${view.bonds.length}\nLone pairs placed: ${view.lonePairs.length}\nAvailable ${view.counter.available} · Placed ${view.counter.placed} · Remaining ${view.counter.remaining}</div></div><div class="sectionnav"><button class="btn alt small" onclick="watchBack()" ${app.watchSession.currentIndex===0?'disabled':''}>Back</button><button class="btn alt small" onclick="watchReplay()">Replay this step</button><button class="btn small" onclick="watchNext()">${app.watchSession.currentIndex===seq.steps.length-1?'Continue to Build Together':'Next step'}</button></div>`;return;
+  }
+
+  if(p==="togetherNH3"){renderMoleculeLesson(s,"NH3","Build Together · We Do","Rebuild NH₃ from an empty stage. Prompts and the electron counter are available.","together");return;}
 
   if(p==="nh3"){
     s.innerHTML=`
@@ -587,7 +766,7 @@ Step 5
     return;
   }
 
-  if(p==="buildH2O"){ renderMoleculeLesson(s,"H2O","Independent production 1","Build H₂O completely. Every bond, every lone pair.",false); return; }
+  if(p==="buildH2O"){ renderMoleculeLesson(s,"H2O","Guided · build with support","Build H₂O completely. Every bond, every lone pair.","guided"); return; }
   if(p==="whyH2O"){
     s.innerHTML=`
       <div class="hero"><div class="eyebrow">Explain it</div><h1>Why exactly two lone pairs on oxygen?</h1></div>
@@ -599,7 +778,7 @@ Step 5
     `;
     return;
   }
-  if(p==="buildMethanol"){ renderMoleculeLesson(s,"CH3OH","Independent production 2","Build CH₃OH completely. Every bond, every lone pair.",false); return; }
+  if(p==="buildMethanol"){ renderMoleculeLesson(s,"CH3OH","Build Alone · no scaffolds","Build CH₃OH completely. Every bond, every lone pair.","alone"); return; }
   if(p==="toMastery"){
     s.innerHTML=`
       <div class="hero"><div class="eyebrow">Chemistry Block B complete</div><h1>Time to prove it cold.</h1></div>
@@ -611,12 +790,15 @@ Step 5
 }
 
 function nextChem(p){app.chemistryPhase=p;render();}
+function watchNext(){const seq=WatchMode.WATCH_SEQUENCES.NH3;if(app.watchSession.currentIndex===seq.steps.length-1){app.watchSession=null;nextChem('togetherNH3');return;}WatchMode.next(app.watchSession,seq,Date.now());render();}
+function watchBack(){WatchMode.back(app.watchSession,WatchMode.WATCH_SEQUENCES.NH3,Date.now());render();}
+function watchReplay(){WatchMode.replay(app.watchSession,WatchMode.WATCH_SEQUENCES.NH3,Date.now());render();}
 function checkChemQuick(){
   const a=document.getElementById("chemQuick").value.trim();
   const f=document.getElementById("chemQuickFb");
   f.className="feedback show "+(a==="7"?"good":"warn");
   f.textContent=a==="7"?"Correct. Group 17 → 7 valence electrons.":"Not yet. For Group 17, the ones digit is 7.";
-  setTimeout(()=>{app.chemistryPhase="teach2";render();},700);
+  f.innerHTML+=`<div style="margin-top:10px"><button class="btn small" onclick="nextChem('teach2')">${a==='7'?'Continue':'Got it — continue'}</button></div>`;
 }
 function checkNH3(){
   const a=document.getElementById("nh3ans").value.trim();
@@ -624,34 +806,38 @@ function checkNH3(){
   if(a==="8"){
     f.className="feedback show good";
     f.textContent="Correct. Three N—H bonds use 6 electrons, leaving 2 electrons: one lone pair on nitrogen.";
-    setTimeout(()=>{app.chemistryPhase="buildH2O";render();},900);
+    f.innerHTML+=`<div style="margin-top:10px"><button class="btn small" onclick="nextChem('buildH2O')">Continue</button></div>`;
   }else{
     f.className="feedback show warn";
-    f.textContent="Count it: nitrogen brings 5 and three hydrogens bring 3. Total = 8.";
+    f.innerHTML='You entered “'+(a||'blank')+'.” Nitrogen brings 5 and three hydrogens bring 3, so the question requires their total: 8.<div style="margin-top:10px"><button class="btn small" onclick="document.getElementById(\'nh3fb\').className=\'feedback\';document.getElementById(\'nh3ans\').focus()">Okay — try again</button></div>';
   }
 }
 function checkWhyH2O(){
   const t=document.getElementById("whyH2OText").value.toLowerCase();
-  const ok=(t.includes("8")||t.includes("eight")) && (t.includes("4")||t.includes("four")) && (t.includes("lone")||t.includes("pair"));
+  const ok=Day1Session.meaningfulExplanation(t,[["8","eight"],["4","four"],["lone pair","lonepairs"]]);
   const f=document.getElementById("whyFb");
   f.className="feedback show "+(ok?"good":"warn");
   if(ok){
     app.chemResults.why=true;
     f.textContent="Good. You accounted for the total electrons and the remaining four electrons as two lone pairs.";
-    setTimeout(()=>{app.chemistryPhase="buildMethanol";render();},900);
+    f.innerHTML+=`<div style="margin-top:10px"><button class="btn small" onclick="nextChem('buildMethanol')">Continue</button></div>`;
   }else{
-    f.textContent="Use the accounting: the molecule has 8 total valence electrons. Two bonds account for 4. What happens to the remaining 4?";
+    f.innerHTML='Your explanation does not yet show the required electron accounting. Explain that the molecule has 8 total electrons, two bonds use 4, and the remaining 4 become two lone pairs on oxygen.<div style="margin-top:10px"><button class="btn small" onclick="document.getElementById(\'whyFb\').className=\'feedback\'">Okay — revise it</button></div>';
   }
 }
 
-function startMastery(){app.step="mastery";render();}
+function startMastery(){app.step="mastery";app.masteryMath=app.masteryMath||{areas:MATH_AREAS.filter(a=>app.mathStatus[a.id]==="Developing").map(a=>a.id),index:0,results:{}};render();}
 function renderMastery(s){
   setProgress(88);
+  if(app.masteryMath&&app.masteryMath.index<app.masteryMath.areas.length){
+    const id=app.masteryMath.areas[app.masteryMath.index],area=MATH_AREAS.find(a=>a.id===id),item=MATH_VERIFY[id][1];
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Fresh math check · ${app.masteryMath.index+1} of ${app.masteryMath.areas.length}</div><h1>${area.name}</h1><p class="lede">${item.q}</p></div><div class="card"><input class="input" id="freshMathAns" placeholder="Your answer"><div id="freshMathFb" class="feedback"></div><button class="btn" onclick="checkFreshMath()">Check</button></div>`;return;
+  }
   s.innerHTML=`
     <div class="hero"><div class="eyebrow">Fresh mastery check</div><h1>CH₃NH₂ · methylamine</h1><p class="lede">No hints. No counter. Build every bond and every lone pair from what you know.</p></div>
     <div id="molMount"></div>
   `;
-  mountMoleculeStage("CH3NH2",true,()=>{
+  mountMoleculeStage("CH3NH2","mastery",()=>{
     app.chemResults.mastery=true;
     document.getElementById("molMount").insertAdjacentHTML("beforeend",`
       <div class="card" id="masterExplain">
@@ -664,65 +850,80 @@ function renderMastery(s){
     `);
   });
 }
+function checkFreshMath(){
+  const id=app.masteryMath.areas[app.masteryMath.index],item=MATH_VERIFY[id][1],ans=document.getElementById('freshMathAns').value,result=Day1Session.classifyAnswer(ans,mathItemRules(item)),f=document.getElementById('freshMathFb');
+  app.masteryMath.results[id]={correct:result.correct,answer:ans,errorCode:result.errorCode};
+  if(!result.correct&&result.errorCode==='CONCEPT')Day1Session.recordMisconception(app,'fresh:'+id,result.errorCode);
+  f.className='feedback show '+(result.correct?'good':'warn');f.innerHTML=(result.correct?'Correct. This is fresh evidence, recorded separately from today’s reset status.':result.message)+'<div style="margin-top:10px"><button class="btn small" id="freshAck">Continue</button></div>';
+  document.getElementById('freshAck').onclick=()=>{app.masteryMath.index++;render()};
+}
 function checkMasterExplanation(){
   const t=document.getElementById("masterText").value.toLowerCase();
-  const ok=(t.includes("14")||t.includes("fourteen")) &&
-           (t.includes("12")||t.includes("twelve")||t.includes("six bond")) &&
-           (t.includes("2")||t.includes("two")) &&
-           (t.includes("lone")||t.includes("pair")) &&
-           (t.includes("nitrogen")||/\bn\b/.test(t));
+  const ok=Day1Session.meaningfulExplanation(t,[["14","fourteen"],["12","twelve","six bond"],["2","two"],["lone pair"],["nitrogen"]]);
   const f=document.getElementById("masterFb");
   f.className="feedback show "+(ok?"good":"warn");
   if(ok){
     app.chemResults.masteryWhy=true;
     f.textContent="Mastery check complete. Structure + explanation both cleared.";
-    setTimeout(()=>{app.step="summary";render();},900);
+    f.innerHTML+=`<div style="margin-top:10px"><button class="btn small" onclick="completeDay1()">Continue to Day 1 results</button></div>`;
   }else{
-    f.textContent="Include: 14 total valence electrons, six bonds account for 12, and the remaining 2 electrons form one lone pair on nitrogen.";
+    f.innerHTML='This explanation is missing required evidence. Include: 14 total valence electrons, six bonds account for 12, and the remaining 2 electrons form one lone pair on nitrogen.<div style="margin-top:10px"><button class="btn small" onclick="document.getElementById(\'masterFb\').className=\'feedback\'">Okay — revise it</button></div>';
   }
 }
 
 /* ================================
    MOLECULE STAGE
 ================================ */
-function renderMoleculeLesson(s,key,kicker,prompt,mastery){
+function renderMoleculeLesson(s,key,kicker,prompt,mode){
   setProgress(key==="H2O"?70:80);
   s.innerHTML=`
     <div class="hero"><div class="eyebrow">${kicker}</div><h1>${prompt}</h1></div>
     <div id="molMount"></div>
   `;
-  mountMoleculeStage(key,mastery,()=>{
-    if(key==="H2O"){app.chemResults.h2o=true;app.chemistryPhase="whyH2O";render();}
+  mountMoleculeStage(key,mode,()=>{
+    if(key==="NH3"){app.chemistryPhase="buildH2O";render();}
+    else if(key==="H2O"){app.chemResults.h2o=true;app.chemistryPhase="whyH2O";render();}
     else if(key==="CH3OH"){app.chemResults.methanol=true;app.chemistryPhase="toMastery";render();}
   });
 }
 
-function mountMoleculeStage(key,mastery,onSolved){
+function mountMoleculeStage(key,mode,onSolved){
   const target=TARGETS[key];
+  const scaffolded=mode==="guided"||mode==="together";
   const mount=document.getElementById("molMount");
   mount.innerHTML=`
     <div class="card">
-      <div class="counter" id="counter"></div>
+      ${scaffolded?'<div class="counter" id="counter"></div>':''}
+      ${mode==='together'?'<div class="rulebox" id="togetherPrompt"></div>':''}
       <div class="tray" id="atomTray"></div>
       <div class="stageWrap"><svg id="stage" viewBox="0 0 400 340"></svg></div>
       <div class="tools">
         <button id="lpTool">Lone Pair</button>
         <button id="undoBtn">Undo</button>
         <button id="resetBtn">Reset</button>
-        <button id="hintBtn"${mastery?' style="display:none"':''}>Hint</button>
+        ${scaffolded?'<button id="hintBtn">Hint</button>':''}
       </div>
       <div id="molHint" class="feedback info"></div>
       <div id="molFb" class="feedback"></div>
       <button class="btn" id="checkMol">Check my structure</button>
+      ${mode==='mastery'?'':'<button class="btn ghost" id="skipMol">Skip for now</button>'}
     </div>
   `;
 
-  let state={atoms:[],bonds:[],lonePairs:[]};
-  let history=[],pendingEl=null,lpMode=false,selected=null,hintTier=0,counterShown=false,id=0;
+  const resumable=app.activeStage&&app.activeStage.key===key&&app.activeStage.mode===mode&&MoleculeStageLogic.validState(app.activeStage.state);
+  let state=resumable?app.activeStage.state:{atoms:[],bonds:[],lonePairs:[]};
+  let history=[],pendingEl=null,lpMode=false,selected=null,hintTier=0,counterShown=false;
+  // Continue above persisted ids; restarting at a0 corrupts a resumed drawing.
+  let id=state.atoms.concat(state.bonds,state.lonePairs).reduce((highest,item)=>{
+    const match=String(item.id||'').match(/^a(\d+)$/);return match?Math.max(highest,Number(match[1])+1):highest;
+  },0);
+  const btPlan=mode==='together'?BuildTogether.BUILD_PLANS.NH3:null;
+  let bt=btPlan?(app.activeStage&&app.activeStage.key===key&&app.activeStage.mode===mode&&app.activeStage.bt?app.activeStage.bt:BuildTogether.begin(BuildTogether.createBuildTogetherSession(btPlan),btPlan,Date.now())):null;
   const svg=document.getElementById("stage"), NS="http://www.w3.org/2000/svg", R=26;
   const nextId=()=> "a"+(id++);
 
   function clone(o){return JSON.parse(JSON.stringify(o))}
+  function persistStage(){app.activeStage={key,mode,state:clone(state),bt:bt?clone(bt):null};saveApp()}
   function push(){history.push(clone(state));if(history.length>60)history.shift();}
   function loneCount(aid){return state.lonePairs.filter(x=>x.atomId===aid).length}
   function neighbors(aid){
@@ -737,23 +938,22 @@ function mountMoleculeStage(key,mastery,onSolved){
   }
   function sigKey(x){return x.el+":"+x.neighbors.join(",")+":"+x.lonePairs}
   function verify(){
-    if(state.atoms.length!==target.atoms.length)return false;
-    const a=sigs().map(sigKey).sort();
-    const b=target.atoms.map(x=>sigKey({el:x.el,neighbors:x.neighbors.slice().sort(),lonePairs:x.lonePairs})).sort();
-    return a.length===b.length&&a.every((x,i)=>x===b[i]);
+    return MoleculeStageLogic.verifyStructure(state,target).correct;
   }
   function detect(){
-    const ss=sigs();
-    const badH=ss.find(x=>x.el==="H"&&(x.neighbors.length>1||x.lonePairs>0));
-    if(badH)return "Hydrogen is complete with one single bond and no lone pairs in today's structures.";
-    for(const a of state.atoms){
-      const around=eAround(a.id);
-      if(a.el!=="H"&&around>8)return a.el+" currently has "+around+" electrons around it. Today's H/C/N/O structures keep that atom at an octet.";
-    }
-    const carbonLP=state.atoms.find(a=>a.el==="C"&&loneCount(a.id)>0);
-    if(carbonLP)return "Carbon should have no lone pairs in these Day 1 molecules. Count the electrons around carbon and look for the atom that is still short.";
-    return null;
+    const found=MoleculeStageLogic.detectMisconception(state,target);
+    return found&&found.message;
   }
+  function togetherAction(action){
+    if(!bt)return true;
+    const result=BuildTogether.submitAction(bt,btPlan,action,Date.now());
+    if(!result.correct){showWrong(result.feedback);return false;}
+    const f=document.getElementById('molFb');f.className='feedback show good';f.innerHTML=result.feedback+'<div style="margin-top:10px"><button class="btn small" id="btAck">Continue</button></div>';
+    [...mount.querySelectorAll('button')].forEach(b=>{if(b.id!=='btAck')b.disabled=true});
+    document.getElementById('btAck').onclick=()=>{f.className='feedback';[...mount.querySelectorAll('button')].forEach(b=>b.disabled=false);renderTogetherPrompt();};
+    return true;
+  }
+  function renderTogetherPrompt(){const el=document.getElementById('togetherPrompt');if(el)el.textContent=bt.completed?'Structure complete. Check the finished molecule.':BuildTogether.currentPrompt(bt,btPlan);}
 
   ["C","N","O","H"].forEach(el=>{
     const b=document.createElement("button");b.textContent=el;b.dataset.el=el;
@@ -765,9 +965,9 @@ function mountMoleculeStage(key,mastery,onSolved){
     document.getElementById("lpTool").classList.toggle("active",lpMode);
   }
   document.getElementById("lpTool").onclick=()=>{lpMode=!lpMode;pendingEl=null;selected=null;renderTray();};
-  document.getElementById("undoBtn").onclick=()=>{if(!history.length)return;state=history.pop();renderStage();};
-  document.getElementById("resetBtn").onclick=()=>{if(!state.atoms.length)return;if(confirm("Clear the whole structure?")){push();state={atoms:[],bonds:[],lonePairs:[]};selected=null;renderStage();}};
-  document.getElementById("hintBtn").onclick=()=>{
+  document.getElementById("undoBtn").onclick=()=>{if(!history.length)return;state=history.pop();persistStage();renderStage();};
+  document.getElementById("resetBtn").onclick=()=>{if(!state.atoms.length)return;if(confirm("Clear the whole structure?")){push();state={atoms:[],bonds:[],lonePairs:[]};selected=null;persistStage();renderStage();}};
+  if(scaffolded) document.getElementById("hintBtn").onclick=()=>{
     hintTier=Math.min(3,hintTier+1);
     const h=[
       "Start with the total valence-electron count for the whole formula.",
@@ -780,14 +980,25 @@ function mountMoleculeStage(key,mastery,onSolved){
   document.getElementById("checkMol").onclick=()=>{
     const msg=detect();
     const f=document.getElementById("molFb");
-    if(msg){f.className="feedback show warn";f.textContent=msg;return;}
-    if(verify()){f.className="feedback show good";f.textContent="Correct. Structure verified.";setTimeout(onSolved,700);}
-    else{f.className="feedback show warn";f.textContent="Not yet. Check atom count, connections, and lone-pair counts."; }
+    if(msg){showWrong(msg);return;}
+    if(verify()){f.className="feedback show good";f.innerHTML='Correct. Every atom, bond, and lone pair matches the electron count.<div style="margin-top:10px"><button class="btn small" id="molContinue">Continue</button></div>';[...mount.querySelectorAll('button')].forEach(b=>{if(b.id!=="molContinue")b.disabled=true});document.getElementById('molContinue').onclick=()=>{app.activeStage=null;onSolved()};}
+    else{showWrong(state.atoms.length!==target.atoms.length?"The atom count does not match the formula yet. Keep the atoms you placed correctly and compare each element with the formula.":"The atoms are present, but at least one connection or lone-pair count differs. Keep your correct work, count around each atom, and correct only the part that does not satisfy the formula.");}
   };
+  if(mode!=='mastery')document.getElementById('skipMol').onclick=()=>{
+    app.misconceptionLog['skipped:'+key]=(app.misconceptionLog['skipped:'+key]||0)+1;
+    const f=document.getElementById('molFb');f.className='feedback show info';f.innerHTML='Skipped. This one gets logged as unresolved and does not count as complete.<div style="margin-top:10px"><button class="btn small" id="skipAck">Okay — keep working here</button></div>';
+    document.getElementById('skipAck').onclick=()=>{f.className='feedback'};saveApp();
+  };
+  function showWrong(message){
+    const f=document.getElementById("molFb");f.className="feedback show warn";
+    f.innerHTML=message+'<div style="margin-top:10px"><button class="btn small" id="molAck">Okay — let me correct it</button></div>';
+    [...mount.querySelectorAll('button')].forEach(b=>{if(b.id!=="molAck")b.disabled=true});
+    document.getElementById('molAck').onclick=()=>{f.className='feedback';[...mount.querySelectorAll('button')].forEach(b=>b.disabled=false);document.getElementById('undoBtn').disabled=!history.length};
+  }
 
   function renderCounter(){
     const c=document.getElementById("counter");
-    if(mastery){c.innerHTML='<span class="hiddenCounter">Electron counter unavailable during mastery.</span>';return;}
+    if(!c)return;
     if(!counterShown){c.innerHTML='<span class="hiddenCounter">Counter hidden. Hint 3 can reveal it.</span>';return;}
     const placed=state.bonds.length*2+state.lonePairs.length*2;
     c.innerHTML=`
@@ -808,18 +1019,20 @@ function mountMoleculeStage(key,mastery,onSolved){
     evt.preventDefault();
     const p=pt(evt),h=hit(p.x,p.y);
     if(lpMode){
-      if(h){push();state.lonePairs.push({id:nextId(),atomId:h.id});renderStage();}
+      if(h){if(!togetherAction({atom:h.label||h.el,count:1}))return;push();if(loneCount(h.id)>=3){const i=state.lonePairs.map(x=>x.atomId).lastIndexOf(h.id);state.lonePairs.splice(i,1)}else state.lonePairs.push({id:nextId(),atomId:h.id});persistStage();renderStage();}
       return;
     }
     if(pendingEl){
       if(h)return;
-      push();state.atoms.push({id:nextId(),el:pendingEl,x:p.x,y:p.y});pendingEl=null;renderTray();renderStage();return;
+      if(!togetherAction({element:pendingEl}))return;
+      push();const placedEl=pendingEl,ordinal=state.atoms.filter(a=>a.el===placedEl).length+1,label=placedEl==="H"?"H"+ordinal:placedEl;state.atoms.push({id:nextId(),el:placedEl,label,x:p.x,y:p.y});pendingEl=null;persistStage();renderTray();renderStage();return;
     }
     if(h){
       if(!selected){selected=h.id;renderStage();return;}
       if(selected===h.id){selected=null;renderStage();return;}
       const exists=state.bonds.some(b=>(b.a===selected&&b.b===h.id)||(b.a===h.id&&b.b===selected));
-      if(!exists){push();state.bonds.push({id:nextId(),a:selected,b:h.id});}
+      const first=state.atoms.find(a=>a.id===selected);
+      if(!exists&&togetherAction({between:[first.label||first.el,h.label||h.el],order:1})){push();state.bonds.push({id:nextId(),a:selected,b:h.id});persistStage();}
       selected=null;renderStage();
     }else{selected=null;renderStage();}
   },{passive:false});
@@ -848,6 +1061,7 @@ function mountMoleculeStage(key,mastery,onSolved){
     });
     renderCounter();
     document.getElementById("undoBtn").disabled=!history.length;
+    renderTogetherPrompt();
   }
   renderTray();renderStage();
 }
@@ -859,7 +1073,7 @@ function renderSummary(s){
   setProgress(100);
   const chemMet=app.chemResults.h2o&&app.chemResults.methanol&&app.chemResults.why&&app.chemResults.mastery&&app.chemResults.masteryWhy;
   s.innerHTML=`
-    <div class="hero"><div class="eyebrow">Day 1 complete</div><h1>Foundation Reset summary</h1></div>
+    <div class="hero"><div class="eyebrow">Session terminal state</div><h1>DAY 1 COMPLETE</h1><p class="lede">Your Day 1 session is saved. Nothing starts again automatically.</p></div>
     <div class="card">
       <h3>Math status</h3>
       <div class="mathstatus">
@@ -871,54 +1085,78 @@ function renderSummary(s){
       <p><span class="pill ${chemMet?'good':'warn'}">${chemMet?'Met':'Not Met'}</span></p>
       <p>${chemMet?'Day 2 may open at formal charge after a short retrieval warm-up.':'Day 2 must open with targeted Lewis-structure retrieval before formal charge unlocks.'}</p>
     </div>
+    <div class="card"><h3>Misconception summary</h3>${Object.keys(app.misconceptionLog).length?`<ul>${Object.entries(app.misconceptionLog).map(([k,n])=>`<li>${k}: ${n} conceptual attempt${n===1?'':'s'}</li>`).join('')}</ul>`:'<p>No recurring conceptual errors were recorded.</p>'}</div>
     <div class="grid2">
       <button class="btn" onclick="openGym()">Open Math Gym</button>
-      <button class="btn alt" onclick="restartDay()">Restart Day 1</button>
+      <button class="btn alt" disabled>Day 1 finished</button>
     </div>
+    <button class="btn ghost" onclick="restartDay()">Restart Day 1</button>
   `;
 }
+function completeDay1(){if(Day1Session.completeDay(app)){app.done=true;app.step="summary"}render()}
 function restartDay(){
-  if(!confirm("Clear Day 1 progress and restart?"))return;
+  if(!confirm("Clear all Day 1 progress and restart?"))return;
   localStorage.removeItem(STORAGE_KEY);
-  app={step:"intro",mathIndex:0,mathPhase:"refresh",mathQuestion:0,mathCorrect:0,mathAnswers:[],mathStatus:{},chemistryPhase:"teach1",chemResults:{h2o:false,methanol:false,why:false,mastery:false,masteryWhy:false},misconceptionLog:{},done:false};
+  app=createInitialApp();
   render();
 }
 
 let gymSkill="algebra";
-function openGym(){app.step="gym";render();}
-function openGymFor(id){gymSkill=id;app.step="gym";render();}
+function enterGym(id){
+  gymSkill=id||gymSkill;if(app.step!=="gym")app.gymReturn={step:app.step};
+  app.step="gym";app.gymCurrent=null;render();
+}
+function openGym(){enterGym(gymSkill)}
+function openGymFor(id){enterGym(id)}
+function returnFromGym(){app.step=(app.gymReturn&&app.gymReturn.step)||"summary";app.gymReturn=null;app.gymCurrent=null;render()}
+function gymPool(area){return area.probe.concat(area.independent).map((item,index)=>({...item,id:(index<area.probe.length?'probe:':'independent:')+(index<area.probe.length?index:index-area.probe.length)}))}
 function renderMathGym(s){
-  setProgress(100);
-  s.innerHTML=`
-    <div class="hero"><div class="eyebrow">Unlimited practice</div><h1>Math Gym</h1><p class="lede">Mastery never locks practice. Pick a skill and keep going.</p></div>
-    <div class="modeTabs">${MATH_AREAS.map(a=>`<button class="${gymSkill===a.id?'on':''}" onclick="gymSkill='${a.id}';render()">${a.name}</button>`).join("")}</div>
-    <div class="card" id="gymCard"></div>
-    <button class="btn alt" onclick="app.step='summary';render()">Back to Day 1 summary</button>
-  `;
+  setProgress(app.done?100:45);
+  s.innerHTML=`<div class="hero"><div class="eyebrow">Optional unlimited practice</div><h1>Math Gym</h1><p class="lede">Math Gym supplements the Day 1 lesson. Practice here never substitutes for its independent checks.</p></div>
+    <div class="modeTabs">${MATH_AREAS.map(a=>`<button class="${gymSkill===a.id?'on':''}" onclick="gymSkill='${a.id}';app.gymCurrent=null;render()">${a.name}</button>`).join("")}</div>
+    <div class="card" id="gymCard"></div><button class="btn alt" onclick="returnFromGym()">Return to Day 1 lesson</button>`;
   newGymProblem();
 }
 function newGymProblem(){
-  const area=MATH_AREAS.find(a=>a.id===gymSkill)||MATH_AREAS[0];
-  const pool=[...area.probe,...area.independent];
-  const item=pool[Math.floor(Math.random()*pool.length)];
+  const area=MATH_AREAS.find(a=>a.id===gymSkill)||MATH_AREAS[0],pool=gymPool(area);
+  const item=Day1Session.selectUnseenItem(pool,app.gymHistory,gymSkill);
+  app.gymCurrent={skill:gymSkill,itemId:item.id};app.gymHistory.push(gymSkill+":"+item.id);if(app.gymHistory.length>60)app.gymHistory.shift();saveApp();
   const card=document.getElementById("gymCard");
-  card.innerHTML=`
-    <div class="kicker">${area.name}</div>
-    <h2>${item.q}</h2>
-    <input class="input" id="gymAns" placeholder="Your answer" />
-    <div id="gymFb" class="feedback"></div>
-    <div class="sectionnav">
-      <button class="btn alt small" onclick="newGymProblem()">New problem</button>
-      <button class="btn small" id="gymCheck">Check</button>
-    </div>`;
-  document.getElementById("gymCheck").onclick=()=>{
-    const ans=document.getElementById("gymAns").value;
-    const good=isCorrect(ans,item);
-    const f=document.getElementById("gymFb");
-    f.className="feedback show "+(good?"good":"warn");
-    f.textContent=good?"Correct. New one coming.":"Not yet. Correct answer: "+item.a[0];
-    if(good)setTimeout(newGymProblem,650);
-  };
+  card.innerHTML=`<div class="kicker">${area.name} · optional practice</div><h2>${item.solveFor?'Solve for '+item.solveFor:mathMarkup(item.q)}</h2>
+    ${item.solveFor?'<div class="whiteboard equation">'+mathMarkup(item.q)+'</div><label class="answerTarget" for="gymAns"><span>'+item.solveFor+' =</span></label>':''}
+    <input class="input" id="gymAns" inputmode="text" autocomplete="off" placeholder="Your answer"/><div id="gymFb" class="feedback"></div>
+    <div class="sectionnav"><button class="btn alt small" onclick="newGymProblem()">New problem</button><button class="btn alt small" onclick="routeGymIdk()">I don't know yet</button><button class="btn small" id="gymCheck">Check</button></div>`;
+  document.getElementById("gymCheck").onclick=()=>submitGymAnswer(area,item);
+}
+function lockGymExcept(id){document.querySelectorAll('#gymCard button,#gymCard input').forEach(el=>el.disabled=el.id!==id)}
+function mathSkillFor(id){if(!app.studentModel[id])app.studentModel[id]=StudentModelIdkRouter.createSkill(id);return app.studentModel[id]}
+function submitGymAnswer(area,item){
+  const ans=document.getElementById("gymAns").value,result=Day1Session.classifyAnswer(ans,mathItemRules(item)),skill=mathSkillFor(area.id),itemId='gym:'+area.id+':'+item.id;
+  app.gymAttempts.push({skill:area.id,itemId,answer:ans,errorCode:result.errorCode,correct:result.correct,supported:false});
+  const f=document.getElementById("gymFb");f.className="feedback show "+(result.correct?"good":"warn");
+  if(result.correct){
+    StudentModelIdkRouter.recordAttempt(skill,itemId,true,null,Date.now(),ans);
+    f.innerHTML='Correct. This optional practice is recorded, but it does not replace the lesson’s independent check.<div><button class="btn small" id="gymAck">Continue to a fresh problem</button></div>';
+    lockGymExcept('gymAck');document.getElementById('gymAck').onclick=newGymProblem;
+  }else if(['BLANK','NONNUMERIC','FORMAT_ONLY'].includes(result.errorCode)){
+    f.innerHTML=result.message+'<div><button class="btn small" id="gymAck">Okay — try a fresh response</button></div>';
+    lockGymExcept('gymAck');document.getElementById('gymAck').onclick=newGymProblem;
+  }else{
+    const routed=StudentModelIdkRouter.isRemediationActive(skill)?StudentModelIdkRouter.recordRemediationCheck(skill,false,itemId,Date.now()):StudentModelIdkRouter.handleWrongAttempt(skill,itemId,result.errorCode,itemId,Date.now(),ans);
+    Day1Session.recordMisconception(app,'gym:'+area.id,result.errorCode);
+    f.innerHTML='That response does not fit the governing rule yet. I will not give away this answer. Let’s repair the idea with a different example.<div><button class="btn small" id="gymAck">Teach this another way</button></div>';
+    lockGymExcept('gymAck');document.getElementById('gymAck').onclick=()=>showGymRemediation(area,routed);
+  } saveApp();
+}
+function showGymRemediation(area,routed){
+  const f=document.getElementById('gymFb'),switched=routed&&routed.action==='SWITCH_REPRESENTATION';
+  f.className='feedback show info';f.innerHTML='<h3>Teach · '+area.name+'</h3><p>'+area.mini+'</p><h3>Worked example with different numbers</h3><p>'+area.refresh+'</p>'+(switched?'<div class="rulebox"><b>Different representation:</b> '+REPRESENTATION[area.id]+'</div>':'')+'<p>Next is a different problem. This supported practice cannot award independent completion.</p><button class="btn small" id="gymFresh">Try a fresh problem</button>';
+  document.getElementById('gymFresh').onclick=newGymProblem;
+}
+function routeGymIdk(){
+  const area=MATH_AREAS.find(a=>a.id===gymSkill),item=app.gymCurrent,skill=mathSkillFor(area.id);
+  StudentModelIdkRouter.handleIdk(skill,StudentModelIdkRouter.IDK_REASONS.DONT_KNOW_START,'gym:'+area.id+':'+item.itemId,null,Date.now());
+  app.gymAttempts.push({skill:area.id,itemId:item.itemId,errorCode:'IDK',correct:false,supported:true});showGymRemediation(area,{action:'MODEL_FIRST_DECISION'});saveApp();
 }
 
 loadApp();

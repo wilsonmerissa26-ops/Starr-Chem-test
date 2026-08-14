@@ -334,8 +334,7 @@ function handleWrongAttempt(skill, itemId, errorCode, currentItemId, timestamp, 
 }
 
 /* Exported for the test harness */
-if (typeof module !== "undefined") {
-  module.exports = {
+var StudentModelIdkRouter = {
     STATES: STATES, SCAFFOLD: SCAFFOLD, MIN_RETRIEVAL_DELAY_MS: MIN_RETRIEVAL_DELAY_MS,
     createSkill: createSkill, startTeaching: startTeaching,
     moveToWatch: moveToWatch, moveToBuildTogether: moveToBuildTogether, moveToGuided: moveToGuided,
@@ -348,4 +347,5 @@ if (typeof module !== "undefined") {
     handleWrongAttempt: handleWrongAttempt, nextRepresentation: nextRepresentation,
     REPRESENTATIONS: REPRESENTATIONS
   };
-}
+if (typeof module !== "undefined" && module.exports) module.exports = StudentModelIdkRouter;
+if (typeof globalThis !== "undefined") globalThis.StudentModelIdkRouter = StudentModelIdkRouter;
