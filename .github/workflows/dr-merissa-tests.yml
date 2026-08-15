@@ -50,3 +50,5 @@ jobs:
         run: node test-adaptive-mastery-engine.js
       - name: Run chemistry teacher sequence tests
         run: node test-chemistry-teacher-sequence.js
+      - name: Run chemistry teacher preview regressions
+        run: node test-chemistry-teacher-preview.js
