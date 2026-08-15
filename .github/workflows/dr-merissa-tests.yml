@@ -37,3 +37,5 @@ jobs:
         run: node test-day1-repair.js
       - name: Run learner-facing teaching flow regressions
         run: node test-day1-teaching-flow.js
+      - name: Run learner classroom V2 acceptance regressions
+        run: node test-classroom-v2.js
