@@ -1,0 +1,30 @@
+(function(){
+'use strict';
+var steps=[
+ {say:'Before I give this a name, watch what the exponent is doing.',eq:'10¹ = 10',sub:'The exponent tells how many factors of ten are used.',anim:'pulse'},
+ {say:'Now ten squared gives one hundred.',eq:'10² = 100',sub:'2 is the exponent.',anim:'pulse'},
+ {say:'And ten cubed gives one thousand.',eq:'10³ = 1000',sub:'3 is the exponent.',anim:'pulse'},
+ {say:'Now I am going to ask the same relationship backward.',eq:'log₁₀(1000) = 3',sub:'A logarithm asks: 10 to what power gives this number?',anim:'reverse'},
+ {say:'Your turn. Ten to what power gives one thousand?',ask:{type:'numeric',prompt:'10 to what power gives 1000?',value:3},eq:'10 ? = 1000',sub:'Do not calculate. Read the exponent relationship.'},
+ {say:'Good. Now watch what happens when the number is a product.',eq:'1000 = 10 × 100',sub:'We are going to connect multiplication to powers of ten.',anim:'line'},
+ {say:'One thousand can also be written as ten times one hundred. Watch the log split that product.',eq:'log(10 × 100) → log(10) + log(100)',sub:'10 contributes one power. 100 contributes two powers.',anim:'split'},
+ {say:'One plus two equals three. That is why the powers add.',eq:'1 + 2 = 3',sub:'The rule has a reason before it has a name.',anim:'pulse'},
+ {say:'That pattern is called the product rule. Log of a product becomes the sum of the logs.',eq:'log(ab) = log(a) + log(b)',sub:'Product rule',anim:'line'},
+ {say:'Check the rule before we use it.',ask:{type:'choice',prompt:'Which matches log(2 × 5)?',choices:['log(2) × log(5)','log(2) + log(5)','log(7)'],value:'log(2) + log(5)'},eq:'log(2 × 5) = ?',sub:'Use the rule you just watched.'},
+ {say:'Now we can build log six. You are not supposed to magically know point seven eight.',eq:'6 = 2 × 3',sub:'Break 6 into useful factors.',anim:'split'},
+ {say:'Use the product rule.',eq:'log(6) = log(2) + log(3)',sub:'This is built, not memorized.',anim:'line',toolbox:true},
+ {say:'Use the tiny landmark set: log two is about point three zero and log three is about point four eight.',eq:'0.30 + 0.48',sub:'Landmarks are tools. You do not memorize log 1 through 29.',anim:'pulse',toolbox:true},
+ {say:'Add them and you get about point seven eight.',eq:'log(6) ≈ 0.78',sub:'Now 0.78 has a reason.',anim:'pulse',toolbox:true},
+ {say:'Now show me you can build another one.',ask:{type:'numericTolerance',prompt:'Using log(3)≈0.48 and log(5)≈0.70, estimate log(15).',value:1.18,tolerance:.03},eq:'log(15) = log(3 × 5) = ?',sub:'Build it from landmarks.',toolbox:true},
+ {say:'Exactly. You built the value instead of memorizing a random decimal.',eq:'log(15) ≈ 1.18',sub:'That is the kind of math thinking we want.',anim:'pulse',toolbox:true}
+];
+var i=-1,paused=false,rate=1,currentUtterance=null;
+var $=function(id){return document.getElementById(id)};
+var eq=$('equation'),sub=$('subtext'),teacher=$('teacherText'),status=$('stepStatus'),ask=$('ask'),q=$('question'),choices=$('choiceAnswers'),input=$('answerInput'),submit=$('submitAnswer'),feedback=$('answerFeedback'),toolbox=$('toolbox');
+function speak(text){if(!('speechSynthesis' in window))return;window.speechSynthesis.cancel();currentUtterance=new SpeechSynthesisUtterance(text);currentUtterance.rate=rate;currentUtterance.pitch=1;currentUtterance.volume=1;window.speechSynthesis.speak(currentUtterance)}
+function animate(kind){eq.className='equation';$('visualLine').classList.remove('on');void eq.offsetWidth;if(kind==='pulse')eq.classList.add('pulse');if(kind==='reverse'){eq.classList.add('slideIn')}if(kind==='split')eq.classList.add('split');if(kind==='line')$('visualLine').classList.add('on')}
+function showStep(){var s=steps[i];status.textContent='Step '+(i+1)+' of '+steps.length;eq.innerHTML=s.eq;sub.textContent=s.sub||'';teacher.textContent=s.say||'';toolbox.style.display=s.toolbox?'block':'none';ask.style.display='none';feedback.textContent='';animate(s.anim);if(s.say)speak(s.say);if(s.ask){setTimeout(function(){openAsk(s.ask)},350)}$('next').disabled=!!s.ask||i===steps.length-1;$('replay').disabled=false;$('pause').disabled=false;$('slower').disabled=false;}
+function openAsk(a){ask.style.display='block';q.textContent=a.prompt;choices.innerHTML='';input.classList.add('hidden');submit.classList.add('hidden');if(a.type==='choice'){a.choices.forEach(function(c){var b=document.createElement('button');b.className='choice';b.textContent=c;b.onclick=function(){check(c,a)};choices.appendChild(b)})}else{input.value='';input.classList.remove('hidden');submit.classList.remove('hidden');submit.onclick=function(){check(input.value,a)};input.focus()}}
+function check(v,a){var ok=false;if(a.type==='numeric')ok=Math.abs(Number(v)-a.value)<1e-9;if(a.type==='numericTolerance')ok=Math.abs(Number(v)-a.value)<=a.tolerance;if(a.type==='choice')ok=v===a.value;if(ok){feedback.className='good';feedback.textContent='Yes. That idea is working.';speak('Yes. That idea is working.');$('next').disabled=false;ask.style.display='none'}else{feedback.className='wrong';feedback.textContent='Not yet. We are staying on this idea. Replay the explanation or use the toolbox, then try again.';speak('Not yet. We are staying on this idea. Replay the explanation or use the toolbox, then try again.')}}
+$('start').onclick=function(){i=0;showStep();this.disabled=true};$('next').onclick=function(){if(i<steps.length-1){i++;showStep()}};$('replay').onclick=function(){if(i>=0)showStep()};$('pause').onclick=function(){if(!('speechSynthesis'in window))return;if(!paused){window.speechSynthesis.pause();paused=true;this.textContent='Resume voice'}else{window.speechSynthesis.resume();paused=false;this.textContent='Pause voice'}};$('slower').onclick=function(){rate=rate===1?.75:1;this.textContent=rate<1?'Normal speed':'Slow down';if(i>=0){window.speechSynthesis.cancel();speak(steps[i].say)}};$('toolboxBtn').onclick=function(){toolbox.style.display=toolbox.style.display==='block'?'none':'block'};
+})();
