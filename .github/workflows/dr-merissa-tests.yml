@@ -35,3 +35,5 @@ jobs:
         run: node test-day1-adversarial.js
       - name: Run manual-certification repair regressions
         run: node test-day1-repair.js
+      - name: Run reasoning-step diagnosis tests
+        run: node test-reasoning-diagnosis-engine.js
