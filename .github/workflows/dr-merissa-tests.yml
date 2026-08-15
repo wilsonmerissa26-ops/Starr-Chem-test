@@ -44,3 +44,5 @@ jobs:
         run: node test-classroom-v2-chemistry-interactive.js
       - name: Run multimodal teacher runtime tests
         run: node test-teacher-runtime.js
+      - name: Run learner-facing teacher preview regressions
+        run: node test-teacher-preview.js
