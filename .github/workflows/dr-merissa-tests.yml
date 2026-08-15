@@ -35,3 +35,5 @@ jobs:
         run: node test-day1-adversarial.js
       - name: Run manual-certification repair regressions
         run: node test-day1-repair.js
+      - name: Run adaptive practice and mastery tests
+        run: node test-adaptive-mastery-engine.js
