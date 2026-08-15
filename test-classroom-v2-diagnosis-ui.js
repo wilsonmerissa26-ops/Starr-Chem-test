@@ -4,7 +4,7 @@ const js=fs.readFileSync('classroom-v2-preview/classroom-v2-diagnosis.js','utf8'
 let p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 ok('preview loads diagnosis overlay',html.includes('classroom-v2-diagnosis.js'));
 ok('proportion wrong response is diagnosed',js.includes("q==='2/x = 6/15. Solve for x.'")&&js.includes('what does 2/x mean'));
-ok('cross multiply is explained from multiplying both sides',js.includes('multiply BOTH sides by both denominators'));
+ok('cross multiply is explained from multiplying both sides',js.includes('multiply BOTH sides by 15x')&&js.includes('2×15 = 6×x'));
 ok('log failure asks learner to identify broken link',js.includes('Which part is where you lose the thread?')&&js.includes('Why log(10⁻⁶) = -6'));
 ok('learner may say they do not know which part',js.includes("I don't know which part"));
 ok('log coefficient is built from landmarks rather than asserted',js.includes('log(2)≈0.30')&&js.includes('log(3)≈0.48')&&js.includes('0.30+0.48=0.78'));
