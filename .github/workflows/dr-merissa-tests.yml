@@ -46,3 +46,7 @@ jobs:
         run: node test-teacher-runtime.js
       - name: Run learner-facing teacher preview regressions
         run: node test-teacher-preview.js
+      - name: Run adaptive practice and mastery tests
+        run: node test-adaptive-mastery-engine.js
+      - name: Run chemistry teacher sequence tests
+        run: node test-chemistry-teacher-sequence.js
