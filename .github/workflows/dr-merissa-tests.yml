@@ -39,3 +39,5 @@ jobs:
         run: node test-reasoning-diagnosis-engine.js
       - name: Run Student Model diagnosis integration tests
         run: node test-student-model-diagnosis-adapter.js
+      - name: Run learner diagnosis UI regressions
+        run: node test-classroom-v2-diagnosis-ui.js
