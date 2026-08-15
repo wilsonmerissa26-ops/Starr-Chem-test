@@ -22,7 +22,6 @@ jobs:
 
       - name: Run Student Model and IDK Router tests
         run: node test-student-model.js
-
       - name: Run Watch Mode tests
         run: node test-watch-mode.js
       - name: Run Build Together tests
@@ -43,3 +42,5 @@ jobs:
         run: node test-classroom-v2-diagnosis-ui.js
       - name: Run chemistry interaction regressions
         run: node test-classroom-v2-chemistry-interactive.js
+      - name: Run multimodal teacher runtime tests
+        run: node test-teacher-runtime.js
