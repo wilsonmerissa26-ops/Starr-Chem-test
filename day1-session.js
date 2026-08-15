@@ -101,8 +101,27 @@
     result.gymHistory = Array.isArray(source.gymHistory) ? source.gymHistory.slice(-60) : [];
     result.gymAttempts = Array.isArray(source.gymAttempts) ? source.gymAttempts.slice(-200) : [];
     result.gymCurrent = null;
+    result.mathEvidence = Object.assign({}, defaults.mathEvidence || {}, source.mathEvidence || {});
+    result.instructionStep = Number.isInteger(source.instructionStep) ? Math.max(0, Math.min(3, source.instructionStep)) : 0;
+    result.transientInstruction = null;
+    var allowedSteps = ["intro","menu","math","break","chem","mastery","summary","gym"];
+    if (allowedSteps.indexOf(result.step) === -1) result.step = defaults.step || "intro";
+    var allowedMathPhases = ["refresh","probe","targeted","verification","mini","guided","independent","donearea"];
+    if (allowedMathPhases.indexOf(result.mathPhase) === -1) result.mathPhase = defaults.mathPhase || "refresh";
+    var maxIndex = Math.max(0, result.mathAreas.length - 1);
+    result.mathIndex = Number.isInteger(result.mathIndex) ? Math.max(0, Math.min(maxIndex, result.mathIndex)) : 0;
     result.stage = null; // transient UI state never crosses an item boundary or reload
     return result;
+  }
+
+  function independentAllowed(skill, evidence) {
+    if (skill && skill.remediation && skill.remediation.active) return false;
+    return !!(evidence && evidence.guidedPassed && evidence.supportedPassed);
+  }
+
+  function safeMathPhase(requested, skill, evidence) {
+    if (requested === "independent" && !independentAllowed(skill, evidence)) return "mini";
+    return requested;
   }
 
   function freshStage(molecule, mode) {
@@ -171,6 +190,7 @@
     mathTimePolicy:mathTimePolicy, shouldEscalateMath:shouldEscalateMath, safeSession:safeSession,
     idkIntervention:idkIntervention, recordMisconception:recordMisconception,
     freshStage:freshStage, scaffoldingFor:scaffoldingFor, canCompleteDay:canCompleteDay,
+    independentAllowed:independentAllowed, safeMathPhase:safeMathPhase,
     selectUnseenItem:selectUnseenItem, completeDay:completeDay };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.Day1Session = api;
