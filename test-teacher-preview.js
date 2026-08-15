@@ -11,7 +11,14 @@ ok('product rule is taught before log6 uses it',js.indexOf('called the product r
 ok('log6 is decomposed visually',js.includes("eq:'6 = 2 × 3'")&&js.includes("eq:'0.30 + 0.48'")&&js.includes("eq:'log(6) ≈ 0.78'"));
 ok('tiny landmark toolbox is visible',html.includes('log(2)≈0.30')&&html.includes('log(3)≈0.48')&&html.includes('log(5)≈0.70'));
 ok('meaningful animation classes exist',html.includes('@keyframes pulse')&&html.includes('@keyframes slideIn')&&js.includes("anim:'split'"));
-ok('questions block Next until answered',js.includes("$('next').disabled=!!s.ask")&&js.includes("$('next').disabled=false"));
-ok('transfer problem is different',js.includes('estimate log(15)'));
-ok('wrong answer stays on same idea',js.includes('We are staying on this idea'));
+ok('teaching questions block Next until answered',js.includes("$('next').disabled=!!s.ask")&&js.includes("$('next').disabled=false"));
+ok('preview continues beyond one question into practice phases',js.includes("phase:'guided'")&&js.includes("phase:'independent'")&&js.includes("phase:'mastery'"));
+ok('practice includes multiple structurally different forms',js.includes("form:'inverse'")&&js.includes("form:'product-rule'")&&js.includes("form:'scientific-notation'")&&js.includes("form:'error-analysis'"));
+ok('one answer cannot complete skill',js.includes('s.correct>=3&&s.forms>=2&&s.transfer'));
+ok('supported evidence is distinguished from independent evidence',js.includes("support:'guided'")&&js.includes("support:'none'")&&js.includes('independent:a.support===\'none\''));
+ok('IDK does not count as mastery or restart lesson',js.includes("I don't know yet")&&js.includes('I will not count this as mastery')&&js.includes('I will not restart the lesson'));
+ok('wrong answer gets reasoning-specific diagnosis',js.includes('inferError')&&js.includes('sign-error')&&js.includes('rule-selection'));
+ok('same reasoning error twice changes representation message',js.includes('missed this same reasoning step twice')&&js.includes('changing the representation'));
+ok('fresh transfer requirement exists',js.includes('isTransfer:true')&&js.includes('transfer:transfer'));
+ok('later retrieval evidence is persisted',js.includes('retrievalDueDays:3'));
 console.log('\nTeacher preview: '+p+' passed, '+f+' failed');if(f)process.exit(1);
