@@ -3,9 +3,8 @@
 var originalCheck=window.ClassroomV2&&window.ClassroomV2.checkTargetQuestion;
 var originalIdk=window.ClassroomV2&&window.ClassroomV2.targetIdk;
 if(!originalCheck||!originalIdk)return;
-var KEY='astarryia-reasoning-evidence-v1';
-var active=null;
-function norm(x){return String(x==null?'':x).trim().toLowerCase();}
+var KEY='astarryia-reasoning-evidence-v1',active=null;
+function norm(x){return String(x==null?'':x).trim().toLowerCase().replace(/\s+/g,'');}
 function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});}
 function qtext(){var q=document.querySelector('.question');return q?q.textContent.trim():'';}
 function fb(){return document.getElementById('feedback');}
@@ -13,64 +12,38 @@ function answer(){var a=document.getElementById('answer');return a?a.value:'';}
 function evidence(){try{return JSON.parse(localStorage.getItem(KEY)||'[]');}catch(e){return [];}}
 function saveRecord(r){var xs=evidence();xs.push(r);if(xs.length>100)xs=xs.slice(-100);localStorage.setItem(KEY,JSON.stringify(xs));}
 function choices(prompt,items,fn){return '<div class="info diagnostic-panel"><b>'+esc(prompt)+'</b><div class="choices">'+items.map(function(x,i){return '<button class="secondary" onclick="ClassroomDiagnosis.'+fn+'('+i+')">'+esc(x)+'</button>';}).join('')+'</div></div>';}
-function begin(kind,raw,question){active={kind:kind,rawResponse:raw,question:question,itemId:question,startedAt:Date.now(),reasoningStep:null,errorCode:null,representationHistory:[],repairPassed:null,transferResult:null};}
-function showPropProbe(raw){var q=qtext();begin('proportion',raw,q);fb().innerHTML=choices('We are staying on this exact problem. Before I decide what to reteach, what does 2/x mean to you?',['2 × x','2 ÷ x','x ÷ 2',"I'm not sure"],'propProbe');}
-function showLogProbe(raw){var q=qtext();begin('log',raw,q);fb().innerHTML=choices('We are staying on this exact problem. Which part is where you lose the thread?',["Why log(10⁻⁶) = -6","What the negative sign outside log does","How to estimate log(6)","How the pieces combine","I'm not sure"],'logProbe');}
-function showGenericProbe(raw){var q=qtext();begin('generic',raw,q);fb().innerHTML=choices('Do not restart the lesson. We will stay on this exact problem and find the first step that stopped making sense. Which description fits best?',["I don't understand what the problem is asking","I understand the question but don't know the first step","I started, but I got stuck in the middle","I know the process but the calculation/symbols lost me","I'm not sure"],'genericProbe');}
-function intercept(stage){var q=qtext(),raw=answer();
-  if(q==='2/x = 6/15. Solve for x.' && norm(raw)!=='5'){showPropProbe(raw);return;}
-  if(q.indexOf('Estimate -log(6 × 10⁻⁶)')===0 && Math.abs(parseFloat(raw)-5.2)>.15){showLogProbe(raw);return;}
-  return originalCheck(stage);
-}
-function interceptIdk(){var q=qtext(),raw=answer();
-  if(!q){return originalIdk();}
-  if(q==='2/x = 6/15. Solve for x.'){showPropProbe(raw);return;}
-  if(q.indexOf('Estimate -log(6 × 10⁻⁶)')===0){showLogProbe(raw);return;}
-  showGenericProbe(raw);
-}
-function propProbe(i){
-  var steps=[
-    {step:'interpret_variable_denominator',code:'PROP_DENOMINATOR_MEANING',text:'In 2/x, the fraction bar means division. Read it as “2 divided by x.” x is the denominator, so this is not 2 times x and not x divided by 2.',check:'What does 3/y mean?',ans:'3 ÷ y'},
-    {step:'cross_products_preserve_proportion',code:'PROP_CROSS_PRODUCT_GAP',text:'Good. The fraction meaning is not the problem, so we do not go backward. The next link is why cross multiplication works. In 2/x = 6/15, multiply BOTH sides by 15x. The denominators cancel: 15x·(2/x) = 15x·(6/15), leaving 2×15 = 6×x. “Cross multiply” is only a shortcut name for that legal operation on both sides.',check:'For 3/y = 9/12, which equation keeps the equal cross-products?',ans:'3×12 = 9y'},
-    {step:'fraction_orientation',code:'PROP_FRACTION_ORIENTATION',text:'The order of a fraction matters. 2/x means 2 divided by x. Flipping it to x/2 creates a different value. Read top ÷ bottom every time.',check:'Which expression means a divided by b?',ans:'a/b'},
-    {step:'interpret_variable_denominator',code:'PROP_DENOMINATOR_MEANING',text:'That is enough information for me to slow down here instead of restarting algebra. A fraction a/b means a divided by b, so 2/x means 2 divided by x. We will verify that one idea first.',check:'What does 4/z mean?',ans:'4 ÷ z'}
-  ];
-  var r=steps[i]||steps[3];active.reasoningStep=r.step;active.errorCode=r.code;active.representationHistory.push(i===1?'balance_equation':'fraction_reading');
-  fb().innerHTML='<div class="info"><b>Here is the exact step we are fixing.</b><br><br>'+esc(r.text)+'<br><br><b>Quick check:</b> '+esc(r.check)+'<input id="diag-answer" class="input" placeholder="Your answer"><button onclick="ClassroomDiagnosis.microCheck(\''+esc(r.ans).replace(/'/g,"\\'")+'\')">Check this one idea</button></div>';
-}
-function logProbe(i){
-  var steps=[
-    {step:'log_power_of_ten',code:'LOG_POWER_TEN_GAP',text:'A base-10 logarithm asks: “10 raised to what power gives this?” Since 10⁻⁶ is already written as a power of 10, log(10⁻⁶) = -6. The logarithm is simply reading the exponent.',check:'What is log(10⁻⁴)?',ans:'-4'},
-    {step:'outer_negative_distribution',code:'LOG_OUTER_NEGATIVE_GAP',text:'Keep the negative sign outside the brackets until the inside is finished. If the inside becomes -5.22, then the outside negative gives -(-5.22) = +5.22. The negative of a negative is positive.',check:'What is -(-3.4)?',ans:'3.4'},
-    {step:'estimate_log_coefficient',code:'LOG_ESTIMATION_GAP',text:'Because 6 is between 1 and 10, log(6) must be between 0 and 1. With the no-calculator landmarks, log(6) is about 0.78. That estimate belongs only to the coefficient part.',check:'Is log(4) between 0 and 1 or between 1 and 2?',ans:'between 0 and 1'},
-    {step:'combine_log_parts',code:'LOG_COMBINATION_GAP',text:'Now split THIS problem instead of jumping to a shortcut: -log(6×10⁻⁶) = -[log(6) + log(10⁻⁶)]. The power-of-ten part is -6, so this becomes -[log(6) - 6]. Estimate log(6)≈0.78: -[0.78 - 6] = -[-5.22] = +5.22. Only after that makes sense should 6 - log(6) be used as a shortcut.',check:'In -[0.7 - 5], is the final result positive or negative?',ans:'positive'},
-    {step:'diagnostic_uncertain',code:'LOG_NEEDS_MORE_EVIDENCE',text:'I do not have enough evidence to guess, so I will not send you backward. We will split THIS problem into tiny pieces. Start with the power-of-ten part only: log(10⁻⁶) asks what exponent is already on the 10.',check:'What is log(10⁻⁶)?',ans:'-6'}
-  ];
-  var r=steps[i]||steps[4];active.reasoningStep=r.step;active.errorCode=r.code;active.representationHistory.push(i===3?'split_expression':'worked_example');
-  fb().innerHTML='<div class="info"><b>We found the part to work on.</b><br><br>'+esc(r.text)+'<br><br><b>Quick check:</b> '+esc(r.check)+'<input id="diag-answer" class="input" placeholder="Your answer"><button onclick="ClassroomDiagnosis.microCheck(\''+esc(r.ans).replace(/'/g,"\\'")+'\')">Check this one idea</button></div>';
-}
-function genericProbe(i){
-  var steps=[
-    {step:'interpret_prompt',code:'GEN_PROMPT_MEANING',text:'We are not solving yet. Read the current problem and identify exactly what it is asking you to find. Ignore the calculations for a moment.',check:'In one short phrase, what are you being asked to find?',free:true},
-    {step:'choose_first_action',code:'GEN_FIRST_DECISION',text:'We are staying on the current problem. Before doing arithmetic, name the first legal move or relationship you would use. The goal is to choose a move, not finish the problem.',check:'What would you do first?',free:true},
-    {step:'locate_breakpoint',code:'GEN_MIDDLE_STEP',text:'Do not erase the work you already understand. Find the last step you are confident is correct. We will work only from that point forward.',check:'Type the last step you know is correct.',free:true},
-    {step:'symbol_or_calculation',code:'GEN_SYMBOL_CALC',text:'The overall method may be fine. We will isolate the symbol or calculation that broke the chain instead of restarting the topic.',check:'Which symbol, number, or operation is the confusing part?',free:true},
-    {step:'need_work_trace',code:'GEN_NEEDS_MORE_EVIDENCE',text:'I do not have enough evidence to diagnose you yet, and I will not pretend I do. Show me the first thing you would try on this exact problem.',check:'What would you write first?',free:true}
-  ];
-  var r=steps[i]||steps[4];active.reasoningStep=r.step;active.errorCode=r.code;active.representationHistory.push('diagnostic_prompt');
-  fb().innerHTML='<div class="info"><b>Good. We are staying right here.</b><br><br>'+esc(r.text)+'<br><br><b>'+esc(r.check)+'</b><input id="diag-free" class="input" placeholder="Type your thinking"><button onclick="ClassroomDiagnosis.captureWorkTrace()">Use this to teach me</button></div>';
-}
-function captureWorkTrace(){var el=document.getElementById('diag-free'),v=el?el.value.trim():'';if(!v){fb().innerHTML+='<div class="info">Type even a partial thought. “I would divide,” “I do not know what this symbol means,” or the last line you understand is enough.</div>';return;}active.workTrace=v;active.errorCode=active.errorCode||'GEN_WORK_TRACE';active.representationHistory.push('learner_work_trace');saveRecord(active);fb().innerHTML='<div class="info"><b>Thank you. I am keeping this problem in place.</b><br><br>Your thinking is now part of the diagnosis. The next teaching response should address the step you wrote, not replay the original practice set. For this preview build, use the answer box above to retry after reviewing the exact step you identified.</div>';}
-function sameMeaning(got,want){got=norm(got).replace(/×/g,'x').replace(/÷/g,'/').replace(/\s+/g,'');want=norm(want).replace(/×/g,'x').replace(/÷/g,'/').replace(/\s+/g,'');if(got===want)return true;if(want==='3x12=9y'&&(got==='36=9y'||got==='3*12=9y'))return true;return false;}
-function microCheck(want){var el=document.getElementById('diag-answer'),got=el?el.value:'';if(!sameMeaning(got,want)){
-    active.representationHistory.push('alternate_representation');
-    fb().innerHTML+='<div class="info"><b>Not yet, and I am still not restarting the lesson.</b> We stay on this reasoning step and change the representation. Read the expression literally, separate one relationship at a time, then try the quick check again.</div>';return;
-  }
-  active.repairPassed=true;saveRecord(active);
-  fb().innerHTML='<div class="good"><b>That missing step is working now.</b> Retry the original problem above. You are staying on the same problem because we repaired the exact link instead of replaying old questions.</div>';
-  var a=document.getElementById('answer');if(a){a.value='';a.focus();}
-}
-window.ClassroomDiagnosis={propProbe:propProbe,logProbe:logProbe,genericProbe:genericProbe,microCheck:microCheck,captureWorkTrace:captureWorkTrace};
-window.ClassroomV2.checkTargetQuestion=intercept;
-window.ClassroomV2.targetIdk=interceptIdk;
+function begin(kind,raw,question){active={kind:kind,rawResponse:raw,question:question,itemId:question,startedAt:Date.now(),reasoningStep:null,errorCode:null,representationHistory:[],repairPassed:null,transferResult:null,repair:null,attempts:0};}
+function showPropProbe(raw){begin('proportion',raw,qtext());fb().innerHTML=choices('We are staying on this exact problem. Before I decide what to reteach, what does 2/x mean to you?',['2 × x','2 ÷ x','x ÷ 2',"I'm not sure"],'propProbe');}
+function showLogProbe(raw){begin('log',raw,qtext());fb().innerHTML=choices('We are staying on this exact problem. Which part is where you lose the thread?',["Why log(10⁻⁶) = -6","What the negative sign outside log does","How to get log(6) without a calculator","How the pieces combine","I don't know which part"],'logProbe');}
+function showGenericProbe(raw){begin('generic',raw,qtext());fb().innerHTML=choices('We will stay on this exact problem and find the first missing link. Which description fits best?',["I don't understand what the problem is asking","I don't know the first step","I started but got stuck","The calculation or symbols lost me","I don't know which part"],'genericProbe');}
+function intercept(stage){var q=qtext(),raw=answer();if(q==='2/x = 6/15. Solve for x.'&&norm(raw)!=='5'){showPropProbe(raw);return;}if(q.indexOf('Estimate -log(6 × 10⁻⁶)')===0&&Math.abs(parseFloat(raw)-5.2)>.15){showLogProbe(raw);return;}return originalCheck(stage);}
+function interceptIdk(){var q=qtext(),raw=answer();if(!q)return originalIdk();if(q==='2/x = 6/15. Solve for x.'){showPropProbe(raw);return;}if(q.indexOf('Estimate -log(6 × 10⁻⁶)')===0){showLogProbe(raw);return;}showGenericProbe(raw);}
+var propRepairs=[
+ {step:'interpret_variable_denominator',code:'PROP_DENOMINATOR_MEANING',text:'In 2/x, the fraction bar means division: 2 divided by x.',check:'What does 3/y mean?',answers:['3/y','3÷y','3/y']},
+ {step:'cross_products_preserve_proportion',code:'PROP_CROSS_PRODUCT_GAP',text:'Cross multiplication comes from multiplying BOTH sides by both denominators. For 2/x = 6/15, multiply both sides by 15x. The denominators cancel and leave 2×15 = 6×x.',check:'For 3/y = 9/12, write the equal cross-products.',answers:['3x12=9y','36=9y','3*12=9y']},
+ {step:'fraction_orientation',code:'PROP_FRACTION_ORIENTATION',text:'Top divided by bottom: 2/x means 2 divided by x. Reversing it changes the value.',check:'Which expression means a divided by b?',answers:['a/b']},
+ {step:'interpret_variable_denominator',code:'PROP_DENOMINATOR_MEANING',text:'We do not need to guess. Start with one fact: a/b means a divided by b.',check:'What does 4/z mean?',answers:['4/z','4÷z']}
+];
+var logRepairs=[
+ {step:'log_power_of_ten',code:'LOG_POWER_TEN_GAP',text:'A base-10 log asks: 10 raised to what power gives this number? Because 10⁻⁶ already shows the exponent, log(10⁻⁶) = -6.',check:'What is log(10⁻⁴)?',answers:['-4']},
+ {step:'outer_negative_distribution',code:'LOG_OUTER_NEGATIVE_GAP',text:'Keep the outside negative until the inside is finished. If the inside is -5.22, then -(-5.22)=+5.22.',check:'What is -(-3.4)?',answers:['3.4','+3.4']},
+ {step:'estimate_log_coefficient',code:'LOG_ESTIMATION_GAP',text:'You are NOT expected to magically know log(6)=0.78. For no-calculator work, keep a tiny landmark set: log(2)≈0.30, log(3)≈0.48, log(5)≈0.70. Since 6=2×3, the product rule gives log(6)=log(2)+log(3)≈0.30+0.48=0.78. Build values from landmarks instead of memorizing log 1 through 29.',check:'Using log(3)≈0.48 and log(5)≈0.70, estimate log(15).',answers:['1.18','1.2']},
+ {step:'combine_log_parts',code:'LOG_COMBINATION_GAP',text:'Split the product: -log(6×10⁻⁶)=-[log(6)+log(10⁻⁶)]. Now log(10⁻⁶)=-6 and log(6)≈0.78, so -[0.78-6]=-[-5.22]=+5.22.',check:'In -[0.7 - 5], is the result positive or negative?',answers:['positive','+']},
+ {step:'diagnostic_uncertain',code:'LOG_NEEDS_MORE_EVIDENCE',text:'You do not have to know which part is missing. I will diagnose it with tiny questions, one prerequisite at a time.',check:'First tiny check: what does log₁₀(100) ask you to find?',answers:['theexponent','exponent','10towhatpowerequals100','whatpowerof10equals100']}
+];
+function renderRepair(r,title){active.repair=r;active.attempts=0;active.reasoningStep=r.step;active.errorCode=r.code;active.representationHistory.push('direct_explanation');fb().innerHTML='<div class="info"><b>'+esc(title)+'</b><br><br>'+esc(r.text)+'<br><br>'+toolbox(r.step)+'<b>Quick check:</b> '+esc(r.check)+'<input id="diag-answer" class="input" placeholder="Your answer"><button onclick="ClassroomDiagnosis.microCheck()">Check this one idea</button><button class="secondary" onclick="ClassroomDiagnosis.stillDontGetIt()">I still don\'t get this</button></div>';}
+function toolbox(step){if(step.indexOf('log_')!==0&&step!=='diagnostic_uncertain')return '';return '<details class="info"><summary><b>Math Toolbox: what may I use?</b></summary><p><b>Memorize only these useful landmarks:</b><br>log(2)≈0.30 · log(3)≈0.48 · log(5)≈0.70</p><p><b>Understand:</b> log₁₀(x) asks “10 to what power equals x?”</p><p><b>Rules:</b><br>log(ab)=log(a)+log(b)<br>log(a/b)=log(a)-log(b)<br>log(aⁿ)=n·log(a)</p><p><b>Build, do not memorize:</b> log(6)=log(2×3)=log(2)+log(3)≈0.78.</p></details><br>';}
+function propProbe(i){renderRepair(propRepairs[i]||propRepairs[3],'Here is the exact step we are fixing.');}
+function logProbe(i){renderRepair(logRepairs[i]||logRepairs[4],i===4?'You do not have to diagnose yourself.':'We found the part to work on.');}
+function genericProbe(i){var texts=['Tell me what the problem is asking in your own words.','Tell me the first move you think might work.','Show the last line you know is correct.','Point to the symbol, number, or operation that feels unclear.','You do not have to diagnose yourself. Show me anything you recognize in this problem and I will narrow it down.'];active.reasoningStep=['interpret_prompt','choose_first_action','locate_breakpoint','symbol_or_calculation','need_work_trace'][i]||'need_work_trace';active.errorCode='GEN_'+active.reasoningStep.toUpperCase();active.representationHistory.push('work_trace');fb().innerHTML='<div class="info"><b>Good. We are staying right here.</b><br><br>'+esc(texts[i]||texts[4])+'<input id="diag-free" class="input" placeholder="Type even a partial thought"><button onclick="ClassroomDiagnosis.captureWorkTrace()">Use this to teach me</button></div>';}
+function captureWorkTrace(){var el=document.getElementById('diag-free'),v=el?el.value.trim():'';if(!v)return;active.workTrace=v;saveRecord(active);fb().innerHTML='<div class="info"><b>I saved that reasoning evidence.</b> We stay on this problem and teach forward from the last thing you understand.</div>';}
+function canon(x){return norm(x).replace(/×/g,'x').replace(/÷/g,'/').replace(/≈/g,'').replace(/\+/g,'');}
+function correct(got,answers){var g=canon(got);return (answers||[]).some(function(a){return g===canon(a);});}
+function microCheck(){var el=document.getElementById('diag-answer'),got=el?el.value:'';if(correct(got,active.repair.answers)){active.repairPassed=true;saveRecord(active);fb().innerHTML='<div class="good"><b>Yes. That one idea is working.</b> Now retry the original problem above. We repaired the missing link without replaying old questions.</div>';var a=document.getElementById('answer');if(a){a.value='';a.focus();}return;}active.attempts++;renderAlternate();}
+function renderAlternate(){var r=active.repair;active.representationHistory.push(active.attempts===1?'visual_build':'prerequisite_probe');var html='<div class="info"><b>That answer tells me we need a different route.</b><br><br>';if(r.step==='estimate_log_coefficient'){html+='<b>Build it with me:</b><br><br><div style="font-size:1.15em;line-height:1.8">6 = 2 × 3<br>log(6) = log(2 × 3)<br>↓ product rule<br>log(6) = log(2) + log(3)<br>≈ 0.30 + 0.48<br><b>≈ 0.78</b></div><br>So 0.78 is built from two landmarks. It is not a random fact you were supposed to know.';}else if(r.step==='diagnostic_uncertain'){html+='Start even smaller:<br><br><b>10² = 100</b><br>So log₁₀(100)=2. A logarithm is asking for that exponent.<br><br>If that still does not make sense, we will go back one more prerequisite to exponents, not restart the whole log lesson.';}else{html+='I will not repeat the same paragraph. Read one relationship at a time and use the example below as a model:<br><br><b>'+esc(r.text)+'</b>';}html+='<br><br><button class="secondary" onclick="ClassroomDiagnosis.stillDontGetIt()">I still don\'t get this</button><button onclick="ClassroomDiagnosis.retryRepair()">Try one tiny check</button></div>';fb().innerHTML=html;}
+function stillDontGetIt(){active.attempts++;active.representationHistory.push('learner_requested_more_support');if(active.kind==='log'&&(active.repair.step==='estimate_log_coefficient'||active.repair.step==='diagnostic_uncertain')){fb().innerHTML=choices('You do not need to tell me what is wrong. Answer the easiest thing you can and I will locate the prerequisite.',['I understand exponents like 10² = 100','I do not understand exponents yet','I understand log means “find the exponent”','I still do not know what log means'],'logPrereq');return;}renderAlternate();}
+function logPrereq(i){if(i===1){active.representationHistory.push('exponent_prerequisite');fb().innerHTML='<div class="info"><b>Good. Logs can wait for one minute.</b><br><br>Exponents first: 10² means 10×10=100. The small 2 tells how many tens are multiplied. 10³=1000. 10⁻¹=0.1. Once powers of 10 make sense, logs become the reverse question.<br><br><button class="secondary" onclick="ClassroomDiagnosis.stillDontGetIt()">I still don\'t get exponents</button><button onclick="ClassroomDiagnosis.logProbe(0)">I get that. Show me logs again</button></div>';return;}if(i===3){logProbe(0);return;}if(i===0||i===2){logProbe(2);return;}}
+function retryRepair(){renderRepair(active.repair,'Try the same idea again with the new representation in mind.');}
+window.ClassroomDiagnosis={propProbe:propProbe,logProbe:logProbe,genericProbe:genericProbe,microCheck:microCheck,captureWorkTrace:captureWorkTrace,stillDontGetIt:stillDontGetIt,logPrereq:logPrereq,retryRepair:retryRepair};
+window.ClassroomV2.checkTargetQuestion=intercept;window.ClassroomV2.targetIdk=interceptIdk;
 })();
