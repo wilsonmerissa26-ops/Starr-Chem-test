@@ -37,3 +37,5 @@ jobs:
         run: node test-day1-repair.js
       - name: Run reasoning-step diagnosis tests
         run: node test-reasoning-diagnosis-engine.js
+      - name: Run Student Model diagnosis integration tests
+        run: node test-student-model-diagnosis-adapter.js
