@@ -27,6 +27,8 @@ button{cursor:pointer}
 .progress{height:3px;background:var(--rulesoft)}
 .progress>div{height:3px;background:var(--good);width:0;transition:width .25s}
 .save{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--soft);white-space:nowrap}
+.menuBtn{min-height:40px;border:1px solid var(--rule);border-radius:8px;background:#fff;color:var(--ink);padding:8px 11px;font-weight:600}
+.learningPath{display:flex;gap:5px;overflow-x:auto;margin:8px 0 14px;padding-bottom:3px}.learningPath span{flex:0 0 auto;padding:5px 8px;border:1px solid var(--rule);border-radius:999px;font-size:11px;color:var(--soft)}.learningPath .on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .hero{padding:22px 0 12px}
 .eyebrow,.kicker{font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.13em;font-size:10.5px;color:var(--soft)}
 h1{font-size:30px;line-height:1.08;margin:6px 0 8px;letter-spacing:-.02em}
@@ -111,6 +113,7 @@ svg#stage{display:block;width:100%;height:340px;touch-action:none}
         <span>Day 1 · Foundation Reset</span>
       </div>
     </div>
+    <button class="menuBtn" onclick="openDayMenu()">Day 1 Menu</button>
     <div class="save" id="saveStatus">Saved</div>
   </div>
   <div class="progress"><div id="progressFill"></div></div>
@@ -300,6 +303,14 @@ const MATH_GUIDED={
   fractions:[{q:"Guided: 3/5 + 1/10 =",a:["7/10","0.7"]},{q:"Guided: 35 is what percent of 140?",a:["25","25%"]}],
   units:[{q:"Guided: convert 0.09 L to mL.",a:["90","90 ml","90ml"]},{q:"Guided: convert 0.006 mol/min to mmol/hour.",a:["360","360 mmol/hour","360mmol/hour"]}]
 };
+const MATH_SUPPORTED={
+  logs:{q:"10 to what power equals 100?",a:["2"],numberOnly:true,prompt:"Complete the backward relationship: 10² = 100, so log(100) = ?"},
+  algebra:{q:"x + 4 = 9",solveFor:"x",a:["5"],numberOnly:true,prompt:"Keep the balance level: subtract 4 from both sides, then enter x."},
+  exponents:{q:"2^3 =",a:["8"],numberOnly:true,prompt:"Write 2 × 2 × 2, then multiply."},
+  sci:{q:"Write 3,000 as a number from 1 to 10 times a power of ten.",a:["3x10^3","3×10³","3e3"],prompt:"Move the decimal three places left."},
+  fractions:{q:"1/2 + 1/2 =",a:["1"],prompt:"The pieces are already the same size, so combine the top numbers."},
+  units:{q:"Convert 1 L to mL.",a:["1000","1000ml","1000 ml"],prompt:"Use the relationship 1 L = 1000 mL."}
+};
 const REPRESENTATION={logs:"Use a powers-of-ten number line: locate the exponent first, then adjust for the front digit.",algebra:"Picture a level balance: every weight removed from one side must be removed from the other.",exponents:"Write the repeated multiplication out in full and use the exponent ladder.",sci:"Use a place-value chart and mark every decimal move.",fractions:"Draw fraction bars with equal-size pieces before combining them.",units:"Write a cancellation map and cross out each old unit only when its conversion factor appears."};
 const CONCEPT_FEEDBACK={
   logs:"A logarithm asks which power of ten makes the number. Identify the power-of-ten part first; for an estimate, then adjust for the leading digit.",
@@ -326,6 +337,7 @@ function createInitialApp(){return {
   idk:null,
   masteryMath:null,
   gymHistory:[],gymAttempts:[],gymCurrent:null,gymReturn:null,
+  mathEvidence:{},instructionStep:0,menuReturn:null,chemistryStarted:false,
   done:false
 };}
 let app = createInitialApp();
@@ -372,6 +384,8 @@ function mathMarkup(text){
     .replace(/\s+x\s+10/g,' × 10');
 }
 function answerTarget(item){return item.solveFor?`<label class="answerTarget" for="mathAns"><span>${item.solveFor} =</span></label>`:'';}
+function learningPath(active){return `<div class="learningPath" aria-label="Learning progress">${['Learn','Watch','Practice Together','Try It','Try It Alone','Fresh Check'].map(x=>`<span class="${x===active?'on':''}">${x}</span>`).join('')}</div>`}
+function logReference(item){return currentArea().id==='logs'&&/estimate/i.test(item.q)?'<div class="rulebox"><b>Reference for this no-calculator item:</b> log(2) ≈ 0.30 · log(3) ≈ 0.48 · log(5) ≈ 0.70. You are using these values, not being tested on memorizing them.</div>':''}
 function setProgress(p){document.getElementById("progressFill").style.width=Math.max(0,Math.min(100,p))+"%";}
 
 function termSpan(term){
@@ -409,18 +423,43 @@ function render(){
         <div class="card"><div class="kicker">Block A</div><h3>Adaptive Math Reset</h3><p class="muted">Logs, algebra, exponents, scientific notation, fractions/percent, unit conversions.</p></div>
         <div class="card"><div class="kicker">Block B</div><h3>Chemistry Foundation</h3><p class="muted">Valence electrons → bonds → lone pairs → octet reasoning → Lewis structures.</p></div>
       </div>
-      <div class="rulebox"><b>Time rule:</b> Math does not get to eat the whole day. If a skill does not clear quickly, it gets marked Developing and moves to Math Gym later.</div>
+      <div class="rulebox"><b>Your choice is saved.</b> You can continue Math or use the Day 1 Menu to work on Chemistry and return later.</div>
       <button class="btn" onclick="startMath()">Start Day 1</button>
     `;
     return;
   }
 
-  if(app.step==="math"){ renderMath(s); return; }
+  if(app.step==="menu"){renderDayMenu(s);return;}
+
+  if(app.step==="math"){ enforceMathTeachingGate();renderMath(s); return; }
   if(app.step==="break"){ renderBreak(s); return; }
   if(app.step==="chem"){ renderChem(s); return; }
   if(app.step==="mastery"){ renderMastery(s); return; }
   if(app.step==="summary"){ renderSummary(s); return; }
   if(app.step==="gym"){ renderMathGym(s); return; }
+}
+
+function areaEvidence(id){if(!app.mathEvidence[id])app.mathEvidence[id]={conceptSeen:false,watchSeen:false,supportedPassed:false,guidedPassed:false};return app.mathEvidence[id]}
+function learnerStatus(id){const status=app.mathStatus[id];if(status)return status;const e=app.mathEvidence[id];return e&&(e.conceptSeen||e.supportedPassed)?"In progress":"Not started"}
+function openDayMenu(){if(app.step!=="menu")app.menuReturn=app.step;app.step="menu";render()}
+function renderDayMenu(s){
+  const mathStarted=app.mathStartedAt||Object.keys(app.mathStatus).length||Object.keys(app.mathEvidence).length;
+  const chemistryStarted=app.chemistryStarted||app.chemistryPhase!=="teach1"||Object.values(app.chemResults).some(Boolean);
+  s.innerHTML=`<div class="hero"><div class="eyebrow">Day 1 Menu</div><h1>Choose what to work on</h1><p class="lede">Your work is saved when you switch. Switching subjects does not mark anything complete.</p></div>
+  <div class="card"><h2>Math Reset</h2><p>${mathStarted?'Ready to continue · '+currentArea().name:'Not started'}</p><div class="mathstatus">${MATH_AREAS.map(a=>`<div class="skill"><b>${a.name}</b><span>${learnerStatus(a.id)}</span></div>`).join('')}</div><button class="btn" onclick="resumeMath()">${mathStarted?'Continue Math':'Start Math'}</button></div>
+  <div class="card"><h2>Chemistry Foundation</h2><p>${chemistryStarted?'Ready to continue':'Available now'}</p><p class="muted">Valence electrons, octets, and Lewis structures.</p><button class="btn" onclick="resumeChemistry()">${chemistryStarted?'Continue Chemistry':'Start Chemistry'}</button></div>`;
+}
+function resumeMath(){app.step="math";if(!app.mathStartedAt)app.mathStartedAt=Date.now();render()}
+function resumeChemistry(){app.chemistryStarted=true;app.step="chem";render()}
+function enforceMathTeachingGate(){
+  const area=currentArea(),skill=app.studentModel[area.id],e=areaEvidence(area.id);
+  app.mathPhase=Day1Session.safeMathPhase(app.mathPhase,skill,e);
+  if(app.mathPhase==="mini"){
+    if(!e.conceptSeen)app.instructionStep=0;
+    else if(!e.watchSeen)app.instructionStep=Math.min(app.instructionStep,1);
+    else if(!e.supportedPassed)app.instructionStep=Math.min(app.instructionStep,2);
+    else app.instructionStep=Math.min(app.instructionStep,3);
+  }
 }
 
 function startMath(){
@@ -451,8 +490,9 @@ function renderMath(s){
     const item=bank[app.mathQuestion];
     const label=app.mathPhase==="probe"?"Quick check":app.mathPhase==="verification"?"Fresh verification":app.mathPhase==="guided"?"Guided practice":"Independent set";
     s.innerHTML=`
-      <div class="hero"><div class="eyebrow">${label} · ${area.name}</div><h1>${item.solveFor?'Solve for '+item.solveFor:mathMarkup(item.q)}</h1>${item.solveFor?'<div class="whiteboard equation">'+mathMarkup(item.q)+'</div>':''}</div>
+      <div class="hero"><div class="eyebrow">${label} · ${area.name}</div>${learningPath(app.mathPhase==='guided'?'Try It':app.mathPhase==='independent'?'Try It Alone':'Fresh Check')}<h1>${item.solveFor?'Solve for '+item.solveFor:mathMarkup(item.q)}</h1>${item.solveFor?'<div class="whiteboard equation">'+mathMarkup(item.q)+'</div>':''}</div>
       <div class="card">
+        ${logReference(item)}
         ${answerTarget(item)}
         <input class="input" id="mathAns" autocomplete="off" inputmode="text" placeholder="Your answer" />
         <div id="mathFeedback" class="feedback"></div>
@@ -468,13 +508,7 @@ function renderMath(s){
   }
 
   if(app.mathPhase==="mini"){
-    s.innerHTML=`
-      <div class="hero"><div class="eyebrow">Targeted teaching</div><h1>${area.name}</h1></div>
-      <div class="card"><h3>1 · What the idea means</h3><p>${area.mini}</p></div>
-      <div class="card"><h3>2 · Watch a worked example</h3><div class="teacher"><div class="avatar">DM</div><div class="bubble">${area.refresh}</div></div></div>
-      <div class="card"><h3>3 · Check it with support</h3><p class="muted">Next, try a different example. A hint and a different representation are available. After that, support disappears for the independent check.</p></div>
-      <button class="btn" onclick="startGuided()">Practice with support</button>
-    `;
+    renderInstruction(s,area);
     return;
   }
   if(app.mathPhase==="targeted"){
@@ -488,11 +522,37 @@ function renderMath(s){
       <div class="hero"><div class="eyebrow">Area complete</div><h1>${area.name}</h1></div>
       <div class="card">
         <span class="pill ${status==='Cleared'?'good':'warn'}">${status}</span>
-        <p>${status==='Cleared'?'Cleared for today. It stays available in Math Gym and returns later for retrieval.':'Developing. We are not letting this steal chemistry time. It goes to Math Gym for more practice.'}</p>
+        <p>${status==='Cleared'?'Cleared for today. It stays available in Math Gym and returns later for retrieval.':'Developing. Your progress is saved, and this skill remains available for more practice.'}</p>
       </div>
       <button class="btn" onclick="nextMathArea()">${app.mathIndex===MATH_AREAS.length-1?'Continue to chemistry':'Next math area'}</button>
     `;
   }
+}
+
+function renderInstruction(s,area){
+  const e=areaEvidence(area.id),step=app.instructionStep||0,supported=MATH_SUPPORTED[area.id];
+  if(step===0){
+    const meaning=area.id==='logs'?"A logarithm asks a power question backwards. If 10³ = 1000, then log(1000) = 3. The answer tells us the exponent on 10.":area.mini;
+    const why=area.id==='logs'?"Chemistry uses logarithms to describe very large changes in compact numbers. First we learn the inverse relationship; estimation comes only after that is secure.":"This skill lets you keep later chemistry reasoning focused on the science instead of getting stopped by the mathematical step.";
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Learn · ${area.name}</div>${learningPath('Learn')}<h1>What this idea means</h1></div><div class="card"><div class="teacher"><div class="avatar">DM</div><div class="bubble"><p>${meaning}</p><h3>Why we use it</h3><p>${why}</p></div></div></div><button class="btn" onclick="advanceInstruction(1)">Watch an example</button>`;return;
+  }
+  if(step===1){
+    s.innerHTML=`<div class="hero"><div class="eyebrow">Watch · ${area.name}</div>${learningPath('Watch')}<h1>Follow one example</h1></div><div class="card"><div class="teacher"><div class="avatar">DM</div><div class="bubble">${area.refresh}</div></div></div><div class="goodbox">This example is separate from the fresh item you will solve later.</div><button class="btn" onclick="advanceInstruction(2)">Practice one together</button>`;return;
+  }
+  s.innerHTML=`<div class="hero"><div class="eyebrow">Practice Together · ${area.name}</div>${learningPath('Practice Together')}<h1>${mathMarkup(supported.q)}</h1></div><div class="card"><p>${supported.prompt}</p>${answerTarget(supported)}<input class="input" id="supportedAns" inputmode="text" autocomplete="off"><div id="supportedFb" class="feedback"></div><button class="btn" onclick="checkSupported()">Check this step</button></div>`;
+}
+function advanceInstruction(step){const e=areaEvidence(currentArea().id);if(step>=1)e.conceptSeen=true;if(step>=2)e.watchSeen=true;app.instructionStep=step;render()}
+function checkSupported(){
+  const area=currentArea(),item=MATH_SUPPORTED[area.id],ans=document.getElementById('supportedAns').value,result=Day1Session.classifyAnswer(ans,mathItemRules(item)),skill=mathSkill(),f=document.getElementById('supportedFb'),itemId=area.id+':supported';
+  if(result.correct){
+    areaEvidence(area.id).supportedPassed=true;StudentModelIdkRouter.recordAttempt(skill,itemId,true,null,Date.now(),ans);
+    if(StudentModelIdkRouter.isRemediationActive(skill)){StudentModelIdkRouter.recordRemediationCheck(skill,true,itemId,Date.now());StudentModelIdkRouter.exitRemediation(skill,currentArea().independent.map((x,i)=>({id:area.id+':independent:'+i})));}
+    f.className='feedback show good';f.innerHTML='Correct. You completed the reasoning step with support. Next, you will take more responsibility.<div><button class="btn small" onclick="startGuided()">Continue to guided practice</button></div>';
+  }else{
+    const routed=result.errorCode==='CONCEPT'?(StudentModelIdkRouter.isRemediationActive(skill)?StudentModelIdkRouter.recordRemediationCheck(skill,false,itemId,Date.now()):StudentModelIdkRouter.handleWrongAttempt(skill,itemId,result.errorCode,itemId,Date.now(),ans)):null;
+    f.className='feedback show warn';f.innerHTML=(result.errorCode==='CONCEPT'?CONCEPT_FEEDBACK[area.id]:result.message)+(routed&&(routed.action==='SWITCH_REPRESENTATION'||routed.representation)?'<div class="rulebox"><b>Let’s change the representation:</b> '+REPRESENTATION[area.id]+'</div>':'')+'<div><button class="btn small" onclick="app.instructionStep=0;render()">Review the idea, then try again</button></div>';
+  }
+  document.querySelectorAll('.card input,.card button').forEach(el=>{if(!f.contains(el))el.disabled=true});saveApp();
 }
 
 function beginProbe(){app.mathPhase="probe";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
@@ -543,19 +603,15 @@ function mathSkip(){
   const bank=mathBank(area);
   const item=bank[app.mathQuestion];
   app.mathAnswers.push({q:item.q,ans:"[I don't know]",correct:false,errorCode:"IDK"});
-  const f=document.getElementById("mathFeedback");
-  f.className="feedback show info";
-  f.innerHTML=`I don’t know yet is useful information. What would help?<div class="sectionnav"><button class="btn alt small" onclick="routeIdk('concept')">Explain the concept</button><button class="btn alt small" onclick="routeIdk('start')">Help me start</button><button class="btn alt small" onclick="routeIdk('example')">Show an example</button></div>`;
-  document.getElementById("mathAns").disabled=true;
+  routeIdk('concept');
 }
 function routeIdk(reason){
   const area=currentArea(),itemId=area.id+":"+app.mathPhase+":"+app.mathQuestion;
   const routerReason={concept:StudentModelIdkRouter.IDK_REASONS.DONT_UNDERSTAND,start:StudentModelIdkRouter.IDK_REASONS.DONT_KNOW_START,example:StudentModelIdkRouter.IDK_REASONS.SHOW_EXAMPLE}[reason];
-  const routed=StudentModelIdkRouter.handleIdk(mathSkill(),routerReason,itemId,null,Date.now());
-  const teaching=Day1Session.idkIntervention(reason,{concept:area.mini,start:"Start by naming the rule and writing only the first operation. "+REPRESENTATION[area.id],example:area.refresh});
+  const required=area.id==='logs'?'powers_of_ten':null;
+  const routed=StudentModelIdkRouter.handleIdk(mathSkill(),routerReason,itemId,required,Date.now());
   app.idk={reason,action:routed.action,origin:itemId};
-  const f=document.getElementById('mathFeedback');
-  f.innerHTML=`<b>${teaching.text}</b><p>Next you will get a different item testing the same skill, never this identical item.</p><button class="btn small" onclick="advanceAfterIdk()">Continue to a fresh item</button>`;
+  app.mathPhase='mini';app.instructionStep=0;render();
 }
 function advanceAfterIdk(){const bank=mathBank(currentArea());if(app.mathQuestion+1<bank.length){app.mathQuestion++;render()}else finishMathPhase()}
 function finishMathPhase(){
@@ -573,6 +629,7 @@ function finishMathPhase(){
   }else if(app.mathPhase==="verification"){
     if(app.mathCorrect===2){app.mathStatus[area.id]="Cleared";app.mathPhase="donearea"}else app.mathPhase="mini";
   }else if(app.mathPhase==="guided"){
+    areaEvidence(area.id).guidedPassed=true;
     app.mathPhase="independent";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];
   }else{
     app.mathStatus[area.id]=app.mathCorrect>=3?"Cleared":"Developing";
@@ -580,8 +637,8 @@ function finishMathPhase(){
   }
   render();
 }
-function startGuided(){app.mathPhase="guided";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
-function startIndependent(){app.mathPhase="independent";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
+function startGuided(){if(!areaEvidence(currentArea().id).supportedPassed){app.mathPhase='mini';app.instructionStep=2;render();return}app.mathPhase="guided";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
+function startIndependent(){if(!Day1Session.independentAllowed(mathSkill(),areaEvidence(currentArea().id))){app.mathPhase='mini';app.instructionStep=0;render();return}app.mathPhase="independent";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];render();}
 function nextMathArea(){
   if(app.mathIndex<MATH_AREAS.length-1){
     app.mathIndex++;app.mathPhase="refresh";app.mathQuestion=0;app.mathCorrect=0;app.mathAnswers=[];
@@ -600,7 +657,7 @@ function renderBreak(s){
     <button class="btn" onclick="startChem()">I'm back. Start chemistry.</button>
   `;
 }
-function startChem(){app.step="chem";app.chemistryPhase="teach1";render();}
+function startChem(){app.chemistryStarted=true;app.step="chem";render();}
 
 function renderChem(s){
   setProgress(58);
