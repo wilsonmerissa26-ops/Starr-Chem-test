@@ -39,3 +39,5 @@ jobs:
         run: node test-day1-teaching-flow.js
       - name: Run learner classroom V2 acceptance regressions
         run: node test-classroom-v2.js
+      - name: Run expanded Classroom V2 curriculum and progression tests
+        run: node test-classroom-v2-expanded.js
