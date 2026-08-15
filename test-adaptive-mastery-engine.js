@@ -1,0 +1,29 @@
+var M=require('./adaptive-mastery-engine.js');
+var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+
+var math=M.createSession({subject:'math',concept:'logs'});
+M.record(math,{itemId:'m1',template:'inverse',correctness:true,independent:true});
+ok('one correct math item cannot complete',!M.mastery(math).mastered);
+M.record(math,{itemId:'m2',template:'landmark-build',correctness:true,independent:false,supportLevel:'guided'});
+ok('supported math answer does not count as mastery',M.evidence(math).independentCorrect===1);
+M.record(math,{itemId:'m3',template:'landmark-build',correctness:true,independent:true});
+M.record(math,{itemId:'m4',template:'scientific-notation',correctness:true,independent:true,isTransfer:true});
+ok('fresh multi-form independent math evidence can master',M.mastery(math).mastered);
+
+var chem=M.createSession({subject:'chemistry',concept:'lewis_structure'});
+M.record(chem,{itemId:'nh3-count',template:'electron-count',subskill:'electron_count',correctness:true,independent:true});
+M.record(chem,{itemId:'nh3-build',template:'build',subskill:'skeleton',correctness:true,independent:false,supportLevel:'guided'});
+ok('one molecule plus guided clicks cannot master chemistry',!M.mastery(chem).mastered);
+M.record(chem,{itemId:'ch4-build',template:'build',subskill:'skeleton',correctness:false,independent:true,errorType:'central_atom'});
+M.record(chem,{itemId:'h2o-build',template:'build',subskill:'skeleton',correctness:false,independent:true,errorType:'central_atom'});
+ok('same chemistry misconception twice changes representation',M.nextRepresentation(chem,'central_atom','visual')!=='visual');
+ok('chemistry stores subskill evidence',M.subskillEvidence(chem,'skeleton').length===3);
+var pool=[{id:'nh3-build'},{id:'co2-fresh'},{id:'h2o-transfer',isTransfer:true}];
+ok('fresh selector does not immediately recycle seen molecule',M.freshItems(chem,pool,2).every(function(x){return x.id!=='nh3-build';}));
+M.record(chem,{itemId:'co2-fresh',template:'build',subskill:'octet_check',correctness:true,independent:true});
+M.record(chem,{itemId:'bf3-fresh',template:'error-analysis',subskill:'structure_reasoning',correctness:true,independent:true});
+M.record(chem,{itemId:'h2o-transfer',template:'build',subskill:'full_build',correctness:true,independent:true,isTransfer:true});
+ok('chemistry masters only after independent multi-form transfer evidence',M.mastery(chem).mastered);
+var r=M.scheduleRetrieval(chem,3);ok('retrieval target recorded',r&&r.status==='scheduled'&&r.subject==='chemistry');
+
+console.log('\nAdaptive mastery engine: '+p+' passed, '+f+' failed');if(f)process.exit(1);

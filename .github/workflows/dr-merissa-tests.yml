@@ -22,7 +22,6 @@ jobs:
 
       - name: Run Student Model and IDK Router tests
         run: node test-student-model.js
-
       - name: Run Watch Mode tests
         run: node test-watch-mode.js
       - name: Run Build Together tests
@@ -35,3 +34,21 @@ jobs:
         run: node test-day1-adversarial.js
       - name: Run manual-certification repair regressions
         run: node test-day1-repair.js
+      - name: Run reasoning-step diagnosis tests
+        run: node test-reasoning-diagnosis-engine.js
+      - name: Run Student Model diagnosis integration tests
+        run: node test-student-model-diagnosis-adapter.js
+      - name: Run learner diagnosis UI regressions
+        run: node test-classroom-v2-diagnosis-ui.js
+      - name: Run chemistry interaction regressions
+        run: node test-classroom-v2-chemistry-interactive.js
+      - name: Run multimodal teacher runtime tests
+        run: node test-teacher-runtime.js
+      - name: Run learner-facing teacher preview regressions
+        run: node test-teacher-preview.js
+      - name: Run adaptive practice and mastery tests
+        run: node test-adaptive-mastery-engine.js
+      - name: Run chemistry teacher sequence tests
+        run: node test-chemistry-teacher-sequence.js
+      - name: Run chemistry teacher preview regressions
+        run: node test-chemistry-teacher-preview.js

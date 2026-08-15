@@ -1,0 +1,20 @@
+const fs=require('fs');
+const html=fs.readFileSync('classroom-v2-preview/classroom-v2.html','utf8');
+const js=fs.readFileSync('classroom-v2-preview/classroom-v2-diagnosis.js','utf8');
+let p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+ok('preview loads diagnosis overlay',html.includes('classroom-v2-diagnosis.js'));
+ok('proportion wrong response is diagnosed',js.includes("q==='2/x = 6/15. Solve for x.'")&&js.includes('what does 2/x mean'));
+ok('cross multiply is explained from multiplying both sides',js.includes('both denominators')&&js.includes('multiply both sides by 15x')&&js.includes('2×15 = 6×x'));
+ok('log failure asks learner to identify broken link',js.includes('Which part is where you lose the thread?')&&js.includes('Why log(10⁻⁶) = -6'));
+ok('learner may say they do not know which part',js.includes("I don't know which part"));
+ok('log coefficient is built from landmarks rather than asserted',js.includes('log(2)≈0.30')&&js.includes('log(3)≈0.48')&&js.includes('0.30+0.48=0.78'));
+ok('toolbox distinguishes small landmark set from mass memorization',js.includes('Memorize only these useful landmarks')&&js.includes('Build, do not memorize'));
+ok('repair provides persistent still-dont-get-it escape hatch',js.includes("I still don\\'t get this")&&js.includes('stillDontGetIt'));
+ok('failed repair replaces feedback rather than appending duplicate cards',!js.includes("fb().innerHTML+='<div class=\"info\"><b>Not yet"));
+ok('micro-check accepts canonical answer list rather than one brittle phrase',js.includes('function correct(got,answers)')&&js.includes("answers:['1.18','1.2']"));
+ok('log range trap removed from coefficient repair',!js.includes('Is log(4) between 0 and 1 or between 1 and 2?'));
+ok('unknown log diagnosis descends to prerequisite probe',js.includes('You do not have to diagnose yourself')&&js.includes('logPrereq'));
+ok('exponent prerequisite can be taught without restarting logs',js.includes('Logs can wait for one minute')&&js.includes('Exponents first'));
+ok('reasoning evidence persists separately',js.includes('astarryia-reasoning-evidence-v1'));
+ok('IDK is intercepted instead of old reset path',js.includes('window.ClassroomV2.targetIdk=interceptIdk'));
+console.log('\nClassroom diagnosis UI: '+p+' passed, '+f+' failed');if(f)process.exit(1);
