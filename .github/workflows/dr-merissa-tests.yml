@@ -41,3 +41,5 @@ jobs:
         run: node test-student-model-diagnosis-adapter.js
       - name: Run learner diagnosis UI regressions
         run: node test-classroom-v2-diagnosis-ui.js
+      - name: Run chemistry interaction regressions
+        run: node test-classroom-v2-chemistry-interactive.js
