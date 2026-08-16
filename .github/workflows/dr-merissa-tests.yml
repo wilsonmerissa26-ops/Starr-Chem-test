@@ -87,3 +87,5 @@ jobs:
         run: node --check day1/learning-record-v11.js
       - name: Run personalized learning record tests
         run: node test-learning-record-v11.js
+      - name: Run Day 1 release academic and voice audit
+        run: node test-day1-release-audit.js
