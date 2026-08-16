@@ -63,6 +63,8 @@ jobs:
         run: node --check day1/math-gym-ui.js
       - name: Syntax-check chemistry talk-through tutor
         run: node --check chemistry-teacher-preview/chemistry-talkthrough.js
+      - name: Run interactive chemistry talk-through tests
+        run: node test-chemistry-talkthrough-v2.js
       - name: Syntax-check chemistry talk-through loader
         run: node --check day1/chemistry-talkthrough-loader.js
       - name: Syntax-check compact Toolbox UI
