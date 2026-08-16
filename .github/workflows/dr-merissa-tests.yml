@@ -83,3 +83,7 @@ jobs:
         run: node --check day1/math-lesson-stepper-v10.js
       - name: Run progressive math lesson stepper tests
         run: node test-math-lesson-stepper-v10.js
+      - name: Syntax-check personalized learning record
+        run: node --check day1/learning-record-v11.js
+      - name: Run personalized learning record tests
+        run: node test-learning-record-v11.js
