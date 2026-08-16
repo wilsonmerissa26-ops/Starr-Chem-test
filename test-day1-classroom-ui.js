@@ -1,4 +1,4 @@
-var fs=require('fs');var html=fs.readFileSync('day1-classroom/index.html','utf8');var js=fs.readFileSync('day1-classroom/app.js','utf8');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+var fs=require('fs');var html=fs.readFileSync('day1/index.html','utf8');var js=fs.readFileSync('day1/day1-app.js','utf8');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 ok('loads orchestrator',html.includes('../day1-orchestrator.js'));
 ok('loads Math Gym engine',html.includes('../math-gym-engine.js'));
 ok('loads Molecule Stage logic',html.includes('../molecule-stage.js'));
