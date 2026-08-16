@@ -10,16 +10,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-
       - name: Run Student Model and IDK Router tests
         run: node test-student-model.js
       - name: Run Watch Mode tests
@@ -52,3 +49,7 @@ jobs:
         run: node --check day1-orchestrator.js
       - name: Run Day 1 orchestrator tests
         run: node test-day1-orchestrator.js
+      - name: Syntax-check unified Day 1 learner UI
+        run: node --check day1/day1-app.js
+      - name: Run unified Day 1 learner release checks
+        run: node test-unified-day1-app.js
