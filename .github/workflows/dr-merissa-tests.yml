@@ -22,7 +22,6 @@ jobs:
 
       - name: Run Student Model and IDK Router tests
         run: node test-student-model.js
-
       - name: Run Watch Mode tests
         run: node test-watch-mode.js
       - name: Run Build Together tests
@@ -49,3 +48,7 @@ jobs:
         run: node --check math-gym-engine.js
       - name: Run Math Gym engine tests
         run: node test-math-gym-engine.js
+      - name: Syntax-check Day 1 orchestrator
+        run: node --check day1-orchestrator.js
+      - name: Run Day 1 orchestrator tests
+        run: node test-day1-orchestrator.js
