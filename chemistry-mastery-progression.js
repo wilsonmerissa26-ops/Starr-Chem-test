@@ -1,13 +1,12 @@
-/* Chemistry progression controller. Curriculum owns chemistry content; AdaptiveMastery owns evidence. */
+/* Chemistry progression controller. Day1_Curriculum.md owns chemistry content. */
 (function(root,factory){var api=factory(typeof require==='function'?require('./adaptive-mastery-engine.js'):root.AdaptiveMastery);if(typeof module==='object'&&module.exports)module.exports=api;else root.ChemistryProgression=api;})(typeof self!=='undefined'?self:this,function(M){'use strict';
 var ITEMS=[
-{id:'nh3-teach',molecule:'NH3',phase:'learning',form:'teacher-demo',support:'teacher',purpose:'teach',fresh:false},
-{id:'h2o-guided',molecule:'H2O',phase:'practicing-together',form:'guided-build',support:'guided',purpose:'practice',fresh:true},
-{id:'ch4-independent',molecule:'CH4',phase:'your-turn',form:'independent-build',support:'none',purpose:'practice',fresh:true},
-{id:'h2s-independent',molecule:'H2S',phase:'your-turn',form:'error-analysis',support:'none',purpose:'practice',fresh:true},
-{id:'ph3-transfer',molecule:'PH3',phase:'fresh-check',form:'transfer-build',support:'none',purpose:'transfer',fresh:true,isTransfer:true}
+{id:'nh3-guided',molecule:'NH3',phase:'practicing-together',form:'guided-build',support:'guided',purpose:'teach',fresh:false},
+{id:'h2o-independent',molecule:'H2O',phase:'your-turn',form:'independent-build',support:'none',purpose:'practice',fresh:true},
+{id:'ch3oh-independent',molecule:'CH3OH',phase:'your-turn',form:'independent-build-explain',support:'none',purpose:'practice',fresh:true},
+{id:'ch3nh2-transfer',molecule:'CH3NH2',phase:'fresh-check',form:'cold-build-explain',support:'none',purpose:'transfer',fresh:true,isTransfer:true}
 ];
-var REPAIR_ITEM={id:'sih4-repair',molecule:'SiH4',phase:'your-turn',form:'independent-repair-build',support:'none',purpose:'practice',fresh:true};
+var REPAIR_ITEM={id:'h2o-retrieval-repair',molecule:'H2O',phase:'your-turn',form:'fresh-repair-build',support:'none',purpose:'practice',fresh:true};
 function create(opts){opts=opts||{};return{index:0,items:ITEMS.slice(),mastery:M.createSession({learnerId:opts.learnerId||'local',subject:'chemistry',concept:'lewis_structure',policy:opts.policy||{minIndependentCorrect:3,minForms:2,requireTransfer:true}}),repair:null,repairItemAdded:false};}
 function current(s){return s.items[s.index]||null;}
 function record(s,data){var item=current(s);if(!item)return null;var supported=item.support!=='none'||!!data.supported;var a=M.record(s.mastery,{itemId:item.id,template:item.form,molecule:item.molecule,subskill:data.subskill||'full_build',response:data.response||null,correctness:!!data.correct,independent:!supported,supportLevel:supported?(data.supportLevel||item.support||'requested-help'):'none',errorType:data.errorType||null,representation:data.representation||'lewis',hints:data.hints||0,replays:data.replays||0,toolboxUsed:!!data.toolboxUsed,isTransfer:!!item.isTransfer,prerequisiteBlocked:!!data.prerequisiteBlocked,prerequisiteResolved:!!data.prerequisiteResolved});if(!data.correct){s.repair={molecule:item.molecule,subskill:data.subskill||'full_build',errorType:data.errorType||'unresolved',representation:M.nextRepresentation(s.mastery,data.errorType||'unresolved',data.representation||'lewis')};}else{s.repair=null;}return a;}
