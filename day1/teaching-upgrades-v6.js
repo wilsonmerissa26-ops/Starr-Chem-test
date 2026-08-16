@@ -4,14 +4,16 @@ function text(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim();}
 function percentCoach(){
   if(!location.pathname.includes('/day1'))return;
   var bodyText=text(document.body);
-  var isPercent=/percent|%/.test(bodyText);
-  if(!isPercent)return;
+  if(!/percent|%/.test(bodyText))return;
   var cards=[].slice.call(document.querySelectorAll('.card'));
   var target=cards.find(function(c){return /Mental percent anchors|What percent\?|Fractions & percentages/.test(text(c));});
-  if(!target||target.querySelector('[data-percent-decision]'))return;
-  var box=document.createElement('div');box.setAttribute('data-percent-decision','1');box.className='warning';box.style.marginTop='14px';
-  box.innerHTML='<b>Percent Decision Map</b><div style="margin-top:8px;line-height:1.55">Before calculating, choose the easiest route for <em>these</em> numbers.</div><div class="chips" style="margin-top:8px"><span class="pill">Anchor: 10%, 25%, 50%, 75%, 100%</span><span class="pill">Build up</span><span class="pill">Subtract down</span><span class="pill">Use 1%</span><span class="pill">Use a fraction</span><span class="pill">Swap: x% of y = y% of x</span><span class="pill">Estimate first</span></div><details style="margin-top:10px"><summary style="font-weight:800;cursor:pointer">Hard percentages: 27%, 33%, 58% and more</summary><div style="margin-top:10px;line-height:1.6"><b>27%:</b> look for 25% + 2% or 30% − 3%. Pick whichever makes the number easier.<br><b>33%:</b> 33% is only <em>about</em> one third. For an exact answer use 30% + 3%. Exactly one third is 33⅓%.<br><b>58%:</b> try 60% − 2%.<br><b>Speed trick:</b> 18% of 50 = 50% of 18 = 9. 24% of 25 = 25% of 24 = 6.<br><b>Final check:</b> estimate the answer first so a decimal-place mistake looks obviously wrong.</div></details>';
-  target.appendChild(box);
+  if(!target||target.querySelector('[data-percent-toolbox]'))return;
+  var box=document.createElement('div');box.setAttribute('data-percent-toolbox','1');box.style.marginTop='12px';
+  box.innerHTML='<button type="button" class="btn ghost" data-toolbox-toggle aria-expanded="false">🧰 Percent Toolbox</button><div data-toolbox-panel hidden class="warning" style="margin-top:10px"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><b>Percent reference</b><button type="button" class="btn ghost" data-toolbox-close style="min-height:38px;padding:7px 10px">Close</button></div><div style="margin-top:10px;line-height:1.6"><b>Rule</b><br>Percent of a number = percent ÷ 100 × whole.<br><br><b>What it means</b><br>Change the percent into a part of 1, then multiply by the whole.<br><br><b>One example</b><br>27% of 80 = 0.27 × 80 = 21.6.<br><br><b>Mental shortcut</b><br>When it is easier, build from friendly anchors. For 27% of 80: 20% + 5% + 2%.</div><div class="muted" style="margin-top:10px">Dr. Merissa teaches how to choose between different mental routes during the lesson. This box is only a quick reminder.</div></div>';
+  var first=target.firstElementChild; if(first) target.insertBefore(box,first); else target.appendChild(box);
+  var toggle=box.querySelector('[data-toolbox-toggle]'),panel=box.querySelector('[data-toolbox-panel]'),close=box.querySelector('[data-toolbox-close]');
+  function setOpen(open){panel.hidden=!open;toggle.setAttribute('aria-expanded',open?'true':'false');toggle.textContent=open?'🧰 Hide Toolbox':'🧰 Percent Toolbox';}
+  toggle.onclick=function(){setOpen(panel.hidden);};close.onclick=function(){setOpen(false);};
 }
 function tinyChecks(){
   var blocks=[].slice.call(document.querySelectorAll('*')).filter(function(e){return e.children.length===0&&/Tiny check:/i.test(text(e));});
