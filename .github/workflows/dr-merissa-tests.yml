@@ -39,5 +39,7 @@ jobs:
         run: node test-adaptive-mastery-engine.js
       - name: Run chemistry mastery progression tests
         run: node test-chemistry-mastery-progression.js
+      - name: Syntax-check chemistry learner UI
+        run: node --check chemistry-teacher-preview/chemistry-mastery-ui.js
       - name: Run chemistry mastery learner UI tests
         run: node test-chemistry-mastery-ui.js
