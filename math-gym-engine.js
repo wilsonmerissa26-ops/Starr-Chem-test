@@ -49,9 +49,9 @@
 
   function generatePercent(rng){
     // Answer first: select the percent, then derive a divisible whole and part.
-    var pct=pick([5,8,10,20,25,40,50,75],rng);
-    var baseUnit=pct===8?25:20;
-    var whole=baseUnit*randInt(5,20,rng);
+    var pct=pick([1,5,10,17,20,25,27,33,38,50,58,63,72,75,84],rng);
+    // Multiples of 100 keep irregular percentages exact and mental-math friendly.
+    var whole=100*randInt(1,8,rng);
     var part=whole*pct/100;
     return{
       id:'percent-'+Math.random().toString(36).slice(2),area:'fractions_percentages',type:'percent',
@@ -127,9 +127,9 @@
   function generateExponentRule(rng){
     var base=pick(['a','b','c','d','e'],rng),kind=pick(['product','quotient','mixed'],rng);
     var p=randInt(2,7,rng),q=randInt(2,6,rng),r=randInt(1,Math.min(5,p+q-1),rng),ansExp,prompt;
-    if(kind==='product'){ansExp=p+q;prompt:'('+base+'^'+p+')('+base+'^'+q+')';}
-    else if(kind==='quotient'){if(q>=p)q=p-1;ansExp=p-q;prompt:base+'^'+p+' / '+base+'^'+q;}
-    else{ansExp=p+q-r;prompt:'('+base+'^'+p+')('+base+'^'+q+') / '+base+'^'+r;}
+    if(kind==='product'){ansExp=p+q;prompt='('+base+'^'+p+')('+base+'^'+q+')';}
+    else if(kind==='quotient'){if(q>=p)q=p-1;ansExp=p-q;prompt=base+'^'+p+' / '+base+'^'+q;}
+    else{ansExp=p+q-r;prompt='('+base+'^'+p+')('+base+'^'+q+') / '+base+'^'+r;}
     var ans=base+'^'+ansExp;
     return{id:'exprule-'+Math.random().toString(36).slice(2),area:'exponents',type:'same_base_rules',prompt:prompt,answer:ans,check:function(v){return normalizeExpr(v)===normalizeExpr(ans);}};
   }
@@ -144,8 +144,8 @@
     }
     // Answer first: choose normalized target then build factors around it.
     var targetCoef=pick([2,4,6,8],rng),targetExp=randInt(-5,7,rng),aCoef=2,aExp=randInt(-3,3,rng),bCoef,bExp,prompt;
-    if(kind==='multiply'){bCoef=targetCoef/aCoef;bExp=targetExp-aExp;prompt:'('+aCoef+'×10^'+aExp+')('+bCoef+'×10^'+bExp+')';}
-    else{bCoef=aCoef/targetCoef;bExp=aExp-targetExp;prompt:'('+aCoef+'×10^'+aExp+') ÷ ('+bCoef+'×10^'+bExp+')';}
+    if(kind==='multiply'){bCoef=targetCoef/aCoef;bExp=targetExp-aExp;prompt='('+aCoef+'×10^'+aExp+')('+bCoef+'×10^'+bExp+')';}
+    else{bCoef=aCoef/targetCoef;bExp=aExp-targetExp;prompt='('+aCoef+'×10^'+aExp+') ÷ ('+bCoef+'×10^'+bExp+')';}
     var norm=normalizeSci(targetCoef,targetExp);
     return{id:'sci-'+kind+'-'+Math.random().toString(36).slice(2),area:'scientific_notation',type:kind,prompt:prompt,answer:norm,check:function(v){return checkSci(v,norm.coefficient,norm.exponent);}};
   }
@@ -171,9 +171,13 @@
   /* ---------------- Unit conversions ---------------- */
   var CONVERSIONS=[
     {from:'L',to:'mL',factor:1000},{from:'mL',to:'L',factor:.001},
+    {from:'g',to:'mg',factor:1000},{from:'mg',to:'g',factor:.001},
+    {from:'mg',to:'mcg',factor:1000},{from:'mcg',to:'mg',factor:.001},
     {from:'mol',to:'mmol',factor:1000},{from:'mmol',to:'mol',factor:.001},
     {from:'min',to:'s',factor:60},{from:'s',to:'min',factor:1/60},
-    {from:'h',to:'min',factor:60},{from:'min',to:'h',factor:1/60}
+    {from:'h',to:'min',factor:60},{from:'min',to:'h',factor:1/60},
+    {from:'gal',to:'qt',factor:4},{from:'qt',to:'pt',factor:2},
+    {from:'pt',to:'cups',factor:2},{from:'cups',to:'fl oz',factor:8}
   ];
   function generateUnitConversion(rng){
     var c=pick(CONVERSIONS,rng),answer=pick([3.3,6.2,8,12,15,33,62,90,120,228],rng);var source=answer/c.factor;
