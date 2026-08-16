@@ -53,3 +53,5 @@ jobs:
         run: node --check day1/day1-app.js
       - name: Run unified Day 1 learner release checks
         run: node test-unified-day1-app.js
+      - name: Run full classroom acceptance checks
+        run: node test-day1-classroom-ui.js
