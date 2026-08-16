@@ -2,6 +2,20 @@
 
 This file protects the approved learner experience from being flattened during later integration work.
 
+## Locked instructional architecture
+
+Each part of the classroom has one job:
+
+- **LESSON = understand it.** Dr. Merissa teaches, models, thinks aloud, checks understanding, diagnoses mistakes, and gradually removes support.
+- **TOOLBOX = remember it.** Optional reference only. It is closed by default and opened by the learner when help is wanted.
+- **PRACTICE = prove it.** Together -> less help -> alone -> different-looking transfer problem.
+- **MATH GYM = become fast at it.** Accuracy -> strategy recognition -> speed -> mixed problems -> no-calculator automaticity.
+- **NOTEBOOK = the learner's personal learning record.** It stores learned formulas, useful strategies, recurring confusions, repaired mistakes, and chemistry patterns.
+- **REVIEW = retain it.** Previously learned material returns through spaced/fresh retrieval.
+- **SUMMARY = know where I stand.** Report progress, misconceptions, mastery evidence, fluency, review needs, and what comes next.
+
+Toolbox, Lesson, Practice, and Math Gym must never be collapsed into one another during later integrations.
+
 ## Non-negotiable teaching sequence
 
 Every math skill must support both entry routes:
@@ -11,25 +25,56 @@ Every math skill must support both entry routes:
 
 A learner who tries first may open teaching at any time. A wrong answer or IDK stays attached to the exact current problem until the learner chooses to leave it.
 
+A full lesson follows:
+
+**Diagnose -> Explain -> Model -> Think aloud -> Student participates -> Check -> Adjust -> Student solves -> Transfer -> Retain**
+
+Skills must be decomposed into teachable subskills. If evidence identifies one broken subskill, teach that subskill instead of restarting the entire topic.
+
 ## What teaching means
 
 Teaching is not a rule sentence. A teaching segment must include:
 
 - the idea in plain language;
+- why the method works;
 - the formula or formal rule when one exists;
 - visible substitution into the formula;
 - visible intermediate steps;
 - a mental/no-calculator route when appropriate;
-- a worked example;
+- teacher think-aloud about how to choose an efficient route;
+- worked examples during teaching as needed to contrast problem types;
+- student participation during the worked process;
 - a tiny check before independent practice;
 - Back, Replay, and Teach another way;
-- a toolbox/reference during learning and guided practice.
+- optional Show me visually / Give me an easier example / Tell me what I did wrong support when appropriate.
 
 No interface may instruct a learner to circle, drag, highlight, draw, or move something unless that action actually exists on screen.
 
+## Toolbox contract
+
+The Toolbox is a reference, not a second lesson.
+
+- It must be **closed by default**.
+- A compact **Toolbox** button/tab must remain easy to reach near the top of the learning interface.
+- Opening it may use a drawer, modal, sheet, or compact expandable panel. It must not permanently occupy the lesson below the teaching content.
+- Organize reference cards by skill (Percentages, Fractions, Mental Math, Unit Conversions, Exponents, Scientific Notation, Algebra, Logs/Estimation, etc.).
+- Each reference card should normally contain only: **rule/relationship + plain-language meaning + ONE worked example + ONE useful mental shortcut when appropriate**.
+- Do not place multiple examples of the same idea in the Toolbox. Multiple contrasting examples belong in Dr. Merissa's teaching sequence.
+- Toolbox help may be available during learning and guided practice but must be hidden/disabled during a true cold mastery check when the mastery rules require no support.
+
+Example percentage reference card:
+
+**Percent of a number**
+- Rule: `percent / 100 x whole`
+- Meaning: change the percent into a part of 1, then multiply by the whole.
+- One example: `27% of 80 = 0.27 x 80 = 21.6`
+- Mental shortcut: build from friendly anchors when easier, e.g. `20% + 5% + 2%`.
+
+The lesson, not the Toolbox, teaches how and when to choose among 25% + 2%, 30% - 3%, 60% - 2%, swapping `x% of y = y% of x`, and other routes.
+
 ## No-calculator fluency
 
-The goal is not only correctness. The learner should develop fast mental fluency. Lessons should explicitly teach:
+The goal is not only correctness. The learner should develop fast mental fluency. Lessons introduce the reasoning; Math Gym builds automaticity. Explicitly teach and train:
 
 - decomposition (break numbers into friendly parts);
 - compensation (adjust to a friendly number, then correct);
@@ -38,9 +83,40 @@ The goal is not only correctness. The learner should develop fast mental fluency
 - factor pairs and cancellation;
 - benchmark fractions and percents;
 - place-value reasoning;
-- estimation before exact calculation.
+- estimation before exact calculation;
+- strategy selection based on the actual numbers rather than one mandatory shortcut.
 
 These strategies may be described as mental-math strategies commonly emphasized in high-fluency arithmetic instruction. Do not make cultural claims that are not sourced.
+
+### Irregular percentage requirement
+
+Teaching and Math Gym must include non-anchor percentages such as 17%, 27%, 33%, 38%, 58%, 63%, 72%, and 84%.
+
+Teach the learner to inspect the numbers and choose an efficient route. Examples of valid reasoning include:
+
+- `27%` as `25% + 2%` or `30% - 3%` depending on the whole;
+- `58%` as `60% - 2%` when that is easier;
+- `33%` as exactly `30% + 3%`, while explicitly distinguishing it from `33 1/3% = 1/3`;
+- `x% of y = y% of x` when swapping creates an easier mental calculation;
+- estimation before exact work to catch decimal/place-value errors.
+
+Do not dump all of these routes into the Toolbox. Dr. Merissa teaches strategy choice with contrasting problems; Math Gym trains it.
+
+## Unit-conversion requirement
+
+Unit conversions must teach meaning, not only decimal movement.
+
+The learner should understand:
+
+- what the units and prefixes mean;
+- whether the numerical value should become larger or smaller before calculating;
+- the conversion relationship;
+- dimensional-analysis setup when appropriate;
+- why matching units cancel;
+- the mental shortcut after the conceptual method is understood;
+- pharmacy-relevant metric relationships used by the curriculum.
+
+The Toolbox may show one representative conversion setup and the key relationships. Multiple conversion examples belong in teaching/practice.
 
 ## Required Day 1 areas
 
@@ -51,8 +127,22 @@ These strategies may be described as mental-math strategies commonly emphasized 
 - Logs and estimation
 - Unit conversions
 
-Each area needs aligned teaching, aligned practice, fresh problems, a working toolbox, previous-problem navigation, retry on wrong answers, and same-skill skip behavior.
+Each area needs aligned teaching, aligned practice, fresh problems, a working optional toolbox, previous-problem navigation, retry on wrong answers, and same-skill skip behavior.
+
+## Mastery is not completion
+
+Clicking through teaching does not establish mastery. Track evidence separately where supported by the engine:
+
+- Seen
+- Guided
+- Developing
+- Independent
+- Transfer
+- Fluent
+- Needs review
+
+Math Gym contributes fluency evidence; it must not falsely substitute for conceptual mastery.
 
 ## Device parity
 
-Phone, tablet, and desktop must expose the same learning capabilities. Layout may reflow, but content, controls, teaching depth, navigation, and mastery behavior must remain equivalent.
+Phone, tablet, and desktop must expose the same learning capabilities. Layout may reflow, but content, controls, teaching depth, navigation, Toolbox access, and mastery behavior must remain equivalent.
