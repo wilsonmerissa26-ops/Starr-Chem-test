@@ -49,7 +49,7 @@ jobs:
         run: node --check day1-orchestrator.js
       - name: Run Day 1 orchestrator tests
         run: node test-day1-orchestrator.js
-      - name: Syntax-check Day 1 v3 classroom
-        run: node --check day1/classroom-v3.js
-      - name: Run Day 1 v3 regression checks
-        run: node test-day1-classroom-v3.js
+      - name: Syntax-check Day 1 v4 classroom
+        run: node --check day1/classroom-v4.js
+      - name: Run Day 1 v4 regression checks
+        run: node test-day1-classroom-v4.js
