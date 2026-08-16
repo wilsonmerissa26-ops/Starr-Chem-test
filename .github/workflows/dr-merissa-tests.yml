@@ -59,3 +59,9 @@ jobs:
         run: node --check chemistry-teacher-preview/chemistry-teaching-fixes-v2.js
       - name: Run Day 1 v5 teaching-contract regressions
         run: node test-day1-classroom-v5.js
+      - name: Syntax-check visible Math Gym UI
+        run: node --check day1/math-gym-ui.js
+      - name: Syntax-check chemistry talk-through tutor
+        run: node --check chemistry-teacher-preview/chemistry-talkthrough.js
+      - name: Syntax-check chemistry talk-through loader
+        run: node --check day1/chemistry-talkthrough-loader.js
