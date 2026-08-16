@@ -73,3 +73,7 @@ jobs:
         run: node --check day1/math-problem-coach-v8.js
       - name: Run step-by-step math problem coach tests
         run: node test-math-problem-coach-v8.js
+      - name: Syntax-check exact-problem math teacher
+        run: node --check day1/math-exact-problem-teacher-v9.js
+      - name: Run exact-problem math teacher tests
+        run: node test-math-exact-problem-teacher-v9.js
