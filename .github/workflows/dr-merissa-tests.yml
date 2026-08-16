@@ -37,3 +37,7 @@ jobs:
         run: node test-day1-repair.js
       - name: Run adaptive practice and mastery tests
         run: node test-adaptive-mastery-engine.js
+      - name: Run chemistry mastery progression tests
+        run: node test-chemistry-mastery-progression.js
+      - name: Run chemistry mastery learner UI tests
+        run: node test-chemistry-mastery-ui.js
