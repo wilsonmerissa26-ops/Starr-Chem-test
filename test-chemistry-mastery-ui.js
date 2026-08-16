@@ -7,7 +7,12 @@ ok('guided practice uses H2O',js.includes("'H2O'")&&js.includes('Practicing Toge
 ok('independent build uses CH4',js.includes("'CH4'")&&js.includes('independent'));
 ok('error analysis uses H2S',js.includes("'H2S'")&&js.includes('error_analysis'));
 ok('fresh transfer uses PH3',js.includes("'PH3'")&&js.includes('Fresh check'));
-ok('IDK routes to teaching help',js.includes('practiceIdk')&&js.includes('showHelp'));
+ok('fresh repair uses SiH4 when evidence is short',js.includes("'SiH4'")&&js.includes('one more fresh independent example'));
+ok('item tracks whether any teaching support was used',js.includes('itemSupported')&&js.includes('itemSupported=true'));
+ok('final evidence preserves support used earlier in item',js.includes('var supported=plan.guided||itemSupported'));
+ok('wrong answer marks item supported before reteach',js.includes("if(!ok){itemSupported=true"));
+ok('IDK marks item supported and routes to teaching help',js.includes("practiceIdk')")&&js.includes('itemSupported=true')&&js.includes('showHelp'));
+ok('supported completion explicitly does not count independent',js.includes('will not count it as independent mastery evidence'));
 ok('completion requires mastery controller result',js.includes('r.mastery&&r.mastery.mastered'));
 ok('retrieval evidence is persisted',js.includes('retrieval')&&js.includes('astarryia-chemistry-mastery-v1'));
 console.log('\nChemistry mastery UI: '+p+' passed, '+f+' failed');if(f)process.exit(1);
