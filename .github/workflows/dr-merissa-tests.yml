@@ -69,3 +69,7 @@ jobs:
         run: node --check day1/toolbox-ui-v7.js
       - name: Run compact Toolbox contract tests
         run: node test-toolbox-ui-v7.js
+      - name: Syntax-check step-by-step math problem coach
+        run: node --check day1/math-problem-coach-v8.js
+      - name: Run step-by-step math problem coach tests
+        run: node test-math-problem-coach-v8.js
