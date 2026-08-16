@@ -65,3 +65,7 @@ jobs:
         run: node --check chemistry-teacher-preview/chemistry-talkthrough.js
       - name: Syntax-check chemistry talk-through loader
         run: node --check day1/chemistry-talkthrough-loader.js
+      - name: Syntax-check compact Toolbox UI
+        run: node --check day1/toolbox-ui-v7.js
+      - name: Run compact Toolbox contract tests
+        run: node test-toolbox-ui-v7.js
