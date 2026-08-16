@@ -50,6 +50,6 @@ jobs:
       - name: Run Day 1 orchestrator tests
         run: node test-day1-orchestrator.js
       - name: Syntax-check restored teacher-first Day 1 UI
-        run: node --check day1/teaching-app.js
+        run: node --check day1/teaching-app-v2.js
       - name: Run restored Day 1 release checks
         run: node test-unified-day1-app.js
