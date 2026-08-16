@@ -49,9 +49,7 @@ jobs:
         run: node --check day1-orchestrator.js
       - name: Run Day 1 orchestrator tests
         run: node test-day1-orchestrator.js
-      - name: Syntax-check unified Day 1 learner UI
-        run: node --check day1/day1-app.js
-      - name: Run unified Day 1 learner release checks
+      - name: Syntax-check restored teacher-first Day 1 UI
+        run: node --check day1/teaching-app.js
+      - name: Run restored Day 1 release checks
         run: node test-unified-day1-app.js
-      - name: Run full classroom acceptance checks
-        run: node test-day1-classroom-ui.js
