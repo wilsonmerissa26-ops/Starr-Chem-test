@@ -45,3 +45,7 @@ jobs:
         run: node test-chemistry-mastery-ui.js
       - name: Run notebook and review queue tests
         run: node test-notebook-review-queue.js
+      - name: Syntax-check Math Gym engine
+        run: node --check math-gym-engine.js
+      - name: Run Math Gym engine tests
+        run: node test-math-gym-engine.js
