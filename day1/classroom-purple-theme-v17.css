@@ -1,0 +1,338 @@
+:root{
+  --p:#5b248b;
+  --p-deep:#2f124f;
+  --p-deeper:#211033;
+  --p-mid:#733bb2;
+  --p-soft:#efe5fa;
+  --p-pale:#faf7ff;
+  --ink:#21162b;
+  --muted:#706579;
+  --line:#e4d8ef;
+  --good:#24704a;
+  --bad:#a03a4a;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+
+html{
+  min-height:100%;
+  background:#2b1246;
+}
+
+body{
+  min-height:100vh;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(180,123,255,.24),transparent 34rem),
+    radial-gradient(circle at 100% 18%,rgba(120,66,174,.20),transparent 30rem),
+    linear-gradient(150deg,#26103e 0%,#3b175c 44%,#241037 100%);
+  background-attachment:fixed;
+}
+
+.app{
+  width:min(100%,1000px);
+  padding:16px 16px 100px;
+}
+
+.top{
+  margin:0 -2px;
+  padding:12px 14px 14px;
+  border:1px solid rgba(255,255,255,.10);
+  border-top:0;
+  border-radius:0 0 24px 24px;
+  background:rgba(35,13,56,.93);
+  box-shadow:0 16px 40px rgba(10,3,18,.24);
+  backdrop-filter:blur(18px);
+}
+
+.brand{
+  align-items:center;
+  color:white;
+}
+
+.brandIdentity{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+}
+
+.brandAvatar{
+  width:54px;
+  height:54px;
+  flex:0 0 54px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  border:2px solid rgba(255,255,255,.72);
+  background:linear-gradient(145deg,#8d57c7,#50217a);
+  color:white;
+  font-size:.9rem;
+  font-weight:900;
+  letter-spacing:.04em;
+  box-shadow:0 8px 24px rgba(7,2,12,.25),inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+.brand b{
+  display:block;
+  color:white;
+  font-size:1.08rem;
+  letter-spacing:.01em;
+}
+
+.top .muted{
+  color:#d9c8e9;
+}
+
+#saveState{
+  padding:7px 10px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  white-space:nowrap;
+  font-size:.78rem;
+}
+
+.tabs{
+  gap:8px;
+  padding-top:2px;
+}
+
+.tabs button{
+  min-height:44px;
+  padding:10px 13px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.075);
+  color:#eadff4;
+  box-shadow:none;
+  transition:transform .18s ease,background .18s ease,border-color .18s ease;
+}
+
+.tabs button:hover{
+  transform:translateY(-1px);
+  background:rgba(255,255,255,.13);
+}
+
+.tabs button.on{
+  color:#37144f;
+  border-color:white;
+  background:white;
+  box-shadow:0 7px 18px rgba(10,3,18,.18);
+}
+
+.hero{
+  color:white;
+  padding:30px 7px 14px;
+}
+
+.hero h1{
+  color:white;
+  text-shadow:0 3px 18px rgba(13,3,22,.28);
+}
+
+.hero .muted,.hero p{
+  color:#e3d5ed;
+}
+
+.card{
+  border:1px solid rgba(255,255,255,.65);
+  border-radius:24px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 16px 38px rgba(18,5,29,.18);
+  margin:16px 0;
+}
+
+.card h1,.card h2,.card h3{
+  color:#321746;
+}
+
+.phase{
+  color:#6b2ea2;
+  letter-spacing:.02em;
+}
+
+.teacher{
+  gap:14px;
+  padding:14px;
+  margin:-2px -2px 14px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#f5edfd,#fff 72%);
+  border:1px solid #eadcf6;
+}
+
+.avatar{
+  width:58px;
+  height:58px;
+  flex:0 0 58px;
+  border:2px solid white;
+  background:linear-gradient(145deg,#7e43b8,#4e1f73);
+  color:white;
+  box-shadow:0 8px 20px rgba(81,33,117,.23);
+}
+
+.bubble{
+  color:#352540;
+}
+
+.stage{
+  min-height:280px;
+  border:1px solid #d9c4e9;
+  background:
+    radial-gradient(circle at 50% 12%,rgba(164,111,210,.12),transparent 15rem),
+    linear-gradient(180deg,#fdfaff,#f7f0fc);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.8);
+}
+
+.visual{
+  color:#3d1759;
+}
+
+.mathArea{
+  border:1px solid #e5d8ef;
+  border-radius:17px;
+  background:linear-gradient(180deg,#fff,#fcf9ff);
+  box-shadow:0 6px 18px rgba(64,27,87,.06);
+}
+
+.mathArea:hover{
+  border-color:#cdb4df;
+}
+
+.question{
+  color:#2f153f;
+}
+
+.input{
+  border:1.5px solid #d8c7e5;
+  background:#fff;
+  box-shadow:inset 0 1px 2px rgba(47,18,79,.04);
+}
+
+.input:focus{
+  outline:3px solid rgba(115,59,178,.15);
+  border-color:#8a58b9;
+}
+
+.btn{
+  border-radius:14px;
+  background:linear-gradient(135deg,#7137a7,#502176);
+  box-shadow:0 7px 16px rgba(70,27,102,.18);
+  transition:transform .16s ease,box-shadow .16s ease;
+}
+
+.btn:hover:not(:disabled){
+  transform:translateY(-1px);
+  box-shadow:0 10px 22px rgba(70,27,102,.23);
+}
+
+.btn.secondary{
+  background:#efe6f8;
+  color:#48215f;
+  box-shadow:none;
+}
+
+.btn.ghost{
+  background:white;
+  color:#552672;
+  border:1px solid #d9c7e6;
+  box-shadow:none;
+}
+
+.warning,.idkbox{
+  border-color:#e7d59d;
+  background:#fffaf0;
+}
+
+.notebookFact{
+  border-left-color:#6f35a5;
+  background:#faf5ff;
+}
+
+.queue{
+  border-color:#e3d6ed;
+  background:#fdfbff;
+}
+
+.pill{
+  color:#51226d;
+  background:#eee1f8;
+}
+
+.summaryTable td{
+  border-bottom-color:#eee3f6;
+}
+
+.iframeWrap{
+  border-radius:20px;
+  background:#f8f3fc;
+  overflow:hidden;
+}
+
+.iframeWrap iframe{
+  border-radius:16px;
+}
+
+.feedback.good{
+  box-shadow:inset 0 0 0 1px rgba(35,112,72,.08);
+}
+
+.feedback.bad{
+  box-shadow:inset 0 0 0 1px rgba(155,49,49,.08);
+}
+
+@media(max-width:700px){
+  body{
+    background:linear-gradient(165deg,#2b1247 0%,#3a1758 48%,#27103d 100%);
+  }
+  .app{
+    padding:0 10px 82px;
+  }
+  .top{
+    margin:0 -10px;
+    padding:10px 12px 12px;
+    border-radius:0 0 22px 22px;
+  }
+  .brandAvatar{
+    width:46px;
+    height:46px;
+    flex-basis:46px;
+    font-size:.78rem;
+  }
+  .brand b{
+    font-size:.98rem;
+  }
+  #saveState{
+    padding:6px 8px;
+  }
+  .tabs{
+    gap:6px;
+  }
+  .tabs button{
+    flex:1 1 30%;
+    min-height:42px;
+    padding:9px 7px;
+    font-size:.85rem;
+  }
+  .hero{
+    padding:24px 3px 10px;
+  }
+  .card{
+    border-radius:20px;
+    padding:16px;
+  }
+  .teacher{
+    padding:12px;
+  }
+  .avatar{
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+  }
+}
+
+@media print{
+  body{background:white;color:#171721}
+  .top{background:white;color:#171721;border:0;box-shadow:none}
+  .brand b,.top .muted{color:#171721}
+  .brandAvatar{background:white;color:#171721;border:1px solid #aaa;box-shadow:none}
+  .card{box-shadow:none;border:1px solid #ccc}
+}
