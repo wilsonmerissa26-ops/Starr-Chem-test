@@ -17,6 +17,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Verify root opens current Day 1 classroom
+        run: node test-root-day1-redirect.js
       - name: Run Student Model and IDK Router tests
         run: node test-student-model.js
       - name: Run Watch Mode tests
