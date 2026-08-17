@@ -30,7 +30,12 @@ function tinyChecks(){
     label.insertAdjacentElement('afterend',wrap);
   });
 }
-function run(){if(busy)return;busy=true;try{percentCoach();tinyChecks();}finally{busy=false;}}
+function run(){if(busy)return;busy=true;try{
+  /* The compact v7 Toolbox supersedes the old percent toolbox. Do not run
+     percentCoach here: v7 removes that legacy box, and having both mutation
+     observers add/remove it creates an endless DOM render loop on mobile. */
+  tinyChecks();
+}finally{busy=false;}}
 new MutationObserver(function(){setTimeout(run,0);}).observe(document.documentElement,{childList:true,subtree:true});
 run();
 })();
