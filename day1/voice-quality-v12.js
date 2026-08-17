@@ -7,10 +7,11 @@ function normalize(s){return String(s)
  .replace(/\bmol\b/g,' moles ').replace(/\bmcg\b/g,' micrograms ')
  .replace(/\bmg\b/g,' milligrams ').replace(/\bmL\b/g,' milliliters ')
  .replace(/\bL\b/g,' liters ').replace(/\bg\b/g,' grams ')
+ .replace(/10\^\(?[−-](\d+)\)?/g,'ten to the negative $1 power')
+ .replace(/10\^\(?(\d+)\)?/g,'ten to the $1 power')
  .replace(/%/g,' percent ').replace(/×/g,' times ').replace(/÷/g,' divided by ')
  .replace(/−/g,' minus ').replace(/≈/g,' approximately ')
  .replace(/→|↔/g,' converts to ').replace(/\bpKa\b/gi,'p K a')
- .replace(/10\^\(?-?(\d+)\)?/g,function(m,e){return m.indexOf('-')>=0?'ten to the negative '+e+' power':'ten to the '+e+' power';})
  .replace(/\n+/g,'. ').replace(/\s+/g,' ').trim();}
 window.DrMerissaVoice={normalize:normalize,defaultRate:.82};
 if(!window.speechSynthesis||!window.speechSynthesis.speak)return;
