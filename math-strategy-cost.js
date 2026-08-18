@@ -109,15 +109,15 @@ function scoreCandidate(candidate, options) {
   var breakdown = {
     operationCount: (f.operationCount || 0) * WEIGHTS.operationCount,
     carryOperations: (f.carryCount || 0) * WEIGHTS.operationCount,
-    anchorAcquisition: f.anchorAcquisition || 0,
-    divisionDifficulty: f.divisionDifficulty || 0,
-    multiplicationDifficulty: f.multiplicationDifficulty || 0,
+    anchorAcquisition: (f.anchorAcquisition || 0) * WEIGHTS.anchorAcquisition,
+    divisionDifficulty: (f.divisionDifficulty || 0) * WEIGHTS.divisionDifficulty,
+    multiplicationDifficulty: (f.multiplicationDifficulty || 0) * WEIGHTS.multiplicationDifficulty,
     decimalComplexity: (f.decimalComplexity || 0) * WEIGHTS.decimalComplexity,
     fractionComplexity: (f.fractionComplexity || 0) * WEIGHTS.fractionComplexity,
     mentalLoad: (f.mentalLoad || 0) * WEIGHTS.mentalLoad,
     benchmarkBonus: (f.benchmarkBonus || 0) * WEIGHTS.benchmarkBonus,
     compensationComplexity: (f.compensationComplexity || 0) * WEIGHTS.compensationComplexity,
-    routeOverhead: f.routeOverhead || 0,
+    routeOverhead: (f.routeOverhead || 0) * WEIGHTS.routeOverhead,
     studentFluencyAdjustment: fluencyAdjustment(candidate, options.studentFluency)
   };
   var total = Object.keys(breakdown).reduce(function(sum,k){ return sum + breakdown[k]; },0);
