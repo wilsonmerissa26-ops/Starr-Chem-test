@@ -1,31 +1,40 @@
 /* ============================================================
    CANONICAL ADAPTIVE MODEL BROWSER COMPOSITION CONTRACT
 
-   Executes the SAME source modules in a browser-like VM with no CommonJS
-   require/module globals. This prevents a second browser implementation from
-   drifting away from the tested Node logic.
+   Executes the SAME source modules in a browser-like VM using the exact
+   temporary CommonJS shim policy of day1-adaptive-browser-loader.js.
+   There is no second browser implementation and no teaching logic in loader.
    ============================================================ */
 'use strict';
 var assert=require('assert');
 var fs=require('fs');
 var vm=require('vm');
+var loader=require('./day1-adaptive-browser-loader.js');
 
-var files=[
-  'student-model-idk-router.js',
-  'math-strategy-adapters.js',
-  'math-strategy-cost.js',
-  'math-strategy-library.js',
-  'math-strategy-engine.js',
-  'math-prerequisite-content.js',
-  'day1-adaptive-math-model.js',
-  'day1-problem-source-adapters.js',
-  'day1-adaptive-runtime.js'
-];
 var ctx={console:console,Date:Date,Math:Math,JSON:JSON,setTimeout:setTimeout,clearTimeout:clearTimeout};
 vm.createContext(ctx);
-files.forEach(function(file){
-  var src=fs.readFileSync(file,'utf8');
-  vm.runInContext(src,ctx,{filename:file});
+var exportsByPath={};
+function remember(path,value){
+  exportsByPath[path]=value;exportsByPath['./'+path]=value;
+  if(path.indexOf('/')>=0){var name=path.slice(path.lastIndexOf('/')+1);exportsByPath[name]=value;exportsByPath['./'+name]=value;}
+}
+function localRequire(path){
+  if(Object.prototype.hasOwnProperty.call(exportsByPath,path))return exportsByPath[path];
+  throw new Error('browser composition dependency not ready: '+path);
+}
+
+assert.ok(Array.isArray(loader.MANIFEST)&&loader.MANIFEST.length===9,'loader manifest should contain only the nine canonical modules');
+loader.MANIFEST.forEach(function(entry){
+  var src=fs.readFileSync(entry.path,'utf8');
+  var moduleShim={exports:{}};
+  ctx.module=moduleShim;ctx.exports=moduleShim.exports;ctx.require=localRequire;
+  vm.runInContext(src,ctx,{filename:entry.path});
+  var value=moduleShim.exports;
+  if((!value||Object.keys(value).length===0)&&ctx[entry.name])value=ctx[entry.name];
+  assert.ok(value,entry.path+' loaded without an export');
+  ctx[entry.name]=value;
+  remember(entry.path,value);
+  delete ctx.module;delete ctx.exports;delete ctx.require;
 });
 
 [
@@ -48,5 +57,9 @@ assert.ok(repair.lesson);
 var fixed=ctx.Day1AdaptiveRuntime.submitPrerequisiteCheck(state,repair.checkItem.id,repair.checkItem.answer);
 assert.strictEqual(fixed.action,'return_to_parent_problem');
 assert.strictEqual(fixed.problem.sourceId,'browser-15-80');
+
+// Composition globals are temporary only; canonical exports remain namespaced.
+assert.strictEqual(ctx.module,undefined);
+assert.strictEqual(ctx.require,undefined);
 
 console.log('PASS canonical adaptive model composes in browser context from the same source files');
