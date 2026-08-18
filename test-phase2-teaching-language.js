@@ -38,9 +38,10 @@ assert.ok(prompts(neg)[0].indexOf('2^-4')>=0&&prompts(neg)[0].indexOf('1/2^4')>=
 assert.ok(!allText(neg).match(/move the factor across the fraction bar/i),
   'standalone negative exponent must not refer to a fraction bar that does not exist yet');
 
-// The prerequisite lesson must teach the same reciprocal meaning. Remediation
-// cannot reintroduce the old fraction-bar wording after the main route is fixed.
-var negLesson=lessonText('negative_exponent_rule');
+// The route names reciprocal_meaning as its prerequisite. That remediation
+// lesson must teach the same reciprocal concept without inventing a fraction
+// bar in the original negative-power expression.
+var negLesson=lessonText('reciprocal_meaning');
 assert.ok(/reciprocal/i.test(negLesson),
   'negative-exponent prerequisite must explicitly teach reciprocal meaning');
 assert.ok(!/move (?:the )?(?:factor )?across (?:the )?fraction bar/i.test(negLesson),
