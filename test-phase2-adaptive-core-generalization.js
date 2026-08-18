@@ -98,7 +98,7 @@ stringCase({area:'algebra',family:'formula_rearrangement',formulaId:'P_2l2w_w',t
   });});
 });
 
-// Logs: exact inverse identities plus product-landmark addition.
+// Logs: exact inverse identities plus explicitly supplied landmark arithmetic.
 for(var e=-8;e<=8;e++){
   numericCase({area:'logs',family:'exact_log10',value:Math.pow(10,e)},e);
   numericCase({area:'logs',family:'inverse_log10',exponent:e},Math.pow(10,e));
@@ -107,8 +107,25 @@ for(var e=-8;e<=8;e++){
   var landmarks={};landmarks[String(fs[0])]=Math.log10(fs[0]);landmarks[String(fs[1])]=Math.log10(fs[1]);
   numericCase({area:'logs',family:'log_product_estimate',value:fs[0]*fs[1],factors:fs,landmarks:landmarks},Math.log10(fs[0])+Math.log10(fs[1]));
 });
-[2,3,5,7,9].forEach(function(front){[2,4,6,8].forEach(function(exp){
-  numericCase({area:'logs',family:'estimate_negative_log',front:front,exponent:exp},exp-Math.log10(front));
+
+// Negative-log estimates intentionally do NOT ask the planner to derive
+// Math.log10(front). Each generated problem carries the landmark evidence that
+// a learner could actually use. The expected answer is calculated from those
+// supplied estimates, not from calculator precision.
+var negativeLogRoutes=[
+  {front:2,landmarks:{'2':0.30},estimate:0.30},
+  {front:3,landmarks:{'3':0.48},estimate:0.48},
+  {front:5,landmarks:{'5':0.70},estimate:0.70},
+  {front:6,factors:[2,3],landmarks:{'2':0.30,'3':0.48},estimate:0.78},
+  {front:9,factors:[3,3],landmarks:{'3':0.48},estimate:0.96}
+];
+negativeLogRoutes.forEach(function(route){[2,4,6,8].forEach(function(exp){
+  var problem={area:'logs',family:'estimate_negative_log',front:route.front,exponent:exp,landmarks:route.landmarks,roundTo:2};
+  if(route.factors)problem.factors=route.factors;
+  var expected=Math.round((exp-route.estimate)*100)/100;
+  var result=numericCase(problem,expected);
+  assert.ok(result.chosenPlan.steps.some(function(st){return near(st.expected,route.estimate,1e-9);}),
+    'negative-log plan must expose the supplied landmark estimate for front '+route.front);
 });});
 
 // Unit conversions and rates: direct dimensional arithmetic.
@@ -126,6 +143,8 @@ for(var e=-8;e<=8;e++){
 
 assert.ok(count>=1000,'expected at least 1000 generated Phase 2A cases, got '+count);
 ['fractions_percent','algebra','exponents','scientific_notation','logs','unit_conversions'].forEach(function(area){assert.ok(byArea[area]>0,'no generated coverage for '+area);});
+assert.strictEqual(count,1786,'generated case population must remain stable after evidence-quality changes');
+assert.strictEqual(byArea.logs,59,'log case count must stay stable while negative-log fixtures become human-doable');
 console.log('PHASE2_GENERALIZATION_CASES',count);
 console.log('PHASE2_GENERALIZATION_BY_AREA',JSON.stringify(byArea));
-console.log('PASS Phase 2A generated correctness and determinism invariants');
+console.log('PASS Phase 2A generated correctness, determinism, and explicit-landmark invariants');
