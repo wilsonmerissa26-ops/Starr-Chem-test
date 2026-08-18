@@ -23,7 +23,7 @@ function localRequire(path){
   throw new Error('browser composition dependency not ready: '+path);
 }
 
-assert.ok(Array.isArray(loader.MANIFEST)&&loader.MANIFEST.length===9,'loader manifest should contain only the nine canonical modules');
+assert.ok(Array.isArray(loader.MANIFEST)&&loader.MANIFEST.length===10,'loader manifest should contain only the ten canonical modules');
 loader.MANIFEST.forEach(function(entry){
   var src=fs.readFileSync(entry.path,'utf8');
   var moduleShim={exports:{}};
@@ -40,13 +40,15 @@ loader.MANIFEST.forEach(function(entry){
 [
   'StudentModelIdkRouter','MathStrategyAdapters','MathStrategyCost','MathStrategyLibrary',
   'MathStrategyEngine','MathPrerequisiteContent','Day1AdaptiveMathModel',
-  'Day1ProblemSourceAdapters','Day1AdaptiveRuntime'
+  'Day1ProblemSourceAdapters','MathAnswerChecker','Day1AdaptiveRuntime'
 ].forEach(function(name){assert.ok(ctx[name],name+' missing from browser global');});
 
 var normalized=ctx.Day1ProblemSourceAdapters.fromClassroomPrompt('fractions_percent','15% of 80 =',{sourceId:'browser-15-80'});
 var state=ctx.Day1AdaptiveRuntime.createLearnerState({studentId:'browser-test'});
 var started=ctx.Day1AdaptiveRuntime.startProblem(state,normalized);
 assert.strictEqual(started.plan.chosenStrategyId,'percent_10_plus_5');
+assert.strictEqual(ctx.MathAnswerChecker.check(normalized,'12%',started.plan),true);
+assert.strictEqual(ctx.MathAnswerChecker.check(normalized,'15%',started.plan),false);
 var first=ctx.Day1AdaptiveRuntime.requestSupport(state,'first_step');
 assert.strictEqual(first.steps.length,1);
 assert.strictEqual(first.strategyId,started.plan.chosenStrategyId);
@@ -58,7 +60,6 @@ var fixed=ctx.Day1AdaptiveRuntime.submitPrerequisiteCheck(state,repair.checkItem
 assert.strictEqual(fixed.action,'return_to_parent_problem');
 assert.strictEqual(fixed.problem.sourceId,'browser-15-80');
 
-// Composition globals are temporary only; canonical exports remain namespaced.
 assert.strictEqual(ctx.module,undefined);
 assert.strictEqual(ctx.require,undefined);
 
