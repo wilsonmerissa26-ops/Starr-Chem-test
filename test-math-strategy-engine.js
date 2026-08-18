@@ -81,20 +81,55 @@ function nearTieIds(result){return(result.nearTies||[]).map(function(c){return c
   assert.ok(f69.cost>f27.cost && f27.cost>f17.cost,'formal route cost must reflect 2 carries > 1 carry > 0 carries');
 })();
 
-(function reviewedGapSizeInstructionPolicy(){
-  var a=planPercent(17,32),b=planPercent(27,64),c=planPercent(69,32),d=planPercent(88,64);
-  assert.strictEqual(engine.FORMAL_MENTAL_CLOSE_MARGIN,1.5);
-  assert.strictEqual(a.chosenStrategyId,'percent_formal_decimal');
-  assert.strictEqual(b.chosenStrategyId,'percent_formal_decimal');
-  assert.strictEqual(c.rawLowestCostStrategyId,'percent_formal_decimal');
-  assert.strictEqual(c.chosenStrategyId,'percent_70_minus_1','close formal advantage should default to the reviewed mental route');
-  assert.ok(nearTieIds(c).indexOf('percent_formal_decimal')>=0,'formal route should remain surfaced as the close alternate');
-  assert.strictEqual(c.selectionPolicy,'mental_default_when_formal_advantage_is_close');
-  assert.strictEqual(c.selectionPolicyGap,1.05);
-  assert.strictEqual(d.chosenStrategyId,'percent_formal_decimal');
-  assert.strictEqual(a.selectionPolicy,'formal_wins_with_wide_cost_advantage');
-  assert.strictEqual(b.selectionPolicy,'formal_wins_with_wide_cost_advantage');
-  assert.strictEqual(d.selectionPolicy,'formal_wins_with_wide_cost_advantage');
+(function reviewedFormalMentalNearTieBand(){
+  assert.strictEqual(engine.FORMAL_MENTAL_NEAR_TIE_MAX,1.8);
+
+  var closeAnchor=planPercent(69,32);
+  assert.strictEqual(closeAnchor.rawLowestCostStrategyId,'percent_formal_decimal');
+  assert.strictEqual(closeAnchor.selectionPolicyGap,1.05);
+  assert.strictEqual(closeAnchor.chosenStrategyId,'percent_70_minus_1');
+  assert.strictEqual(closeAnchor.selectionPolicy,'mental_default_in_formal_mental_near_tie_band');
+  assert.ok(nearTieIds(closeAnchor).indexOf('percent_formal_decimal')>=0);
+
+  var bandCases=[
+    [33,64,1.35,'percent_1_then_scale'],
+    [84,64,1.50,'percent_1_then_scale'],
+    [69,72,1.65,'percent_70_minus_1'],
+    [27,64,1.70,'percent_1_then_scale']
+  ];
+  bandCases.forEach(function(row){
+    var r=planPercent(row[0],row[1]);
+    assert.strictEqual(r.rawLowestCostStrategyId,'percent_formal_decimal',row[0]+'% of '+row[1]+' must keep formal as raw cheapest');
+    assert.strictEqual(r.selectionPolicyGap,row[2]);
+    assert.strictEqual(r.chosenStrategyId,row[3],row[0]+'% of '+row[1]+' must default to the reviewed mental route inside the band');
+    assert.strictEqual(r.selectionPolicy,'mental_default_in_formal_mental_near_tie_band');
+    assert.ok(nearTieIds(r).indexOf('percent_formal_decimal')>=0,'formal must remain visible as alternate');
+  });
+
+  var wideA=planPercent(17,32),wideB=planPercent(88,64);
+  assert.strictEqual(wideA.selectionPolicyGap,2.05);
+  assert.strictEqual(wideA.chosenStrategyId,'percent_formal_decimal');
+  assert.strictEqual(wideA.selectionPolicy,'formal_wins_outside_formal_mental_near_tie_band');
+  assert.strictEqual(wideB.selectionPolicyGap,2.60);
+  assert.strictEqual(wideB.chosenStrategyId,'percent_formal_decimal');
+  assert.strictEqual(wideB.selectionPolicy,'formal_wins_outside_formal_mental_near_tie_band');
+})();
+
+(function exactBandBoundaryIsDeterministic(){
+  var problem={family:'percent_of_whole'};
+  var atBoundary=engine.chooseWithInstructionPolicy(problem,[
+    {strategyId:'percent_formal_decimal',cost:5},
+    {strategyId:'mental_test_route',cost:6.8}
+  ]);
+  assert.strictEqual(atBoundary.policyGap,1.8);
+  assert.strictEqual(atBoundary.chosen.strategyId,'mental_test_route','exactly 1.8 must remain inside the instructional near-tie band');
+
+  var aboveBoundary=engine.chooseWithInstructionPolicy(problem,[
+    {strategyId:'percent_formal_decimal',cost:5},
+    {strategyId:'mental_test_route',cost:6.801}
+  ]);
+  assert.strictEqual(aboveBoundary.policyGap,1.801);
+  assert.strictEqual(aboveBoundary.chosen.strategyId,'percent_formal_decimal','a gap above 1.8 must let formal win');
 })();
 
 (function correctnessAndDeterminism(){
@@ -104,4 +139,4 @@ function nearTieIds(result){return(result.nearTies||[]).map(function(c){return c
   var a=planPercent(88,50),b=planPercent(88,50);assert.strictEqual(a.chosenStrategyId,b.chosenStrategyId);assert.deepStrictEqual(nearTieIds(a),nearTieIds(b));
 })();
 
-console.log('PASS math strategy engine calibration, weight-wiring, carry-sensitivity, and selection-policy contract');
+console.log('PASS math strategy engine calibration, weight-wiring, carry-sensitivity, and formal-mental near-tie policy contract');
