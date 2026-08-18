@@ -1,3 +1,8 @@
+(function(root,factory){
+  var api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else root.MathStrategyAdapters=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
 
 function finiteNumber(v, label) {
@@ -52,11 +57,12 @@ function fromMathGymItem(item) {
   if (!item || typeof item !== 'object') throw new Error('Math Gym item required');
   if (!item.strategyInput) throw new Error('Math Gym item must expose structured strategyInput');
   var input = Object.assign({}, item.strategyInput, {
-    area: item.area || 'fractions_percentages',
+    area: item.strategyInput.area || item.area || 'fractions_percentages',
     source: 'math_gym',
     sourceId: item.id || null
   });
   return normalize(input);
 }
 
-module.exports = { normalize: normalize, fromClassroomPrompt: fromClassroomPrompt, fromMathGymItem: fromMathGymItem };
+return { normalize: normalize, fromClassroomPrompt: fromClassroomPrompt, fromMathGymItem: fromMathGymItem };
+});
