@@ -47,6 +47,28 @@ function sci(v){
 function normalizeExpr(v){return norm(v).replace(/\*/g,'').replace(/^\((.*)\)$/,'$1');}
 function expectedFromPlan(plan){return plan&&Object.prototype.hasOwnProperty.call(plan,'answer')?plan.answer:null;}
 
+// Safe symbolic equivalence for the exact power forms emitted by Phase 2A.
+// This is deliberately NOT a general algebra parser. It recognizes only the
+// identities the engine itself teaches and can prove without precedence risk:
+// b^-n = 1/b^n, b^0 = 1, and b^1 = b.
+function parsePower(v){
+  var s=normalizeExpr(v),m=s.match(/^([a-z][a-z0-9]*|[0-9]+)\^\(?([+-]?\d+)\)?$/);
+  return m?{base:m[1],exponent:Number(m[2])}:null;
+}
+function symbolicPowerEquivalent(input,expected){
+  var got=normalizeExpr(input),want=normalizeExpr(expected);
+  if(got===want)return true;
+  var power=parsePower(want);
+  if(!power)return false;
+  if(power.exponent===0)return got==='1';
+  if(power.exponent===1)return got===power.base;
+  if(power.exponent<0){
+    var positive=Math.abs(power.exponent),plain='1/'+power.base+'^'+positive,parenthesized='1/('+power.base+'^'+positive+')';
+    return got===plain||got===parenthesized;
+  }
+  return false;
+}
+
 function check(problem,input,plan){
   if(!problem)throw new Error('problem required');
   var expected=expectedFromPlan(plan);
@@ -70,7 +92,7 @@ function check(problem,input,plan){
     return false;
   }
 
-  if(family==='same_base_product'||family==='same_base_quotient'||family==='same_base_mixed'||family==='power_of_power')return normalizeExpr(input)===normalizeExpr(expected);
+  if(family==='same_base_product'||family==='same_base_quotient'||family==='same_base_mixed'||family==='power_of_power')return symbolicPowerEquivalent(input,expected);
   if(family==='negative_exponent'){
     var neg=numericOrFraction(input);
     var expVal=numericOrFraction(expected);
@@ -96,6 +118,8 @@ function check(problem,input,plan){
 
 return{
   check:check,numeric:numeric,numericWithOptionalUnit:numericWithOptionalUnit,
-  fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr,absoluteNear:absoluteNear
+  fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr,
+  parsePower:parsePower,symbolicPowerEquivalent:symbolicPowerEquivalent,
+  absoluteNear:absoluteNear
 };
 });
