@@ -65,4 +65,17 @@ assert.strictEqual(full.planProblem(adapters.fromClassroomPrompt('fractions_perc
 assert.strictEqual(full.planProblem(adapters.fromClassroomPrompt('logs','Estimate log(6) using log(2)≈0.30 and log(3)≈0.48.')).answer,0.78);
 assert.ok(Math.abs(full.planProblem(adapters.fromClassroomPrompt('unit_conversions','8 g/5 min for 12 min = how many g?')).answer-19.2)<1e-9);
 
-console.log('PASS Day 1 problem source adapters cover '+CASES.length+' current classroom problems');
+// The later negative-log estimate must carry a human-doable landmark path. It
+// may not silently substitute JavaScript's exact Math.log10(6) into a lesson
+// that tells the learner to "estimate using known landmarks."
+var negLog=adapters.fromClassroomPrompt('logs','Estimate −log(6×10^-6) to one decimal.');
+assert.deepStrictEqual(negLog.factors,[2,3],'6 should be decomposed into the taught landmark factors 2 and 3');
+assert.deepStrictEqual(negLog.landmarks,{'2':0.30,'3':0.48},'negative-log item must carry the same landmark values the learner was taught');
+assert.strictEqual(negLog.roundTo,1,'classroom prompt explicitly requests one decimal place');
+var negPlan=full.planProblem(negLog);
+assert.strictEqual(negPlan.answer,5.2,'6 - (0.30 + 0.48) = 5.22, which rounds to 5.2');
+var negExpected=negPlan.chosenPlan.steps.map(function(st){return st.expected;});
+assert.ok(negExpected.indexOf(0.78)>=0,'plan must explicitly build log(6)≈0.78 from the supplied landmarks');
+assert.ok(negExpected.indexOf(Math.log10(6))<0,'learner-facing steps must not smuggle exact calculator precision into an estimation route');
+
+console.log('PASS Day 1 problem source adapters cover '+CASES.length+' current classroom problems with human-doable log estimates');
