@@ -85,19 +85,53 @@ var halfSkill=runtime.ensureSkill(restored,'halving');
 sm.recordAttempt(halfSkill,'half-evidence',true,null,Date.now(),7);
 var fm=runtime.studentFluency(restored);
 assert.ok(Object.prototype.hasOwnProperty.call(fm,'halving'));
-assert.ok(fm.halving>0,'correct evidence should produce positive bounded fluency');
+assert.ok(fm.halving>0,'correct targeted evidence should produce positive bounded fluency');
 assert.ok(fm.halving<=1 && fm.halving>=-1);
 
-// Positive route-fluency evidence requires an unaided correct solution.
+// A final answer alone is parent-skill evidence. It does NOT prove the learner
+// used the engine's chosen route or performed every prerequisite named in that
+// route, so smaller route skills must not be inferred automatically.
 var unaided=runtime.createLearnerState({studentId:'unaided'});
 runtime.startProblem(unaided,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'unaided-pct'});
 var unaidedResult=runtime.recordCurrentAnswer(unaided,true,'12',{assisted:false});
-assert.ok(unaidedResult.routeFluencySkillIds.length>0,'unaided correct work should contribute route-level fluency evidence');
+assert.deepStrictEqual(unaidedResult.routeFluencySkillIds,[],'final-answer correctness alone must not infer prerequisite fluency');
+assert.ok(unaided.skills.percent_of_whole.attempts.length>0,'the correct final answer must still remain parent-skill evidence');
+assert.strictEqual(unaided.skills.halving,undefined,'unobserved route skill must not be created from inference');
 
+// When route execution is explicitly verified, only the exact verified subset
+// of skills may receive positive route-level evidence. Unknown/unverified ids
+// must be ignored rather than silently entering the Student Model.
+var verified=runtime.createLearnerState({studentId:'verified-route'});
+runtime.startProblem(verified,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'verified-pct'});
+var potential=runtime.routeSkillIds(verified.current.plan);
+assert.ok(potential.indexOf('divide_by_10')>=0&&potential.indexOf('halving')>=0&&potential.indexOf('add_friendly_chunks')>=0,'selected 15% route should expose its potential smaller skills');
+var verifiedResult=runtime.recordCurrentAnswer(verified,true,'12',{
+  assisted:false,
+  routeVerified:true,
+  evidenceSkillIds:['divide_by_10','halving','not_in_this_route']
+});
+assert.deepStrictEqual(verifiedResult.routeFluencySkillIds.sort(),['divide_by_10','halving'].sort(),'only explicitly verified skills that belong to the selected route may be credited');
+assert.ok(verified.skills.divide_by_10&&verified.skills.halving,'verified route skills should receive evidence');
+assert.strictEqual(verified.skills.add_friendly_chunks,undefined,'route skill not explicitly verified must not be inferred');
+assert.strictEqual(verified.skills.not_in_this_route,undefined,'arbitrary evidence ids must not enter the Student Model');
+
+// A routeVerified flag without exact observed skill ids is intentionally not
+// enough. The integration layer must say what it actually observed.
+var vague=runtime.createLearnerState({studentId:'vague-route'});
+runtime.startProblem(vague,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'vague-pct'});
+var vagueResult=runtime.recordCurrentAnswer(vague,true,'12',{assisted:false,routeVerified:true});
+assert.deepStrictEqual(vagueResult.routeFluencySkillIds,[],'routeVerified without explicit observed skill ids must not award blanket route fluency');
+
+// Support blocks route fluency even if a later controller claims route steps
+// were observed; supported performance is not unaided fluency evidence.
 var assisted=runtime.createLearnerState({studentId:'assisted'});
 runtime.startProblem(assisted,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'assisted-pct'});
 runtime.requestSupport(assisted,'hint');
-var assistedResult=runtime.recordCurrentAnswer(assisted,true,'12',{assisted:false});
+var assistedResult=runtime.recordCurrentAnswer(assisted,true,'12',{
+  assisted:false,
+  routeVerified:true,
+  evidenceSkillIds:['divide_by_10','halving']
+});
 assert.deepStrictEqual(assistedResult.routeFluencySkillIds,[],'supported work must not be credited as unaided route fluency');
 
 console.log('PASS Day 1 adaptive learner runtime, policy-boundary, and evidence contract');
