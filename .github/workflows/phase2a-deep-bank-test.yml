@@ -1,11 +1,11 @@
-name: Phase 2A Deep Repair Bank Test
+name: Phase 2A Source Review Edge Tests
 
 on:
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  deep-bank:
+  source-review-edges:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,3 +14,5 @@ jobs:
           node-version: "22"
       - name: Run deep-repair parent-bank exhaustion contract
         run: node test-phase2-deep-repair-bank-exhaustion.js
+      - name: Run route-evidence audit integrity contract
+        run: node test-phase2-route-evidence-audit.js
