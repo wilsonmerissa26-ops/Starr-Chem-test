@@ -22,12 +22,17 @@ var core = require('./day1-adaptive-math-model-core.js');
      fraction-meaning prerequisite node is introduced.
    - Proportion structure does not depend on the fraction-of-a-whole procedure.
      Equal-ratio structure is taught directly by the proportion lesson.
+   - Dimensional cancellation does not depend on the fraction-of-a-whole
+     procedure. Its own lesson teaches factor orientation and unit cancellation;
+     a future deeper edge should be added only when there is a genuinely matching
+     prerequisite node.
    - Conversion magnitude prediction depends on understanding unit
      relationships (large unit vs small unit), not generic arithmetic
      estimation.
 */
 core.PREREQUISITES.reciprocal_meaning.dependsOn=[];
 core.PREREQUISITES.proportion_structure.dependsOn=[];
+core.PREREQUISITES.dimensional_cancellation.dependsOn=[];
 core.PREREQUISITES.magnitude_prediction.dependsOn=['unit_relationship'];
 
 function clone(v){ return JSON.parse(JSON.stringify(v)); }
