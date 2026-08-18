@@ -20,7 +20,7 @@ percents.forEach(function(p){wholes.forEach(function(w){
   if(r.rawLowestCostStrategyId==='percent_formal_decimal'){
     var formal=r.candidates.filter(function(c){return c.strategyId==='percent_formal_decimal';})[0];
     var mental=r.candidates.filter(function(c){return c.strategyId!=='percent_formal_decimal';})[0];
-    if(mental){formalLowest.push({percent:p,whole:w,gap:Math.round((mental.cost-formal.cost)*1000)/1000,formalCost:formal.cost,mentalCost:mental.cost,bestMental:mental.strategyId});}
+    if(mental){formalLowest.push({percent:p,whole:w,gap:Math.round((mental.cost-formal.cost)*1000)/1000,formalCost:formal.cost,mentalCost:mental.cost,bestMental:mental.strategyId,chosen:r.chosenStrategyId,selectionPolicy:r.selectionPolicy});}
   }
 });});
 assert.ok(count>=100);
@@ -34,16 +34,22 @@ assert.throws(function(){engine.plan({family:'what_percent_of',part:3,whole:0},{
 
 var thresholds=[1.2,1.3,1.4,1.5,1.6,1.7,1.8];
 var thresholdCounts={};thresholds.forEach(function(t){thresholdCounts[t]=formalLowest.filter(function(r){return r.gap<=t;}).length;});
-var boundary=formalLowest.filter(function(r){return r.gap>=1.2&&r.gap<=1.8;});
+var oldBoundary=formalLowest.filter(function(r){return r.gap>=1.2&&r.gap<=1.8;});
+var actualInstructionalNearTies=formalLowest.filter(function(r){return r.selectionPolicy==='mental_default_in_formal_mental_near_tie_band';});
 assert.strictEqual(formalLowest.length,56,'distribution review expects 56 formal-lowest cases in the fixed 351-case suite');
-assert.strictEqual(boundary.length,22,'distribution review expects 22 formal-lowest cases within ±0.3 of 1.5');
+assert.strictEqual(oldBoundary.length,22,'distribution review expects 22 formal-lowest cases in the previously inspected 1.2-to-1.8 boundary region');
 assert.strictEqual(thresholdCounts[1.5],15);
 assert.strictEqual(thresholdCounts[1.6],15);
-assert.strictEqual(thresholdCounts[1.7],27,'1.7 boundary should expose the observed twelve-case sensitivity jump');
+assert.strictEqual(thresholdCounts[1.7],27,'1.7 should expose the observed twelve-case cluster jump');
+assert.strictEqual(thresholdCounts[1.8],27,'1.8 should include the full reviewed middle cluster without adding a hidden new cluster');
+assert.strictEqual(actualInstructionalNearTies.length,27,'current 1.8 instructional near-tie band should override exactly the 27 formal-lowest cases inside the band');
+actualInstructionalNearTies.forEach(function(r){assert.ok(r.gap<=engine.FORMAL_MENTAL_NEAR_TIE_MAX);assert.notStrictEqual(r.chosen,'percent_formal_decimal');});
+formalLowest.filter(function(r){return r.gap>engine.FORMAL_MENTAL_NEAR_TIE_MAX;}).forEach(function(r){assert.strictEqual(r.chosen,'percent_formal_decimal');});
 
 console.log('GENERALIZATION_CASES',count);
 percents.forEach(function(p){console.log('PERCENT',p,'ROUTES',Array.from(chosenByPercent[p]).join(','));});
 console.log('POLICY_FORMAL_LOWEST_CASES',formalLowest.length);
-console.log('POLICY_WITHIN_0_3_OF_1_5',boundary.length);
+console.log('POLICY_REVIEWED_BOUNDARY_REGION_1_2_TO_1_8',oldBoundary.length);
 console.log('POLICY_THRESHOLD_COUNTS',JSON.stringify(thresholdCounts));
-console.log('PASS generalization and policy-distribution invariants');
+console.log('POLICY_ACTUAL_INSTRUCTIONAL_NEAR_TIES',actualInstructionalNearTies.length);
+console.log('PASS generalization and formal-mental instructional near-tie invariants');
