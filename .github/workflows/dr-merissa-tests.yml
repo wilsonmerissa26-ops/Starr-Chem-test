@@ -110,7 +110,9 @@ jobs:
           node --check day1-adaptive-math-model.js
           node --check day1-problem-source-adapters.js
           node --check math-prerequisite-content.js
+          node --check math-answer-checker.js
           node --check day1-adaptive-runtime.js
+          node --check day1-adaptive-browser-loader.js
       - name: Run math strategy calibration tests
         run: node test-math-strategy-engine.js
       - name: Run math strategy generalization tests
@@ -119,6 +121,8 @@ jobs:
         run: node test-full-day1-adaptive-model.js
       - name: Run current classroom problem-source coverage
         run: node test-day1-problem-source-adapters.js
+      - name: Run canonical answer checker contract
+        run: node test-math-answer-checker.js
       - name: Run prerequisite teaching content contract
         run: node test-math-prerequisite-content.js
       - name: Run adaptive learner runtime contract
