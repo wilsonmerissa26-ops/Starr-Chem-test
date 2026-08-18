@@ -65,7 +65,7 @@ function fromClassroomPrompt(area,prompt,metadata){
     if(m){p=base(area,'exact_log10',metadata);p.value=n(m[1]);return p;}
     m=s.match(/^If\s+log\(x\)\s*=\s*([+-]?\d+),\s*x\s*=$/i);
     if(m){p=base(area,'inverse_log10',metadata);p.exponent=n(m[1]);return p;}
-    m=s.match(/^Estimate\s+log\((\d+)\)\s+using\s+log\((\d+)\)≈([0-9.]+)\s+and\s+log\((\d+)\)≈([0-9.]+)\.?$/i);
+    m=s.match(/^Estimate\s+log\((\d+)\)\s+using\s+log\((\d+)\)≈([0-9]+(?:\.[0-9]+)?)\s+and\s+log\((\d+)\)≈([0-9]+(?:\.[0-9]+)?)\.?$/i);
     if(m){p=base(area,'log_product_estimate',metadata);p.value=n(m[1]);p.factors=[n(m[2]),n(m[4])];p.landmarks={};p.landmarks[m[2]]=n(m[3]);p.landmarks[m[4]]=n(m[5]);return p;}
     m=s.match(/^Estimate\s+-log\(([0-9.]+)[×*]10\^(-?\d+)\)\s+to one decimal\.?$/i);
     if(m){p=base(area,'estimate_negative_log',metadata);p.front=n(m[1]);p.exponent=Math.abs(n(m[2]));return p;}
