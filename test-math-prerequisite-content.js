@@ -9,6 +9,8 @@ var assert=require('assert');
 var model=require('./day1-adaptive-math-model.js');
 var content=require('./math-prerequisite-content.js');
 
+function compact(s){return String(s||'').replace(/\s+/g,' ').trim().toLowerCase();}
+
 var ids=Object.keys(model.PREREQUISITES);
 assert.ok(ids.length>20,'expected a real prerequisite graph');
 ids.forEach(function(id){
@@ -21,6 +23,18 @@ ids.forEach(function(id){
   assert.ok(lesson.workedExample && lesson.workedExample.prompt,id+' missing worked example');
   assert.strictEqual(typeof lesson.workedExample.check,'function',id+' worked example missing check');
   assert.ok(lesson.workedExample.check(lesson.workedExample.answer),id+' worked example does not validate own answer');
+
+  var repById={};
+  lesson.representations.forEach(function(r){repById[r.id]=r.text;});
+  assert.ok(repById.diagram,id+' missing diagram representation');
+  assert.ok(repById.worked_example,id+' missing worked-example representation');
+  assert.ok(repById.concrete_analogy,id+' missing concrete analogy representation');
+  assert.ok(repById.build_together,id+' missing build-together representation');
+  assert.notStrictEqual(compact(repById.concrete_analogy),compact(lesson.why),id+' concrete analogy must not repeat the ordinary why explanation');
+  assert.notStrictEqual(compact(repById.concrete_analogy),compact(repById.diagram),id+' concrete analogy must differ from the diagram representation');
+  assert.notStrictEqual(compact(repById.concrete_analogy),compact(repById.worked_example),id+' concrete analogy must differ from the worked example');
+  assert.notStrictEqual(compact(repById.concrete_analogy),compact(repById.build_together),id+' concrete analogy must differ from build together');
+
   var bank=content.getCheckBank(id);
   assert.ok(Array.isArray(bank) && bank.length>=3,id+' needs at least three prerequisite checks');
   var seen={};
@@ -36,10 +50,13 @@ ids.forEach(function(id){
 // different form when Student Model asks for a switch.
 var a=content.getRepresentation('halving','diagram');
 var b=content.getRepresentation('halving','worked_example');
-assert.ok(a && b && a!==b,'halving representations should differ');
+var c=content.getRepresentation('halving','concrete_analogy');
+var d=content.getRepresentation('halving','build_together');
+assert.ok(a && b && c && d,'halving must expose all four representation modes');
+assert.strictEqual(new Set([compact(a),compact(b),compact(c),compact(d)]).size,4,'halving representation modes must be genuinely distinct');
 
 // Leaf checks and higher prerequisites are both covered.
 ['place_value','basic_multiplication','common_denominator','equation_balance','same_base_rule','log_product_rule','dimensional_cancellation']
 .forEach(function(id){assert.ok(content.getCheckBank(id).length>=3,id+' missing representative bank');});
 
-console.log('PASS prerequisite teaching content covers '+ids.length+' graph nodes');
+console.log('PASS prerequisite teaching content covers '+ids.length+' graph nodes with genuinely distinct concrete analogies');
