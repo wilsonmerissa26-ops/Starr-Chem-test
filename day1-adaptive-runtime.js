@@ -36,4 +36,18 @@ function openPrerequisiteRepair(state, prerequisiteSkillId, reason){
   return core.openPrerequisiteRepair(state,prerequisiteSkillId,reason);
 }
 
-module.exports=Object.assign({},core,{openPrerequisiteRepair:openPrerequisiteRepair});
+function submitPrerequisiteCheck(state,itemId,input){
+  var result=core.submitPrerequisiteCheck(state,itemId,input);
+  if(result && result.action==='return_to_parent_prerequisite' && !result.nextCheckItem){
+    return Object.assign({},result,{
+      action:'prerequisite_bank_exhausted',
+      nextCheckItem:null
+    });
+  }
+  return result;
+}
+
+module.exports=Object.assign({},core,{
+  openPrerequisiteRepair:openPrerequisiteRepair,
+  submitPrerequisiteCheck:submitPrerequisiteCheck
+});
