@@ -18,7 +18,10 @@ This review covers the isolated non-browser Phase 2A core only. It does not auth
 | First Step stops after exactly one step | **Runtime-verified** | Full-model and runtime contracts assert `steps.length === 1`. |
 | Math remediation returns to the exact original problem | **Runtime-verified** | Runtime contract descends, passes a prerequisite check, and asserts return to the identical original `sourceId`. |
 | Generic Student Model fresh-item remediation still exists | **Runtime-verified** | Runtime test proves generic `exitRemediation()` returns a fresh item before the math runtime composes its contextual same-problem resolver. |
+| First-level math remediation cannot open an unrelated prerequisite | **Runtime-verified** | Adversarial red/green test requests `log_product_rule` while solving `15% of 80`; runtime blocks it before Student Model remediation, child-skill creation, stack/path mutation, or remediation events. |
 | Deep prerequisite routing cannot jump across unrelated graph branches | **Runtime-verified** | Adversarial red/green test: `quartering -> log_product_rule` is blocked and active skill, stack, path, and history remain unchanged. |
+| Final-answer correctness does not manufacture prerequisite fluency | **Runtime-verified** | Runtime red/green test proves a bare unaided correct answer remains parent-skill evidence only; smaller route skills are not created or credited by inference. |
+| Positive smaller-skill route evidence requires exact observation | **Runtime-verified** | Route fluency requires correct + unaided + `routeVerified:true` + explicit `evidenceSkillIds`; only IDs actually present in the selected route can be credited, arbitrary IDs are ignored, and support blocks credit. |
 | Every prerequisite graph node has content/check infrastructure | **Runtime-verified structurally** | 46 graph nodes each have lesson content, worked-example validation, at least two representation records, and at least three fresh checks whose own validators accept their answers. |
 | Every prerequisite lesson is pedagogically clear and each representation is meaningfully different | **NOT YET HUMAN-VERIFIED** | Automated structural tests cannot establish teaching quality, cognitive load, or whether two representations feel genuinely different to a learner. |
 | The non-percent planner chooses the best possible strategy among alternatives | **NOT CLAIMED** | Most Phase 2A non-percent families currently have one canonical deterministic route, not a Phase-1-style multi-candidate strategy competition. |
@@ -28,16 +31,15 @@ This review covers the isolated non-browser Phase 2A core only. It does not auth
 
 The clean Phase 2A branch was rebuilt from accepted `main` rather than resolving the conflicted historical Phase 2+ branch in place.
 
-During that migration, source review found and corrected four concrete defects:
+Source review, red tests, and targeted fixes found and corrected seven concrete defects/boundary problems:
 
 1. `Help me understand` had reused the optional `mentalRoute`; it now has a separate concept-only contract.
 2. Numeric checking used `parseFloat`, so malformed values such as `12abc` could be read as `12`; numeric parsing now consumes the complete input.
 3. Unit answers previously inherited that permissive numeric-prefix behavior; a unit-bearing answer may now use only the expected target unit, not arbitrary trailing text or a wrong unit.
 4. The formula checker accepted `p-2l/2` as equivalent to `(p-2l)/2`; it no longer does because normal precedence makes `p-2l/2 = p-l`.
-
-The adversarial pass then found a fifth core defect:
-
 5. Once inside a prerequisite node, the router could descend to any graph node that existed. It now requires deeper descent to follow the current node's explicit `dependsOn` edge and blocks unrelated jumps without mutating remediation state.
+6. A correct unaided final answer previously credited every prerequisite ID named anywhere in the selected teaching plan. That overstated learner evidence because a final answer does not prove which route was used or that optional steps such as `substitution_check` or `magnitude_prediction` were performed. Final-answer correctness now remains parent-skill evidence only unless route execution and exact observed smaller skills are explicitly verified.
+7. The first remediation request previously accepted any prerequisite node that existed, so a future controller could open a log repair while the learner was solving a percent problem. First-level remediation is now restricted to prerequisite IDs actually emitted by the selected route and is blocked before any remediation state mutation when unrelated.
 
 ## Representative source-review sample
 
@@ -57,6 +59,7 @@ These are intentionally not all current classroom fixtures. They exercise unfami
 | Units | unfamiliar single conversion | predict magnitude → state relationship → cancel units → calculate → check | Is magnitude prediction useful support or unnecessary overhead on easy conversions? |
 | Rate | rate × duration | interpret rate → multiply by time → cancel time → simplify | Does this sequence teach dimensional meaning rather than merely an algorithm? |
 | Prerequisite routing | parent → `quartering` → `halving` | repair deepest missing node, unwind one level at a time, return to exact parent problem | Is that repair depth appropriate, and are any graph edges pedagogically missing or unnecessary? |
+| Evidence | correct `15% of 80` final answer | parent percent skill gets correctness evidence; no halving/divide-by-10 fluency is inferred unless those exact route steps are observed | Is this evidence discipline strict enough, and what future UI interactions count as genuine observation? |
 
 ## Open human-review questions
 
@@ -68,7 +71,7 @@ Do not add alternatives merely for architectural symmetry. Add them only where t
 
 ### 2. Prerequisite graph quality
 
-The graph is now mechanically safe, but its *edges* need human review. The question is not whether a referenced node exists. The question is whether failure at the parent skill really justifies descending to that child skill.
+The graph is now mechanically guarded at both levels: first repair must come from the selected route, and deeper repair must follow `dependsOn`. Its *edges* still need human review. The question is not whether a referenced node exists. The question is whether failure at the parent skill really justifies descending to that child skill.
 
 Review especially cross-topic support such as:
 
@@ -99,11 +102,15 @@ The full core can plan formula rearrangement and some log/product-rule reasoning
 
 ### 5. Personalization evidence
 
-The runtime now derives bounded route-fluency input from Student Model evidence and only credits positive route-level fluency after an unaided correct solution. Human review should confirm that the evidence being credited corresponds to the actual smaller skills demonstrated by each route, especially before this starts changing learner-facing strategy choice.
+Phase 2A no longer infers prerequisite fluency from a whole-problem answer. Positive smaller-skill route evidence is only possible when a future integration layer explicitly verifies route execution and names the exact observed route skills, while targeted prerequisite checks continue to provide direct smaller-skill evidence.
+
+Human review should now focus on the **observation contract for Phase 2B**: which learner actions genuinely demonstrate `halving`, `divide_by_10`, `substitution_check`, magnitude prediction, cancellation, and similar skills, versus actions that merely coexist with a correct answer.
+
+The future browser/controller must not award route evidence simply because it displayed a step or because the learner eventually reached the correct final answer.
 
 ## Current CI evidence
 
-Exact-head GitHub Actions run for the clean Phase 2A branch passed:
+Exact code head `e4234844bca56d17b3be35639d0ff8e72635e549` completed GitHub Actions run **#274** successfully before this documentation-only update. That run passed:
 
 - complete pre-existing repository suite;
 - accepted Phase 1 calibration and 351-case generalization;
@@ -112,9 +119,9 @@ Exact-head GitHub Actions run for the clean Phase 2A branch passed:
 - all 31 classroom source-adapter cases;
 - strict answer-checker regressions;
 - prerequisite-content contract across 46 nodes;
-- adaptive runtime and same-problem remediation contract;
-- unfamiliar/adversarial core contract;
+- adaptive runtime, same-problem remediation, and strict route-evidence contract;
+- unfamiliar/adversarial core contract including first-level and deep graph guards;
 - generated 1,786-case correctness/determinism suite;
 - final Day 1 academic/voice release audit.
 
-Passing CI is necessary but not sufficient for Phase 2A acceptance. The next gate is direct human/source review of the routes, graph, and teaching content named above.
+Passing CI is necessary but not sufficient for Phase 2A acceptance. The next gate is direct human/source review of the routes, graph, evidence boundaries, and teaching content named above.
