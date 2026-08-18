@@ -1,16 +1,26 @@
 /* ============================================================
    DAY 1 ADAPTIVE LEARNER RUNTIME CONTRACT
 
-   Integration layer contract before browser wiring. Student Model remains
-   learner-state truth; adaptive model owns math planning; prerequisite content
-   owns teaching/checks. Math remediation returns to the exact original problem.
+   Integration layer contract before browser wiring. Generic Student Model
+   behavior remains intact; the math runtime composes a same-original-problem
+   policy without replacing the generic fresh-item remediation exit.
    ============================================================ */
 'use strict';
 var assert=require('assert');
 var sm=require('./student-model-idk-router.js');
-var runtime=require('./day1-adaptive-runtime.js');
 
-assert.strictEqual(typeof sm.resolveRemediationAtCurrentItem,'function','Student Model needs explicit same-item math remediation resolver');
+// Before the math runtime composes its policy, the generic Student Model keeps
+// the original fresh-item exit and has no math-specific resolver on its API.
+assert.strictEqual(typeof sm.resolveRemediationAtCurrentItem,'undefined','generic Student Model file must not own math-specific exit policy');
+var genericSkill=sm.createSkill('generic-test');
+sm.handleIdk(genericSkill,sm.IDK_REASONS.DONT_UNDERSTAND,'generic-old','small-skill',1000);
+sm.recordRemediationCheck(genericSkill,true,'generic-check',1100);
+var genericExit=sm.exitRemediation(genericSkill,[{id:'generic-old'},{id:'generic-fresh'}]);
+assert.strictEqual(genericExit.allowed,true);
+assert.strictEqual(genericExit.nextItem.id,'generic-fresh','generic Student Model must retain fresh-item remediation behavior');
+
+var runtime=require('./day1-adaptive-runtime.js');
+assert.strictEqual(typeof sm.resolveRemediationAtCurrentItem,'function','math runtime composition must install explicit same-item resolver on the shared Student Model object');
 
 var state=runtime.createLearnerState({studentId:'test-student'});
 var problem={area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'classroom',sourceId:'pct-15-80'};
@@ -19,13 +29,18 @@ assert.strictEqual(started.plan.chosenStrategyId,'percent_10_plus_5');
 assert.strictEqual(state.current.problem.sourceId,'pct-15-80');
 assert.ok(state.skills.percent_of_whole,'parent skill should live in Student Model state');
 
-// Support uses one plan and is recorded as support, not mastery evidence.
+// Support uses one plan, records assistance, and keeps Help me understand
+// separate from the optional mental route.
 var h=runtime.requestSupport(state,'hint');
 var u=runtime.requestSupport(state,'understand');
 var f=runtime.requestSupport(state,'first_step');
 var w=runtime.requestSupport(state,'walkthrough');
-[h,u,f,w].forEach(function(x){assert.strictEqual(x.strategyId,started.plan.chosenStrategyId);});
+var m=runtime.requestSupport(state,'mental');
+[h,u,f,w,m].forEach(function(x){assert.strictEqual(x.strategyId,started.plan.chosenStrategyId);});
 assert.strictEqual(f.steps.length,1);
+assert.strictEqual(u.steps.length,0);
+assert.strictEqual(u.hint,'','understand must not reuse mental-route text');
+assert.ok(m.hint,'mental route should remain separately available');
 assert.ok(state.current.supportUsed,'support should be remembered on the item');
 
 // Explicit prerequisite repair descends, teaches, checks, and returns SAME problem.
@@ -65,7 +80,7 @@ assert.ok(restored.skills.percent_of_whole);
 var p3=runtime.startProblem(restored,{area:'unit_conversions',family:'single_conversion',value:2.4,from:'g',to:'mg',factor:1000,source:'test',sourceId:'unit-1'});
 assert.ok(p3.plan.chosenStrategyId);
 
-// Fluency map is derived from Student Model evidence, never invented by the renderer.
+// Fluency map is derived from Student Model evidence, never invented by a renderer.
 var halfSkill=runtime.ensureSkill(restored,'halving');
 sm.recordAttempt(halfSkill,'half-evidence',true,null,Date.now(),7);
 var fm=runtime.studentFluency(restored);
@@ -73,4 +88,16 @@ assert.ok(Object.prototype.hasOwnProperty.call(fm,'halving'));
 assert.ok(fm.halving>0,'correct evidence should produce positive bounded fluency');
 assert.ok(fm.halving<=1 && fm.halving>=-1);
 
-console.log('PASS Day 1 adaptive learner runtime contract');
+// Positive route-fluency evidence requires an unaided correct solution.
+var unaided=runtime.createLearnerState({studentId:'unaided'});
+runtime.startProblem(unaided,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'unaided-pct'});
+var unaidedResult=runtime.recordCurrentAnswer(unaided,true,'12',{assisted:false});
+assert.ok(unaidedResult.routeFluencySkillIds.length>0,'unaided correct work should contribute route-level fluency evidence');
+
+var assisted=runtime.createLearnerState({studentId:'assisted'});
+runtime.startProblem(assisted,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'assisted-pct'});
+runtime.requestSupport(assisted,'hint');
+var assistedResult=runtime.recordCurrentAnswer(assisted,true,'12',{assisted:false});
+assert.deepStrictEqual(assistedResult.routeFluencySkillIds,[],'supported work must not be credited as unaided route fluency');
+
+console.log('PASS Day 1 adaptive learner runtime, policy-boundary, and evidence contract');
