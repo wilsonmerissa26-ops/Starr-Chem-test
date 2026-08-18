@@ -37,6 +37,26 @@ function save(){if(typeof localStorage!=='undefined')saveStateToStore(localStora
 function getState(){return state;}
 function persist(){return save();}
 
+function supportEvidenceKind(target){
+  if(!target)return null;
+  if(target.id==='teachSkill')return 'teach_skill';
+  if(typeof target.closest==='function'&&target.closest('details[data-toolbox-v7]'))return 'toolbox';
+  return null;
+}
+function markSupportEvidenceOnState(s,kind,timestamp){
+  if(!s||!s.current||!kind)return false;
+  s.current.supportUsed=true;
+  if(!Array.isArray(s.current.supportHistory))s.current.supportHistory=[];
+  s.current.supportHistory.push({mode:kind,strategyId:s.current.plan&&s.current.plan.chosenStrategyId||null,timestamp:timestamp||Date.now()});
+  if(Array.isArray(s.events)){
+    s.events.push({type:'SUPPORT_USED',data:{mode:kind,sourceId:s.current.problem&&s.current.problem.sourceId||null,strategyId:s.current.plan&&s.current.plan.chosenStrategyId||null},timestamp:timestamp||Date.now()});
+    if(s.events.length>200)s.events.shift();
+  }
+  s.updatedAt=timestamp||Date.now();
+  return true;
+}
+function markObservedSupport(kind){if(markSupportEvidenceOnState(state,kind,Date.now())){save();return true;}return false;}
+
 function inferProblem(questionText){
   var lastError=null;
   for(var i=0;i<AREA_IDS.length;i++){
@@ -170,7 +190,9 @@ function continueProblem(){
 }
 
 function clickHandler(e){
-  var t=e.target;if(!t||!t.id)return;
+  var t=e.target;if(!t)return;
+  var observed=supportEvidenceKind(t);if(observed)markObservedSupport(observed);
+  if(!t.id)return;
   if(t.id==='check'){
     if(!document.getElementById('adaptiveSupportBar'))return;
     e.preventDefault();e.stopImmediatePropagation();handleMainCheck();return;
@@ -198,6 +220,7 @@ function stop(){if(observer)observer.disconnect();observer=null;bound=false;}
 return{
   STATE_KEY:STATE_KEY,AREA_IDS:AREA_IDS,SUPPORTS:SUPPORTS,
   start:start,stop:stop,getState:getState,persist:persist,inferProblem:inferProblem,matchExpected:matchExpected,
+  supportEvidenceKind:supportEvidenceKind,markSupportEvidenceOnState:markSupportEvidenceOnState,
   supportButtonSpecs:supportButtonSpecs,loadStateFromStore:loadStateFromStore,
   saveStateToStore:saveStateToStore,_enhancePractice:enhancePractice
 };
