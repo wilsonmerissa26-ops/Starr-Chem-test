@@ -5,7 +5,7 @@
    It protects the integration architecture before live wiring:
 
    - one Student Model owns learner state
-   - all support controls consume one chosen strategy
+   - all support controls consume one chosen strategy but keep distinct jobs
    - prerequisite descent is explicit and returns to the parent skill
    - anti-loop protection prevents endless remediation recursion
    - every Day 1 math area has a deterministic planner entry point
@@ -33,7 +33,7 @@ requiredAreas.forEach(function(area){
   assert.ok(full.SUPPORTED_AREAS.indexOf(area) >= 0, 'missing area '+area);
 });
 
-// 2. Support modes reveal different depths of ONE chosen plan.
+// 2. Support modes consume ONE chosen plan but do different jobs.
 var pctPlan = full.planProblem({
   area:'fractions_percent', family:'percent_of_whole', percent:15, whole:80,
   source:'test', sourceId:'support-15-80'
@@ -43,13 +43,19 @@ var hint = full.supportFor('hint', pctPlan);
 var understand = full.supportFor('understand', pctPlan);
 var first = full.supportFor('first_step', pctPlan);
 var walk = full.supportFor('walkthrough', pctPlan);
-assert.strictEqual(hint.strategyId, pctPlan.chosenStrategyId);
-assert.strictEqual(understand.strategyId, pctPlan.chosenStrategyId);
-assert.strictEqual(first.strategyId, pctPlan.chosenStrategyId);
-assert.strictEqual(walk.strategyId, pctPlan.chosenStrategyId);
+var mental = full.supportFor('mental', pctPlan);
+[hint,understand,first,walk,mental].forEach(function(x){
+  assert.strictEqual(x.strategyId, pctPlan.chosenStrategyId);
+  assert.strictEqual(x.answerRevealed,false,'support must not reveal the final answer');
+});
+assert.strictEqual(hint.steps.length,0,'hint is a clue, not a worked step');
 assert.strictEqual(first.steps.length, 1, 'first step must stop after one step');
 assert.ok(walk.steps.length >= first.steps.length, 'walkthrough must expose at least as much as first step');
-assert.ok(!understand.answerRevealed, 'understand must not solve the problem');
+assert.strictEqual(understand.steps.length,0,'understand must not start solving the problem');
+assert.ok(understand.concept,'understand must explain the concept');
+assert.strictEqual(understand.hint,'','understand must not reuse the mental-math route');
+assert.ok(mental.hint,'mental support should expose the optional mental route separately');
+assert.notStrictEqual(understand.hint,mental.hint,'understand and mental route must remain separate jobs');
 
 // 3. Prerequisite graph contains the small skills the strategy engine emits.
 ['halving','quartering','eighths','divide_by_10','divide_by_100','multiply_by_small_whole',
@@ -107,8 +113,9 @@ examples.forEach(function(problem){
   assert.ok(plan.chosenStrategyId, 'no chosen strategy for '+problem.area);
   assert.ok(Array.isArray(plan.chosenPlan.steps), 'no steps for '+problem.area);
   assert.ok(plan.chosenPlan.steps.length > 0, 'empty steps for '+problem.area);
+  plan.chosenPlan.steps.forEach(function(st){assert.ok(Array.isArray(st.prerequisiteSkillIds),'step missing prerequisite metadata for '+problem.area);});
   var again = full.planProblem(problem);
   assert.strictEqual(again.chosenStrategyId, plan.chosenStrategyId, 'non-deterministic strategy for '+problem.area);
 });
 
-console.log('PASS full Day 1 adaptive math model contract');
+console.log('PASS full Day 1 adaptive math model and support-role contract');
