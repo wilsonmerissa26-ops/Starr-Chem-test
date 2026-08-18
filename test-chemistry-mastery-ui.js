@@ -15,4 +15,7 @@ ok('IDK marks item supported and routes to teaching help',js.includes("practiceI
 ok('supported completion explicitly does not count independent',js.includes('will not count it as independent mastery evidence'));
 ok('completion requires mastery controller result',js.includes('r.mastery&&r.mastery.mastered'));
 ok('retrieval evidence is persisted',js.includes('retrieval')&&js.includes('astarryia-chemistry-mastery-v1'));
+ok('correct chemistry steps wait for explicit Continue',js.includes("next.onclick=function(){renderStep()}")&&!js.includes('setTimeout(renderStep,450)'));
+ok('completed molecules wait for explicit Continue',js.includes("next.onclick=function(){advanceItem()}")&&!js.includes('setTimeout(advanceItem,700)'));
+ok('manual Continue locks answered controls until learner proceeds',js.includes('setAnswerControlsDisabled(true)')&&js.includes('setAnswerControlsDisabled(false)'));
 console.log('\nChemistry mastery UI: '+p+' passed, '+f+' failed');if(f)process.exit(1);
