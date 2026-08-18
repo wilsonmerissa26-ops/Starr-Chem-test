@@ -36,5 +36,21 @@ function dfs(id){
 ids.forEach(dfs);
 assert.strictEqual(visited.size,ids.length,'every prerequisite node must participate in the acyclic graph check');
 
+// Human-reviewed diagnosis-quality edges. These assertions are intentionally
+// semantic rather than merely structural: a learner should not be sent to a
+// mathematically adjacent but instructionally different skill.
+assert.deepStrictEqual(
+  graph.reciprocal_meaning.dependsOn,[],
+  'reciprocal remediation must not descend into the fraction-of-a-whole procedure'
+);
+assert.deepStrictEqual(
+  graph.proportion_structure.dependsOn,[],
+  'proportion-structure remediation must not descend into the fraction-of-a-whole procedure'
+);
+assert.deepStrictEqual(
+  graph.magnitude_prediction.dependsOn,['unit_relationship'],
+  'conversion magnitude prediction must descend to unit relationships, not generic arithmetic estimation'
+);
+
 console.log('PHASE2_PREREQUISITE_GRAPH_NODES',ids.length);
-console.log('PASS Phase 2A prerequisite graph references existing nodes and is acyclic');
+console.log('PASS Phase 2A prerequisite graph references existing nodes, is acyclic, and preserves reviewed diagnosis-quality edges');
