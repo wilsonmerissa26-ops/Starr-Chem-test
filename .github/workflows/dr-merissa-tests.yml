@@ -117,6 +117,8 @@ jobs:
           node --check day1-problem-source-adapters-core.js
           node --check day1-problem-source-adapters.js
           node --check log-negative-estimate-planner.js
+          node --check teaching-plan-copy-policy.js
+          node --check math-prerequisite-content-core.js
           node --check math-prerequisite-content.js
           node --check math-answer-checker.js
           node --check math-student-model-policy.js
@@ -136,6 +138,8 @@ jobs:
         run: node test-phase2-adaptive-core-adversarial.js
       - name: Run Phase 2A generated generalization contract
         run: node test-phase2-adaptive-core-generalization.js
+      - name: Run Phase 2A exact-log scope contract
+        run: node test-phase2-log-scope.js
       - name: Run Phase 2A learner-facing teaching language contract
         run: node test-phase2-teaching-language.js
       - name: Run Day 1 release academic and voice audit
