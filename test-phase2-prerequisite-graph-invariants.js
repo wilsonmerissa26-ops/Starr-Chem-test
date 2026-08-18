@@ -48,6 +48,10 @@ assert.deepStrictEqual(
   'proportion-structure remediation must not descend into the fraction-of-a-whole procedure'
 );
 assert.deepStrictEqual(
+  graph.dimensional_cancellation.dependsOn,[],
+  'dimensional-cancellation remediation must not descend into the fraction-of-a-whole procedure'
+);
+assert.deepStrictEqual(
   graph.magnitude_prediction.dependsOn,['unit_relationship'],
   'conversion magnitude prediction must descend to unit relationships, not generic arithmetic estimation'
 );
