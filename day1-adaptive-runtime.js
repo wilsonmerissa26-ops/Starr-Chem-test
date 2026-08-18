@@ -52,8 +52,6 @@ function fluencyOfSkill(skill){
   var attempts=(skill.attempts||[]).slice(-8);
   if(!attempts.length)return 0;
   var balance=attempts.reduce(function(sum,a){return sum+(a.correct?1:-1);},0);
-  // Shrink small samples toward neutral so one answer can inform a tie but
-  // cannot dominate route choice. Eight recent answers can approach ±0.8.
   var score=balance/(attempts.length+2);
   var cold=(skill.independentSuccesses||[]).filter(function(x){return x.scaffoldLevel===sm.SCAFFOLD.COLD&&x.correctExplanation;}).length;
   if(cold>=2)score=Math.max(score,0.85);
@@ -103,6 +101,31 @@ function requestSupport(state,mode){
   cur.supportHistory.push({mode:mode,strategyId:result.strategyId,timestamp:now()});
   event(state,'SUPPORT_USED',{mode:mode,sourceId:cur.problem.sourceId||null,strategyId:result.strategyId});
   return result;
+}
+
+function routeSkillIds(plan){
+  if(!plan)return[];
+  var candidate=(plan.candidates||[]).find(function(c){return c.strategyId===plan.chosenStrategyId;});
+  var steps=candidate&&candidate.steps||plan.chosenPlan&&plan.chosenPlan.steps||[];
+  var seen={};
+  steps.forEach(function(st){(st.prerequisiteSkillIds||[]).forEach(function(id){seen[id]=true;});});
+  return Object.keys(seen);
+}
+
+// Positive route-level fluency evidence is only credited for an unaided correct
+// solution. A wrong whole-problem answer does not prove which prerequisite failed,
+// so negative evidence is gathered through targeted prerequisite checks instead.
+function recordPlanFluency(state,correct,opts){
+  opts=opts||{};
+  var cur=requireCurrent(state);
+  if(!correct||cur.supportUsed||opts.assisted)return[];
+  var ids=routeSkillIds(cur.plan),ts=opts.timestamp||now();
+  ids.forEach(function(id){
+    var skill=ensureSkill(state,id);
+    sm.recordAttempt(skill,(cur.problem.sourceId||'problem')+'::route::'+id,true,null,ts,opts.input==null?null:opts.input);
+  });
+  if(ids.length)event(state,'ROUTE_FLUENCY_EVIDENCE',{sourceId:cur.problem.sourceId||null,skillIds:ids.slice(),strategyId:cur.plan.chosenStrategyId});
+  return ids;
 }
 
 function freshCheck(cur,skillId){
@@ -163,8 +186,6 @@ function submitPrerequisiteCheck(state,itemId,input){
     return{correct:true,action:'return_to_parent_problem',problem:clone(cur.problem),return:returned};
   }
 
-  // Wrong on the original prerequisite check feeds the Student Model's real
-  // remediation gate and representation rotation.
   if(depth===1){
     var failed=sm.recordRemediationCheck(owner,false,itemId,now());
     if(failed.needsEscalation){
@@ -187,8 +208,6 @@ function submitPrerequisiteCheck(state,itemId,input){
     return{correct:false,action:next?'retry_prerequisite':'prerequisite_bank_exhausted',representation:failed.representation,representationContent:prereq.getRepresentation(skillId,failed.representation),nextCheckItem:next};
   }
 
-  // Deeper prerequisite failure is evidence on that prerequisite skill. Two
-  // wrongs may descend one more graph level, but never re-enter an active path.
   if(activeSkill.consecutiveWrong>=2){
     var deeper2=math.nextMissingDependency(skillId,studentFluency(state));
     activeSkill.consecutiveWrong=0;
@@ -211,8 +230,9 @@ function recordCurrentAnswer(state,correct,input,opts){
   if(correct){
     if(independent)sm.recordIndependentAttempt(skill,cur.problem.sourceId,true,!!opts.correctExplanation,ts,input);
     else sm.recordAttempt(skill,cur.problem.sourceId,true,null,ts,input);
-    event(state,'ANSWER_CORRECT',{sourceId:cur.problem.sourceId||null,independent:independent});
-    return{correct:true,independent:independent,mastery:sm.evaluateMastery(skill)};
+    var fluencyIds=recordPlanFluency(state,true,{timestamp:ts,input:input,assisted:!!opts.assisted});
+    event(state,'ANSWER_CORRECT',{sourceId:cur.problem.sourceId||null,independent:independent,routeFluencySkillIds:fluencyIds});
+    return{correct:true,independent:independent,routeFluencySkillIds:fluencyIds,mastery:sm.evaluateMastery(skill)};
   }
   var wrong=sm.handleWrongAttempt(skill,cur.problem.sourceId,opts.errorCode||'WRONG',cur.problem.sourceId,ts,input);
   var first=(cur.plan.chosenPlan.steps||[])[0],suggested=first&&first.prerequisiteSkillIds&&first.prerequisiteSkillIds[0]||null;
@@ -228,6 +248,8 @@ module.exports={
   ensureSkill:ensureSkill,
   fluencyOfSkill:fluencyOfSkill,
   studentFluency:studentFluency,
+  routeSkillIds:routeSkillIds,
+  recordPlanFluency:recordPlanFluency,
   startProblem:startProblem,
   requestSupport:requestSupport,
   openPrerequisiteRepair:openPrerequisiteRepair,
