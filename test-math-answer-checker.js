@@ -76,4 +76,25 @@ assert.strictEqual(check.check(formulaProblem,'(P-2l)/2',formulaPlan),true);
 assert.strictEqual(check.check(formulaProblem,'P/2-l',formulaPlan),true);
 assert.strictEqual(check.check(formulaProblem,'P-2l/2',formulaPlan),false,'normal precedence makes P-2l/2 equal P-l, not (P-2l)/2');
 
-console.log('PASS canonical math answer checker covers '+CASES.length+' current classroom problems plus strict-input regressions');
+// Expanded exponent families may legitimately end with zero, one, or negative
+// exponents. Equivalent reciprocal/identity forms must not be rejected merely
+// because the planner chose power notation as its canonical display form.
+var quotientNegative={area:'exponents',family:'same_base_quotient',base:'b',leftExponent:3,rightExponent:5};
+var quotientNegativePlan=model.planProblem(quotientNegative);
+assert.strictEqual(quotientNegativePlan.answer,'b^-2');
+assert.strictEqual(check.check(quotientNegative,'b^-2',quotientNegativePlan),true);
+assert.strictEqual(check.check(quotientNegative,'1/b^2',quotientNegativePlan),true,'b^-2 and 1/b^2 are mathematically equivalent');
+assert.strictEqual(check.check(quotientNegative,'1/(b^2)',quotientNegativePlan),true,'parenthesized reciprocal form should also be accepted');
+assert.strictEqual(check.check(quotientNegative,'b^2',quotientNegativePlan),false);
+
+var quotientZero={area:'exponents',family:'same_base_quotient',base:'x',leftExponent:4,rightExponent:4};
+var quotientZeroPlan=model.planProblem(quotientZero);
+assert.strictEqual(quotientZeroPlan.answer,'x^0');
+assert.strictEqual(check.check(quotientZero,'1',quotientZeroPlan),true,'x^0 and 1 are equivalent for the supported nonzero-base exponent rule context');
+
+var productOne={area:'exponents',family:'same_base_product',base:'a',leftExponent:3,rightExponent:-2};
+var productOnePlan=model.planProblem(productOne);
+assert.strictEqual(productOnePlan.answer,'a^1');
+assert.strictEqual(check.check(productOne,'a',productOnePlan),true,'a^1 and a are equivalent');
+
+console.log('PASS canonical math answer checker covers '+CASES.length+' current classroom problems plus strict-input and symbolic-equivalence regressions');
