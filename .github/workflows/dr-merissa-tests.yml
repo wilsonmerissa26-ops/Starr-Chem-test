@@ -149,3 +149,41 @@ jobs:
         run: node test-phase2-teaching-language.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
+      - name: Build exact Phase 2A human-review bundle
+        run: |
+          zip -9 Phase2A_Adaptive_Core_Review.zip \
+            PHASE2_ADAPTIVE_CORE_REVIEW.md \
+            PHASE2_ADAPTIVE_CORE_SPEC.md \
+            day1-adaptive-math-model-core.js \
+            day1-adaptive-math-model-policy.js \
+            day1-adaptive-math-model.js \
+            day1-adaptive-runtime-core.js \
+            day1-adaptive-runtime.js \
+            day1-problem-source-adapters-core.js \
+            day1-problem-source-adapters.js \
+            log-negative-estimate-planner.js \
+            math-answer-checker.js \
+            math-prerequisite-content-core.js \
+            math-prerequisite-content.js \
+            math-student-model-policy.js \
+            route-efficiency-policy.js \
+            teaching-plan-copy-policy.js \
+            test-day1-adaptive-runtime.js \
+            test-day1-problem-source-adapters.js \
+            test-full-day1-adaptive-model.js \
+            test-math-answer-checker.js \
+            test-math-prerequisite-content.js \
+            test-phase2-adaptive-core-adversarial.js \
+            test-phase2-adaptive-core-generalization.js \
+            test-phase2-cognitive-load.js \
+            test-phase2-log-scope.js \
+            test-phase2-teaching-language.js \
+            test-phase2a-no-live-integration.js \
+            .github/workflows/dr-merissa-tests.yml
+      - name: Upload exact Phase 2A human-review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Phase2A-Adaptive-Core-Review-${{ github.sha }}
+          path: Phase2A_Adaptive_Core_Review.zip
+          if-no-files-found: error
+          retention-days: 30
