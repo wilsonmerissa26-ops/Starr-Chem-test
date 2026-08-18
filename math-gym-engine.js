@@ -5,6 +5,10 @@
    Governing rule: generate the answer first, then build the problem
    around that answer. Chemistry is intentionally absent from this
    file because chemistry must use a curated verified bank.
+
+   Adaptive integration rule: generators expose the structured numbers
+   they already own through strategyInput. The adaptive model must never
+   reconstruct those numbers by parsing the formatted prompt.
    ============================================================ */
 
 (function(root,factory){
@@ -30,7 +34,6 @@
 
   /* ---------------- Fractions / percentages ---------------- */
   function generateFraction(rng){
-    // Answer first: choose the reduced target, then choose an operand and derive the other.
     var d=pick([4,5,6,8,10,12],rng);
     var targetN=randInt(1,d-1,rng);
     var target=reduce(targetN,d);
@@ -43,19 +46,19 @@
       id:'fraction-'+Math.random().toString(36).slice(2),area:'fractions_percentages',type:'fraction',
       prompt:fracText(a)+(operation==='add'?' + ':' - ')+fracText(b),
       answer:fracText(target),answerFraction:target,operation:operation,
+      strategyInput:{area:'fractions_percent',family:'fraction_add_subtract',leftNumerator:a.n,leftDenominator:a.d,operation:operation,rightNumerator:b.n,rightDenominator:b.d},
       check:function(v){var s=String(v).trim();if(s.indexOf('/')>=0){var p=s.split('/');var f=reduce(Number(p[0]),Number(p[1]));return f.n===target.n&&f.d===target.d;}return near(Number(v),target.n/target.d,1e-10);}
     };
   }
 
   function generatePercent(rng){
-    // Answer first: select the percent, then derive a divisible whole and part.
     var pct=pick([1,5,10,17,20,25,27,33,38,50,58,63,72,75,84],rng);
-    // Multiples of 100 keep irregular percentages exact and mental-math friendly.
     var whole=100*randInt(1,8,rng);
     var part=whole*pct/100;
     return{
       id:'percent-'+Math.random().toString(36).slice(2),area:'fractions_percentages',type:'percent',
       prompt:part+' is what percent of '+whole+'?',answer:pct,unit:'%',
+      strategyInput:{area:'fractions_percent',family:'what_percent_of',part:part,whole:whole},
       check:function(v){return near(parseFloat(String(v).replace('%','')),pct,1e-10);}
     };
   }
@@ -67,27 +70,28 @@
     return{
       id:'ofwhole-'+Math.random().toString(36).slice(2),area:'fractions_percentages',type:'fraction_of_whole',
       prompt:fracText(f)+' of '+whole,answer:answer,
+      strategyInput:{area:'fractions_percent',family:'fraction_of_whole',numerator:f.n,denominator:f.d,whole:whole},
       check:function(v){return near(v,answer,1e-10);}
     };
   }
 
   /* ---------------- Algebra ---------------- */
   function generateLinearEquation(rng){
-    // Answer first: choose x, then coefficients, and compute d so the equation is guaranteed clean.
     var x=randInt(2,12,rng),a=randInt(3,9,rng),c=randInt(1,a-1,rng),b=randInt(-8,8,rng);
     var d=(a-c)*x+b;
     function side(coef,constant){return coef+'x'+(constant===0?'':constant>0?' + '+constant:' - '+Math.abs(constant));}
     return{
       id:'linear-'+Math.random().toString(36).slice(2),area:'algebra',type:'two_sided_linear',
       prompt:side(a,b)+' = '+side(c,d),answer:x,params:{a:a,b:b,c:c,d:d},
+      strategyInput:{area:'algebra',family:'two_sided_linear',a:a,b:b,c:c,d:d},
       check:function(v){return near(v,x,1e-10);}
     };
   }
 
   var FORMULAS=[
-    {id:'V_lwh_h',prompt:'Solve V = lwh for h',answer:'V/(lw)'},
-    {id:'d_rt_t',prompt:'Solve d = rt for t',answer:'d/r'},
-    {id:'P_2l2w_w',prompt:'Solve P = 2l + 2w for w',answer:'(P-2l)/2'}
+    {id:'V_lwh_h',prompt:'Solve V = lwh for h',answer:'V/(lw)',target:'h'},
+    {id:'d_rt_t',prompt:'Solve d = rt for t',answer:'d/r',target:'t'},
+    {id:'P_2l2w_w',prompt:'Solve P = 2l + 2w for w',answer:'(P-2l)/2',target:'w'}
   ];
   function normalizeExpr(s){return String(s).replace(/\s+/g,'').replace(/\*/g,'').toLowerCase();}
   function generateFormulaRearrangement(rng){
@@ -95,6 +99,7 @@
     return{
       id:'formula-'+f.id+'-'+Math.random().toString(36).slice(2),area:'algebra',type:'formula_rearrangement',
       prompt:f.prompt,answer:f.answer,
+      strategyInput:{area:'algebra',family:'formula_rearrangement',formulaId:f.id,target:f.target,answer:f.answer},
       check:function(v){var got=normalizeExpr(v),ans=normalizeExpr(f.answer);var accepted=[ans];
         if(f.id==='V_lwh_h')accepted.push('v/lw','v/(l*w)');
         if(f.id==='P_2l2w_w')accepted.push('p/2-l','(p-2*l)/2');
@@ -103,13 +108,13 @@
   }
 
   function generateProportion(rng){
-    // Choose x first and construct a/x=c/d exactly.
     var x=randInt(2,15,rng),a=randInt(2,10,rng),c=randInt(2,12,rng);var d=c*x/a;
     while(Math.abs(d-Math.round(d))>1e-10){a=randInt(2,10,rng);c=randInt(2,12,rng);d=c*x/a;}
     d=Math.round(d);
     return{
       id:'prop-'+Math.random().toString(36).slice(2),area:'algebra',type:'proportion',
       prompt:a+'/x = '+c+'/'+d,answer:x,
+      strategyInput:{area:'algebra',family:'proportion',leftNumerator:a,rightNumerator:c,rightDenominator:d},
       check:function(v){return near(v,x,1e-10);}
     };
   }
@@ -120,18 +125,26 @@
     return{
       id:'negexp-'+Math.random().toString(36).slice(2),area:'exponents',type:'negative_exponent',
       prompt:base+'^('+exp+')',answer:fracText(ans),answerFraction:ans,
+      strategyInput:{area:'exponents',family:'negative_exponent',base:base,exponent:exp},
       check:function(v){var s=String(v).trim();if(s.indexOf('/')>=0){var p=s.split('/');var f=reduce(Number(p[0]),Number(p[1]));return f.n===ans.n&&f.d===ans.d;}return near(v,1/den,1e-10);}
     };
   }
 
   function generateExponentRule(rng){
     var base=pick(['a','b','c','d','e'],rng),kind=pick(['product','quotient','mixed'],rng);
-    var p=randInt(2,7,rng),q=randInt(2,6,rng),r=randInt(1,Math.min(5,p+q-1),rng),ansExp,prompt;
-    if(kind==='product'){ansExp=p+q;prompt='('+base+'^'+p+')('+base+'^'+q+')';}
-    else if(kind==='quotient'){if(q>=p)q=p-1;ansExp=p-q;prompt=base+'^'+p+' / '+base+'^'+q;}
-    else{ansExp=p+q-r;prompt='('+base+'^'+p+')('+base+'^'+q+') / '+base+'^'+r;}
+    var p=randInt(2,7,rng),q=randInt(2,6,rng),r=randInt(1,Math.min(5,p+q-1),rng),ansExp,prompt,strategyInput;
+    if(kind==='product'){
+      ansExp=p+q;prompt='('+base+'^'+p+')('+base+'^'+q+')';
+      strategyInput={area:'exponents',family:'same_base_product',base:base,leftExponent:p,rightExponent:q};
+    } else if(kind==='quotient'){
+      if(q>=p)q=p-1;ansExp=p-q;prompt=base+'^'+p+' / '+base+'^'+q;
+      strategyInput={area:'exponents',family:'same_base_quotient',base:base,leftExponent:p,rightExponent:q};
+    } else {
+      ansExp=p+q-r;prompt='('+base+'^'+p+')('+base+'^'+q+') / '+base+'^'+r;
+      strategyInput={area:'exponents',family:'same_base_mixed',base:base,leftExponent:p,rightExponent:q,denominatorExponent:r};
+    }
     var ans=base+'^'+ansExp;
-    return{id:'exprule-'+Math.random().toString(36).slice(2),area:'exponents',type:'same_base_rules',prompt:prompt,answer:ans,check:function(v){return normalizeExpr(v)===normalizeExpr(ans);}};
+    return{id:'exprule-'+Math.random().toString(36).slice(2),area:'exponents',type:'same_base_rules',prompt:prompt,answer:ans,strategyInput:strategyInput,check:function(v){return normalizeExpr(v)===normalizeExpr(ans);}};
   }
 
   /* ---------------- Scientific notation ---------------- */
@@ -140,14 +153,18 @@
     var kind=pick(['convert','multiply','divide'],rng);
     if(kind==='convert'){
       var coef=randInt(1,9,rng)+pick([0,.1,.2,.5],rng),exp=randInt(-6,6,rng);var val=coef*Math.pow(10,exp);
-      return{id:'sci-conv-'+Math.random().toString(36).slice(2),area:'scientific_notation',type:'convert',prompt:'Write '+val+' in scientific notation',answer:{coefficient:coef,exponent:exp},check:function(v){return checkSci(v,coef,exp);}};
+      return{id:'sci-conv-'+Math.random().toString(36).slice(2),area:'scientific_notation',type:'convert',prompt:'Write '+val+' in scientific notation',answer:{coefficient:coef,exponent:exp},strategyInput:{area:'scientific_notation',family:'convert_to_scientific',value:val},check:function(v){return checkSci(v,coef,exp);}};
     }
-    // Answer first: choose normalized target then build factors around it.
-    var targetCoef=pick([2,4,6,8],rng),targetExp=randInt(-5,7,rng),aCoef=2,aExp=randInt(-3,3,rng),bCoef,bExp,prompt;
-    if(kind==='multiply'){bCoef=targetCoef/aCoef;bExp=targetExp-aExp;prompt='('+aCoef+'×10^'+aExp+')('+bCoef+'×10^'+bExp+')';}
-    else{bCoef=aCoef/targetCoef;bExp=aExp-targetExp;prompt='('+aCoef+'×10^'+aExp+') ÷ ('+bCoef+'×10^'+bExp+')';}
+    var targetCoef=pick([2,4,6,8],rng),targetExp=randInt(-5,7,rng),aCoef=2,aExp=randInt(-3,3,rng),bCoef,bExp,prompt,strategyInput;
+    if(kind==='multiply'){
+      bCoef=targetCoef/aCoef;bExp=targetExp-aExp;prompt='('+aCoef+'×10^'+aExp+')('+bCoef+'×10^'+bExp+')';
+      strategyInput={area:'scientific_notation',family:'multiply_scientific',leftCoefficient:aCoef,leftExponent:aExp,rightCoefficient:bCoef,rightExponent:bExp};
+    } else {
+      bCoef=aCoef/targetCoef;bExp=aExp-targetExp;prompt='('+aCoef+'×10^'+aExp+') ÷ ('+bCoef+'×10^'+bExp+')';
+      strategyInput={area:'scientific_notation',family:'divide_scientific',leftCoefficient:aCoef,leftExponent:aExp,rightCoefficient:bCoef,rightExponent:bExp};
+    }
     var norm=normalizeSci(targetCoef,targetExp);
-    return{id:'sci-'+kind+'-'+Math.random().toString(36).slice(2),area:'scientific_notation',type:kind,prompt:prompt,answer:norm,check:function(v){return checkSci(v,norm.coefficient,norm.exponent);}};
+    return{id:'sci-'+kind+'-'+Math.random().toString(36).slice(2),area:'scientific_notation',type:kind,prompt:prompt,answer:norm,strategyInput:strategyInput,check:function(v){return checkSci(v,norm.coefficient,norm.exponent);}};
   }
   function checkSci(v,coef,exp){
     if(v&&typeof v==='object')return near(v.coefficient,coef,1e-10)&&Number(v.exponent)===exp;
@@ -160,12 +177,12 @@
   function generateExactLog(rng){
     var exponent=randInt(-7,6,rng);var x=Math.pow(10,exponent);
     var type=pick(['log','inverse'],rng);
-    if(type==='log')return{id:'logexact-'+Math.random().toString(36).slice(2),area:'logs_estimation',type:'exact_log',prompt:'log('+x+')',answer:exponent,tolerance:0,check:function(v){return near(v,exponent,1e-10);}};
-    return{id:'loginverse-'+Math.random().toString(36).slice(2),area:'logs_estimation',type:'inverse_log',prompt:'If log(x) = '+exponent+', find x',answer:x,tolerance:0,check:function(v){return near(v,x,Math.abs(x)*1e-10+1e-12);}};
+    if(type==='log')return{id:'logexact-'+Math.random().toString(36).slice(2),area:'logs_estimation',type:'exact_log',prompt:'log('+x+')',answer:exponent,strategyInput:{area:'logs',family:'exact_log10',value:x},tolerance:0,check:function(v){return near(v,exponent,1e-10);}};
+    return{id:'loginverse-'+Math.random().toString(36).slice(2),area:'logs_estimation',type:'inverse_log',prompt:'If log(x) = '+exponent+', find x',answer:x,strategyInput:{area:'logs',family:'inverse_log10',exponent:exponent},tolerance:0,check:function(v){return near(v,x,Math.abs(x)*1e-10+1e-12);}};
   }
   function generateLogEstimate(rng){
     var front=pick([2,3,4,5,6,7,8],rng),n=randInt(3,10,rng);var x=front*Math.pow(10,-n);var ans=-Math.log10(x);
-    return{id:'logest-'+Math.random().toString(36).slice(2),area:'logs_estimation',type:'estimate_negative_log',prompt:'Estimate −log('+front+'×10^−'+n+')',answer:ans,tolerance:.15,check:function(v){return near(v,ans,.15);}};
+    return{id:'logest-'+Math.random().toString(36).slice(2),area:'logs_estimation',type:'estimate_negative_log',prompt:'Estimate −log('+front+'×10^−'+n+')',answer:ans,strategyInput:{area:'logs',family:'estimate_negative_log',front:front,exponent:n},tolerance:.15,check:function(v){return near(v,ans,.15);}};
   }
 
   /* ---------------- Unit conversions ---------------- */
@@ -181,12 +198,11 @@
   ];
   function generateUnitConversion(rng){
     var c=pick(CONVERSIONS,rng),answer=pick([3.3,6.2,8,12,15,33,62,90,120,228],rng);var source=answer/c.factor;
-    return{id:'unit-'+Math.random().toString(36).slice(2),area:'unit_conversions',type:'single_conversion',prompt:source+' '+c.from+' to '+c.to,answer:answer,unit:c.to,conversion:c,check:function(v,unit){var raw=typeof v==='string'?parseFloat(v):Number(v);var u=unit||String(v).replace(/[0-9.\-\s]/g,'');return near(raw,answer,1e-9)&&(!u||u===c.to);}};
+    return{id:'unit-'+Math.random().toString(36).slice(2),area:'unit_conversions',type:'single_conversion',prompt:source+' '+c.from+' to '+c.to,answer:answer,unit:c.to,conversion:c,strategyInput:{area:'unit_conversions',family:'single_conversion',value:source,from:c.from,to:c.to,factor:c.factor},check:function(v,unit){var raw=typeof v==='string'?parseFloat(v):Number(v);var u=unit||String(v).replace(/[0-9.\-\s]/g,'');return near(raw,answer,1e-9)&&(!u||u===c.to);}};
   }
   function generateStackedRate(rng){
-    // Mirrors the curriculum's mol/s -> mmol/min pattern, answer first.
     var answer=pick([90,126,180,228,270,360,720],rng);var source=answer/(1000*60);
-    return{id:'rate-'+Math.random().toString(36).slice(2),area:'unit_conversions',type:'stacked_rate',prompt:source+' mol/s to mmol/min',answer:answer,unit:'mmol/min',check:function(v,unit){var raw=typeof v==='string'?parseFloat(v):Number(v);var u=unit||String(v).replace(/[0-9.\-\s]/g,'');return near(raw,answer,1e-8)&&u==='mmol/min';}};
+    return{id:'rate-'+Math.random().toString(36).slice(2),area:'unit_conversions',type:'stacked_rate',prompt:source+' mol/s to mmol/min',answer:answer,unit:'mmol/min',strategyInput:{area:'unit_conversions',family:'stacked_rate',value:source,from:'mol/s',to:'mmol/min',factors:[1000,60]},check:function(v,unit){var raw=typeof v==='string'?parseFloat(v):Number(v);var u=unit||String(v).replace(/[0-9.\-\s]/g,'');return near(raw,answer,1e-8)&&u==='mmol/min';}};
   }
 
   /* ---------------- Tracking / mode rules ---------------- */
