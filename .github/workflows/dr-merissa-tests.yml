@@ -49,6 +49,8 @@ jobs:
         run: node test-math-gym-engine.js
       - name: Run Math Gym structured adaptive-input contract
         run: node test-math-gym-strategy-input.js
+      - name: Run Math Gym shared adaptive-evidence contract
+        run: node test-math-gym-adaptive-evidence.js
       - name: Syntax-check Day 1 orchestrator
         run: node --check day1-orchestrator.js
       - name: Run Day 1 orchestrator tests
