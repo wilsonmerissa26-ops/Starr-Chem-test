@@ -2,7 +2,9 @@
 
 ## Status
 
-Architecture specification for the next Day 1 math build.
+**PROVISIONAL. Not frozen yet.**
+
+This architecture specification governs the next Day 1 math build, but implementation must not begin until an independent reviewer has read this source file directly and any material findings have been resolved.
 
 This document governs the isolated Strategy Engine build before any live classroom integration.
 
@@ -49,6 +51,18 @@ Phase 1 does not implement algebra, exponents, scientific notation, logs, or uni
 Phase 1 does not implement the full Prerequisite Router. It only attaches prerequisite metadata to generated steps so that a later prerequisite-remediation build can consume it without changing the route-selection architecture.
 
 Phase 1 does not connect itself to the live classroom until all standalone gates in this document pass.
+
+## Learner-facing scope versus internal stress-test scope
+
+Tests are allowed to be broader than the learner-facing Day 1 curriculum. **Tests must never expand the curriculum by accident.**
+
+Examples such as `12.5% of 64`, decimal percentages, percentages over 100%, awkward decimal wholes, or other deliberately difficult inputs may be used internally to test arithmetic anchors, eighth reasoning, candidate validity, cost behavior, rejection behavior, or future extensibility.
+
+Their presence in a calibration, adversarial, metamorphic, or stress-test fixture does **not** mean AStarryia must be taught that notation on Day 1, does not authorize Math Gym to generate it for her, and does not change `Day1_Curriculum.md`.
+
+Learner-facing generation and integration remain bounded by the frozen curriculum and teaching contract unless those governing documents are deliberately revised through a separate review.
+
+Eighth reasoning is already learner-facing through fraction notation such as `3/8 of 160`. Internal use of `12.5% of 64` may test the same arithmetic relationship without adding `12.5%` notation to Day 1 teaching.
 
 ## Existing problem sources
 
@@ -317,6 +331,28 @@ Weights must be calibrated against a human-reviewed gold set before they are tru
 6. Re-run the entire calibration set after every scoring change.
 7. Freeze the initial weights only when the calibration set is acceptable.
 
+### Preserve the already-reviewed calibration work
+
+Do not recreate the first gold set from scratch. The initial calibration batch must be seeded from the cases already worked and reviewed during the August 17 design/review session.
+
+At minimum preserve these reviewed cases or families:
+
+- `15% of 80`
+- `25% of 68`
+- `50% of 94`
+- `75% of 120`
+- `37% of 200`
+- `37% of 80`
+- `62% of 50`
+- `83% of 300`
+- `12.5% of 64` as an **internal eighth-reasoning stress test only**, not learner-facing Day 1 scope
+- the reviewed compensation cases using `33%`, `57%`, `69%`, and `88%`
+- the curriculum and teaching-contract irregular percentages: `17%`, `27%`, `33%`, `38%`, `58%`, `63%`, `72%`, and `84%`
+
+Where the exact whole number, preferred route, arithmetic, or acceptable near-tie for a reviewed case is not yet captured in a repository fixture, do **not** invent a replacement label. Transcribe the reviewed case from the review record and verify the arithmetic before treating it as gold data.
+
+The purpose of preserving this batch is to keep human judgment already exercised during design from being silently replaced by whatever route the first implementation happens to prefer.
+
 ### Minimum calibration families
 
 The gold set must include:
@@ -464,6 +500,8 @@ Include:
 
 Out-of-scope input must fail explicitly, not fall through to a misleading teaching route.
 
+Internal stress-test inputs remain internal unless the governing curriculum separately authorizes them for learner-facing use.
+
 ## Correctness invariants
 
 Every candidate must independently verify to the same mathematical answer before it can enter ranking.
@@ -516,13 +554,14 @@ Do not create separate version-numbered browser patches for this work.
 
 The engine remains isolated until all of the following are true:
 
-1. exported functions are directly callable in Node tests
-2. calibration set passes
-3. 100+ unseen cases complete with no mathematical invalidity
-4. human review finds no unacceptable route-selection pattern in the unseen report
-5. full existing test suite shows no new regressions
-6. current live classroom repair behavior remains intact
-7. integration design identifies how Classroom, Math Gym, and the support controller consume the same chosen plan
+1. this specification has completed independent source-file review and is explicitly frozen for implementation
+2. exported functions are directly callable in Node tests
+3. calibration set passes
+4. 100+ unseen cases complete with no mathematical invalidity
+5. human review finds no unacceptable route-selection pattern in the unseen report
+6. full existing test suite shows no new regressions
+7. current live classroom repair behavior remains intact
+8. integration design identifies how Classroom, Math Gym, and the support controller consume the same chosen plan
 
 Only then may live integration begin.
 
@@ -548,6 +587,7 @@ Do not:
 - rewrite `Day1_Curriculum.md`
 - add live AI math decisions
 - expand Day 1 to percent notation not required by the curriculum merely because the engine could support it
+- treat internal stress-test inputs as permission to expand learner-facing content
 - patch exact problem strings to satisfy tests
 - wire the engine into `/day1/` before the standalone gate passes
 
