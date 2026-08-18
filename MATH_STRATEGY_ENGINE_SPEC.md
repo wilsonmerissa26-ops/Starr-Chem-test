@@ -346,12 +346,27 @@ At minimum preserve these reviewed cases or families:
 - `62% of 50`
 - `83% of 300`
 - `12.5% of 64` as an **internal eighth-reasoning stress test only**, not learner-facing Day 1 scope
-- the reviewed compensation cases using `33%`, `57%`, `69%`, and `88%`
+- compensation-review entries for `33%`, `57%`, `69%`, and `88%` are **not yet complete gold cases** because the reviewed whole number and route are not currently preserved in this specification
 - the curriculum and teaching-contract irregular percentages: `17%`, `27%`, `33%`, `38%`, `58%`, `63%`, `72%`, and `84%`
 
 Where the exact whole number, preferred route, arithmetic, or acceptable near-tie for a reviewed case is not yet captured in a repository fixture, do **not** invent a replacement label. Transcribe the reviewed case from the review record and verify the arithmetic before treating it as gold data.
 
 The purpose of preserving this batch is to keep human judgment already exercised during design from being silently replaced by whatever route the first implementation happens to prefer.
+
+### Compensation calibration blocker
+
+The compensation entries `33%`, `57%`, `69%`, and `88%` are currently percentages without their reviewed whole numbers. That is insufficient for calibration because compensation quality depends on the exact whole, the anchor used, and the arithmetic cost of the correction.
+
+Before this specification may be frozen for implementation, each of those four entries must be pinned to:
+
+1. the exact reviewed problem, including the whole number;
+2. the preferred compensation route;
+3. the exact verified arithmetic for that route;
+4. any acceptable near-tie route that was also judged reasonable.
+
+Do not choose convenient wholes after the fact. If the original reviewed pair cannot be recovered, mark that case as unavailable review evidence and create a **new** human-reviewed calibration case explicitly, rather than presenting a newly invented problem as if it were the original reviewed one.
+
+This blocker exists specifically to enforce the same-percent/different-whole rule: a percentage alone is not enough evidence to calibrate route selection.
 
 ### Minimum calibration families
 
@@ -555,13 +570,14 @@ Do not create separate version-numbered browser patches for this work.
 The engine remains isolated until all of the following are true:
 
 1. this specification has completed independent source-file review and is explicitly frozen for implementation
-2. exported functions are directly callable in Node tests
-3. calibration set passes
-4. 100+ unseen cases complete with no mathematical invalidity
-5. human review finds no unacceptable route-selection pattern in the unseen report
-6. full existing test suite shows no new regressions
-7. current live classroom repair behavior remains intact
-8. integration design identifies how Classroom, Math Gym, and the support controller consume the same chosen plan
+2. the compensation calibration blocker is resolved, or the unrecoverable original cases are explicitly retired and replaced by newly reviewed cases
+3. exported functions are directly callable in Node tests
+4. calibration set passes
+5. 100+ unseen cases complete with no mathematical invalidity
+6. human review finds no unacceptable route-selection pattern in the unseen report
+7. full existing test suite shows no new regressions
+8. current live classroom repair behavior remains intact
+9. integration design identifies how Classroom, Math Gym, and the support controller consume the same chosen plan
 
 Only then may live integration begin.
 
