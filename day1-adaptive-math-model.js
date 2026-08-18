@@ -4,8 +4,9 @@
    CANONICAL DAY 1 ADAPTIVE MATH MODEL ENTRY
 
    The core owns deterministic planner/prerequisite mechanics. This entry owns
-   input validation plus learner-support policy, so invalid arithmetic never
-   reaches planner loops and support roles cannot drift into one another.
+   input validation, graph-boundary policy, and learner-support policy, so
+   invalid arithmetic never reaches planner loops, prerequisite repair follows
+   explicit dependencies, and support roles cannot drift into one another.
    ============================================================ */
 
 var core = require('./day1-adaptive-math-model-core.js');
@@ -123,6 +124,30 @@ function validateProblem(problem){
 
 function planProblem(problem,options){return core.planProblem(validateProblem(problem),options);}
 
+// The first descent comes from a parent problem family and is selected from the
+// chosen plan's prerequisite metadata. Once already inside a prerequisite node,
+// deeper descent must follow that node's explicit dependsOn edges. Unknown-node
+// and recursive-loop behavior remains owned by the core. A rejected cross-graph
+// jump returns before any stack/path mutation.
+function descendToPrerequisite(session,parentSkill,prerequisiteSkillId){
+  if(!session||!prerequisiteSkillId)return core.descendToPrerequisite(session,parentSkill,prerequisiteSkillId);
+  var target=core.prerequisiteNode(prerequisiteSkillId);
+  if(!target)return core.descendToPrerequisite(session,parentSkill,prerequisiteSkillId);
+  if(Array.isArray(session.activePath)&&session.activePath.indexOf(prerequisiteSkillId)>=0){
+    return core.descendToPrerequisite(session,parentSkill,prerequisiteSkillId);
+  }
+  var current=core.prerequisiteNode(session.activeSkillId);
+  if(current&&current.dependsOn.indexOf(prerequisiteSkillId)<0){
+    return{
+      action:'unrelated_prerequisite_blocked',
+      from:session.activeSkillId,
+      skillId:prerequisiteSkillId,
+      allowedDependencies:current.dependsOn.slice()
+    };
+  }
+  return core.descendToPrerequisite(session,parentSkill,prerequisiteSkillId);
+}
+
 function supportFor(mode,plan){
   if(!plan||!plan.chosenPlan)throw new Error('support requires a chosen plan');
   var p=plan.chosenPlan;
@@ -139,4 +164,9 @@ function supportFor(mode,plan){
   throw new Error('unknown support mode '+mode);
 }
 
-module.exports = Object.assign({}, core, { planProblem:planProblem, validateProblem:validateProblem, supportFor:supportFor });
+module.exports = Object.assign({}, core, {
+  planProblem:planProblem,
+  validateProblem:validateProblem,
+  descendToPrerequisite:descendToPrerequisite,
+  supportFor:supportFor
+});
