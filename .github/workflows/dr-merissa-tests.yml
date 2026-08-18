@@ -97,5 +97,7 @@ jobs:
         run: node --check day1/guided-problem-tutor-v13.js
       - name: Run same-problem guided tutor tests
         run: node test-guided-problem-tutor-v13.js
+      - name: Run learner support repair regressions
+        run: node test-tonight-repair-pass.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
