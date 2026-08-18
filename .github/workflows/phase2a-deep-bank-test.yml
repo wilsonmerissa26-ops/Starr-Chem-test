@@ -14,6 +14,8 @@ jobs:
           node-version: "22"
       - name: Run canonical model/runtime entry boundary
         run: node test-phase2-canonical-entry-boundary.js
+      - name: Run prerequisite graph static invariants
+        run: node test-phase2-prerequisite-graph-invariants.js
       - name: Run deep-repair parent-bank exhaustion contract
         run: node test-phase2-deep-repair-bank-exhaustion.js
       - name: Run route-evidence audit integrity contract
