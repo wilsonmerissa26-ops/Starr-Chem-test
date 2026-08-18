@@ -43,14 +43,18 @@ Tests must prove these roles remain separate.
 
 ## Prerequisite routing requirements
 
-The core may descend from a current problem into an explicitly named prerequisite only when that node exists in the graph.
+The core may descend from a current problem into an explicitly named prerequisite only when that node exists in the graph **and the routing relationship is justified by the selected route or by an explicit graph edge**.
 
 Required invariants:
 
 - preserve the exact original problem during descent;
 - push an explicit return stack;
 - block recursive prerequisite loops;
-- allow deeper prerequisite descent when a prerequisite check itself fails repeatedly;
+- the **first** remediation target must be one of the prerequisite skills actually named by the selected problem route;
+- a rejected first-level target must be blocked **before** Student Model remediation opens, before a child skill is created, before the return stack/path changes, and before a remediation event is emitted;
+- once inside a prerequisite node, deeper descent must follow that node's explicit `dependsOn` edges rather than jump to any node that merely exists;
+- blocked deeper cross-graph jumps must be side-effect free;
+- allow deeper prerequisite descent when a prerequisite check itself fails repeatedly and a valid dependency edge exists;
 - require a passed prerequisite check before returning;
 - return to the exact original math problem after repair, not silently advance to a different math item;
 - retain the generic Student Model fresh-item remediation exit for non-math contexts.
@@ -65,15 +69,24 @@ Every graph node that can be descended into must have:
 
 ## Learner evidence and personalization
 
-Phase 2A may connect demonstrated learner fluency to the already-existing bounded `studentFluencyAdjustment` seam. It must not create an unbounded or renderer-owned personalization score.
+Phase 2A may connect **demonstrated** learner fluency to the already-existing bounded `studentFluencyAdjustment` seam. It must not create an unbounded or renderer-owned personalization score, and it must not infer smaller-skill fluency from a whole-problem answer alone.
 
 Rules:
 
 - Student Model evidence is the source of the fluency map;
-- positive route-level fluency is credited only after an unaided correct solution;
-- use of support blocks unaided route-fluency credit for that attempt;
+- a correct final answer is evidence for the parent problem skill, but **does not prove which route the learner used**;
+- prerequisite IDs present in a teaching plan are potential evidence targets, not proof that those prerequisite skills were demonstrated;
+- positive smaller-skill route fluency requires all of the following:
+  - the whole problem was answered correctly;
+  - no support was used and the attempt is not marked assisted;
+  - route execution was explicitly verified;
+  - the integration layer names the exact observed `evidenceSkillIds`;
+  - each credited ID is actually part of the selected route;
+- `routeVerified:true` without exact observed skill IDs awards no smaller-skill fluency;
+- arbitrary or non-route skill IDs supplied by a future renderer/controller must be ignored;
+- use of support blocks unaided route-fluency credit for that attempt even if later route steps are observed;
 - a wrong whole-problem answer does not automatically identify which prerequisite failed;
-- targeted prerequisite checks provide negative prerequisite evidence;
+- targeted prerequisite checks provide the specific prerequisite evidence used for remediation decisions;
 - raw arithmetic candidate costs and learner-facing chosen strategy remain inspectable.
 
 ## Answer-checker requirements
@@ -126,7 +139,7 @@ Phase 2A does **not**:
 - merge the quarantined Phase 2+ branch wholesale;
 - claim live integration readiness merely because Node tests pass.
 
-Browser composition, Math Gym live evidence wiring, controller behavior, and `day1/index.html` cutover belong to a later Phase 2B integration gate.
+Browser composition, canonical answer-checker wiring, explicit route-observation/evidence wiring, Math Gym live evidence wiring, controller behavior, and `day1/index.html` cutover belong to a later Phase 2B integration gate.
 
 ## Phase 2A acceptance gate
 
@@ -137,10 +150,12 @@ Before Phase 2A can be accepted into `main`:
 3. all 31 classroom source-adapter cases pass;
 4. strict answer-checker contract passes, including malformed-input regressions;
 5. every prerequisite graph node passes teaching/check-content validation;
-6. adaptive runtime same-problem remediation and anti-loop contracts pass;
+6. adaptive runtime same-problem remediation, selected-route first-descent, graph-edge descent, and anti-loop contracts pass;
 7. support-role separation tests pass;
-8. representative unfamiliar/adversarial cases across all six areas pass;
-9. the complete existing repository CI remains green;
-10. human/source review finds no unacceptable planning or teaching pattern.
+8. learner-evidence tests prove that final-answer correctness cannot manufacture prerequisite fluency and that only explicitly observed route skills can be credited;
+9. representative unfamiliar/adversarial cases across all six areas pass;
+10. broad generated mathematical correctness/determinism coverage passes for the non-Phase-1 families;
+11. the complete existing repository CI remains green;
+12. human/source review finds no unacceptable planning, graph, evidence, or teaching pattern.
 
 Only after that gate is passed should a separate Phase 2B browser/live integration review begin.
