@@ -105,9 +105,12 @@ jobs:
           node --check math-strategy-cost.js
           node --check math-strategy-library.js
           node --check math-strategy-engine.js
+          node --check day1-adaptive-math-model.js
       - name: Run math strategy calibration tests
         run: node test-math-strategy-engine.js
       - name: Run math strategy generalization tests
         run: node test-math-strategy-generalization.js
+      - name: Run full Day 1 adaptive math model contract
+        run: node test-full-day1-adaptive-model.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
