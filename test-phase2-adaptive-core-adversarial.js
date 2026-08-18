@@ -51,7 +51,8 @@ assert.ok(close(sciD.answer.coefficient,4));assert.strictEqual(sciD.answer.expon
 expectNumeric({area:'logs',family:'exact_log10',value:0.001},-3);
 expectNumeric({area:'logs',family:'inverse_log10',exponent:-6},1e-6);
 expectNumeric({area:'logs',family:'log_product_estimate',value:15,factors:[3,5],landmarks:{'3':0.4771,'5':0.6990}},1.1761);
-expectNumeric({area:'logs',family:'estimate_negative_log',front:2,exponent:4},4-Math.log10(2));
+var negEstimate=expectNumeric({area:'logs',family:'estimate_negative_log',front:2,exponent:4,landmarks:{'2':0.30},roundTo:1},3.7);
+assert.ok(negEstimate.chosenPlan.steps.some(function(st){return st.expected===0.30;}),'negative-log route must visibly use the supplied log(2) landmark');
 
 expectNumeric({area:'unit_conversions',family:'single_conversion',value:0.0045,from:'L',to:'mL',factor:1000},4.5);
 expectNumeric({area:'unit_conversions',family:'stacked_rate',value:0.02,from:'mol/s',to:'mmol/min',factors:[1000,60]},1200);
@@ -64,7 +65,8 @@ assert.ok(understand.concept);assert.strictEqual(understand.hint,'');assert.stri
 assert.strictEqual(first.steps.length,1);assert.ok(mental.hint);
 
 // Invalid structures must fail before planner arithmetic can create Infinity,
-// NaN, or an infinite normalization loop.
+// NaN, an infinite normalization loop, or calculator precision that was never
+// supplied to the learner as a usable landmark.
 [
   {area:'fractions_percent',family:'fraction_add_subtract',leftNumerator:1,leftDenominator:0,operation:'add',rightNumerator:1,rightDenominator:2},
   {area:'algebra',family:'one_sided_linear',a:0,b:2,d:10},
@@ -75,6 +77,7 @@ assert.strictEqual(first.steps.length,1);assert.ok(mental.hint);
   {area:'scientific_notation',family:'divide_scientific',leftCoefficient:6,leftExponent:2,rightCoefficient:0,rightExponent:1},
   {area:'scientific_notation',family:'multiply_scientific',leftCoefficient:NaN,leftExponent:2,rightCoefficient:3,rightExponent:1},
   {area:'logs',family:'log_product_estimate',value:6,factors:[2,4],landmarks:{'2':0.30,'4':0.60}},
+  {area:'logs',family:'estimate_negative_log',front:2,exponent:4},
   {area:'unit_conversions',family:'single_conversion',value:2,from:'g',to:'mg',factor:0},
   {area:'unit_conversions',family:'rate_times_duration',amount:8,perMinutes:0,durationMinutes:12,unit:'g'},
   {area:'algebra',family:'not_a_real_family'}
@@ -131,4 +134,4 @@ assert.strictEqual(topState.events.length,topBefore.events,'blocked top-level re
 assert.strictEqual(!!(topOwner.remediation&&topOwner.remediation.active),topBefore.remediationActive,'blocked top-level repair must not open Student Model remediation');
 assert.strictEqual(topState.skills.log_product_rule,undefined,'blocked top-level repair must not create an unrelated learner skill');
 
-console.log('PASS Phase 2A unfamiliar/adversarial planner, validation, support, and graph contract');
+console.log('PASS Phase 2A unfamiliar/adversarial planner, validation, support, graph, and human-doable log contract');
