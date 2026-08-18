@@ -16,6 +16,11 @@ function oppositeMove(coefficient){
   return 'The x-term is already zero; no variable-term move is needed.';
 }
 
+function isScientificOperation(problem){
+  return problem.area==='scientific_notation'&&
+    (problem.family==='multiply_scientific'||problem.family==='divide_scientific');
+}
+
 function fixSteps(problem,strategyId,steps){
   (steps||[]).forEach(function(st){
     if(problem.area==='algebra'&&problem.family==='two_sided_linear'&&st.id==='variables'){
@@ -34,6 +39,11 @@ function fixSteps(problem,strategyId,steps){
       st.prompt="Move the decimal until the coefficient's absolute value is at least 1 and less than 10.";
       st.hint='Use 1 ≤ |coefficient| < 10. The coefficient may be negative.';
     }
+
+    if(isScientificOperation(problem)&&st.id==='normalize'){
+      st.prompt="Normalize if needed: preserve the sign and make the coefficient's absolute value at least 1 and less than 10.";
+      st.hint="Use 1 ≤ |coefficient| < 10. Keep the coefficient's sign while shifting the decimal and compensating in the exponent.";
+    }
   });
 }
 
@@ -47,6 +57,12 @@ function fixCopy(problem,strategyId,copy){
   if(problem.area==='scientific_notation'&&problem.family==='convert_to_scientific'){
     copy.mentalRoute='make 1 ≤ |coefficient| < 10 → count shifts → choose exponent sign';
     copy.hint="First make the coefficient's absolute value at least 1 and less than 10.";
+  }
+  if(isScientificOperation(problem)){
+    copy.concept=(problem.family==='multiply_scientific'?'Multiply coefficients and add exponents. ':'Divide coefficients and subtract exponents. ')+
+      "Then normalize so the coefficient's absolute value is at least 1 and less than 10 while preserving its sign.";
+    copy.mentalRoute=(problem.family==='multiply_scientific'?'multiply fronts → add powers':'divide fronts → subtract powers')+' → normalize by absolute value';
+    copy.hint="Handle coefficients and powers of ten separately, then use 1 ≤ |coefficient| < 10 without changing the coefficient's sign.";
   }
 }
 
@@ -68,4 +84,4 @@ function apply(problem,plan){
   return out;
 }
 
-module.exports={apply:apply,oppositeMove:oppositeMove};
+module.exports={apply:apply,oppositeMove:oppositeMove,isScientificOperation:isScientificOperation};
