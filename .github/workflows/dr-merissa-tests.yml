@@ -123,5 +123,7 @@ jobs:
         run: node test-math-prerequisite-content.js
       - name: Run adaptive learner runtime contract
         run: node test-day1-adaptive-runtime.js
+      - name: Run canonical browser composition contract
+        run: node test-adaptive-browser-composition.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
