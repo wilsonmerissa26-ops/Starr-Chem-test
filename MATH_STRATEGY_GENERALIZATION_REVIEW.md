@@ -2,7 +2,7 @@
 
 ## Status
 
-**SOURCE REVIEW COMPLETE FOR THE FOUR AWKWARD-WHOLE CASES. LIVE INTEGRATION REMAINS A SEPARATE GATE.**
+**SOURCE REVIEW COMPLETE FOR THE FOUR AWKWARD-WHOLE CASES. THRESHOLD CALIBRATION STILL OPEN. LIVE INTEGRATION REMAINS A SEPARATE GATE.**
 
 The standalone Phase 1 engine passes mathematical-validity and determinism checks across 351 non-gold percent cases plus fraction-of-whole and what-percent-of cases.
 
@@ -34,7 +34,7 @@ Exact answer: `17.28`
 
 Formal advantage over next route: `1.700`.
 
-This remains on the formal-default side of the initial reviewed close-gap boundary described below.
+This remains on the formal-default side of the current provisional close-gap boundary.
 
 ### Case C: 69% of 32
 
@@ -61,7 +61,7 @@ Formal advantage remains `2.600`.
 
 Reviewed interpretation: this is a wide margin; formal multiplication remains the deterministic default.
 
-## Gap-size selection policy
+## Gap-size selection mechanism
 
 The review rejected both extremes:
 
@@ -70,14 +70,28 @@ The review rejected both extremes:
 
 The engine therefore keeps **raw arithmetic cost** and **instructional default selection** as separate, auditable concepts.
 
-For `percent_of_whole` only, when `percent_formal_decimal` is the raw lowest-cost route:
+For `percent_of_whole` only, when `percent_formal_decimal` is the raw lowest-cost route, the current implementation uses a provisional `1.5` margin:
 
 - if the best mental route is more than `1.5` cost units above formal, formal remains the default;
 - if the best mental route is within `1.5` cost units, the best mental route becomes the deterministic Day 1 default and formal is returned as the close alternate.
 
-The initial `1.5` boundary is a calibration choice, not a mathematical constant. It was selected to separate the reviewed close case (`1.050`) from the next-smallest reviewed formal advantage (`1.700`). It must be revalidated as the reviewed calibration set grows rather than treated as universal truth.
-
 This policy does **not** modify candidate arithmetic costs and does not replace the generic `0.5` near-tie threshold used for ordinary same-layer alternatives.
+
+## Full-suite threshold distribution finding
+
+The initial four reviewed cases justified the mechanism, but they do not establish `1.5` as the final calibrated boundary.
+
+`MATH_STRATEGY_POLICY_DISTRIBUTION_REVIEW.md` applies the same gap analysis to the full fixed 351-case percent suite.
+
+Results:
+
+- formal is raw lowest cost in `56` cases;
+- `22` of those `56` fall within `±0.3` of the current `1.5` boundary;
+- current `1.5` policy produces `15` mental-default overrides;
+- the count remains `15` at `1.6` but jumps to `27` at `1.7`;
+- cases cluster at gaps `1.35`, `1.50`, `1.65`, and `1.70`.
+
+Therefore the `1.5` value is **provisional, not settled**. Representative human review across those bands is required before the numerical margin itself is frozen.
 
 ## Weight-wiring review finding
 
@@ -91,13 +105,17 @@ A carry currently adds one generic operation-count increment (`0.35`). This does
 
 That is an explicit calibration assumption, not something forced by arithmetic. It should be reconsidered if a larger human-reviewed set shows that carries are systematically over- or under-priced.
 
-## What is now resolved
+## What is resolved
 
 - carry-blind formal multiplication scoring: resolved;
 - zero-carry equality check for `17% of 32` and `88% of 64`: explicitly tested;
 - declared 1.0 weights silently bypassing their weight multipliers: resolved;
-- four-case formal-vs-mental review: resolved into a gap-size policy without rewriting raw scores.
+- separation of raw cost from instructional selection: resolved as a mechanism;
+- source review of the original four awkward-whole examples: complete.
 
-## What remains outside this review
+## What remains open
+
+- final numerical formal-versus-mental policy threshold: not yet calibrated;
+- representative human review of the `1.35`, `1.50`, `1.65`, and `1.70` boundary bands.
 
 This review does not authorize the broader six-area model, full prerequisite router, Student Model personalization, or live browser cutover. Those remain quarantined in the separate Phase 2+ draft.
