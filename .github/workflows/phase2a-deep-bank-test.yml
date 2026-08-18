@@ -20,3 +20,5 @@ jobs:
         run: node test-phase2-route-evidence-audit.js
       - name: Run signed scientific notation generalization
         run: node test-phase2-signed-scientific-generalization.js
+      - name: Run computed-output safety contract
+        run: node test-phase2-output-safety.js
