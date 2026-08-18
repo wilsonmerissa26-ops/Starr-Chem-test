@@ -109,5 +109,25 @@ jobs:
         run: node test-math-strategy-engine.js
       - name: Run Phase 1 strategy generalization tests
         run: node test-math-strategy-generalization.js
+      - name: Syntax-check isolated Phase 2A adaptive core
+        run: |
+          node --check day1-adaptive-math-model-core.js
+          node --check day1-adaptive-math-model.js
+          node --check day1-problem-source-adapters.js
+          node --check math-prerequisite-content.js
+          node --check math-answer-checker.js
+          node --check math-student-model-policy.js
+          node --check day1-adaptive-runtime-core.js
+          node --check day1-adaptive-runtime.js
+      - name: Run Phase 2A full adaptive model contract
+        run: node test-full-day1-adaptive-model.js
+      - name: Run Phase 2A classroom source coverage
+        run: node test-day1-problem-source-adapters.js
+      - name: Run Phase 2A strict answer checker contract
+        run: node test-math-answer-checker.js
+      - name: Run Phase 2A prerequisite teaching content contract
+        run: node test-math-prerequisite-content.js
+      - name: Run Phase 2A adaptive learner runtime contract
+        run: node test-day1-adaptive-runtime.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
