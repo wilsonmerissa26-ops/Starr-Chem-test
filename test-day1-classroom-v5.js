@@ -1,6 +1,8 @@
 "use strict";
-var fs=require('fs');var js=fs.readFileSync('day1/classroom-v5.js','utf8');var html=fs.readFileSync('day1/index.html','utf8');var chem=fs.readFileSync('chemistry-teacher-preview/chemistry-teaching-fixes-v2.js','utf8');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+var fs=require('fs');var crypto=require('crypto');var js=fs.readFileSync('day1/classroom-v5.js','utf8');var html=fs.readFileSync('day1/index.html','utf8');var chem=fs.readFileSync('chemistry-teacher-preview/chemistry-teaching-fixes-v2.js','utf8');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 ok('v5 is live runtime',html.indexOf('classroom-v5.js')>=0);
+var runtimeCacheToken=crypto.createHash('sha256').update(js).digest('hex').slice(0,12);
+ok('live classroom runtime cache token matches current JS',html.indexOf('classroom-v5.js?v='+runtimeCacheToken)>=0);
 ['fractions_percent','algebra','exponents','scientific_notation','logs','unit_conversions'].forEach(function(x){ok('contains '+x,js.indexOf(x+':{')>=0)});
 ok('toolbox restored',js.indexOf('Math Toolbox')>=0&&js.indexOf('Mental Math Lab')>=0);
 ok('mental fluency strategies present',js.indexOf('complements to 10/100/1000')>=0&&js.indexOf('Double one factor and halve the other')>=0);
