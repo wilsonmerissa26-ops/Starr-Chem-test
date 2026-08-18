@@ -1,5 +1,12 @@
+(function(root,factory){
+  var api;
+  if(typeof module==='object'&&module.exports)api=factory(require('./math-strategy-cost.js'));
+  else api=factory(root.MathStrategyCost);
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else root.MathStrategyLibrary=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(cost){
 'use strict';
-var cost = require('./math-strategy-cost.js');
+if(!cost)throw new Error('MathStrategyCost dependency missing');
 var EPS = 1e-9;
 function close(a,b){return Math.abs(a-b)<=EPS*Math.max(1,Math.abs(a),Math.abs(b));}
 function step(id,prompt,expected,skills,hint){return{id:id,prompt:prompt,expected:expected,prerequisiteSkillIds:skills||[],hint:hint||''};}
@@ -10,14 +17,13 @@ function percentCandidate(id,p,w,answer,features,steps,copy){return{strategyId:i
 function percentCandidates(problem){
   var p=problem.percent,w=problem.whole,ans=pctAnswer(p,w),out=[];
   var ten=w/10,one=w/100;
-
   if(close(p,1)) out.push(percentCandidate('percent_one',p,w,one,{operationCount:1,benchmarkBonus:1,divisionDifficulty:cost.divisionDifficulty(w,100),decimalComplexity:decimalComplexity([one])},[step('one','Find 1% of '+w+'.',one,['divide_by_100'],'1% is one hundredth.')],{mentalRoute:'1% is one hundredth.'}));
   if(close(p,10)) out.push(percentCandidate('percent_ten',p,w,ten,{operationCount:1,benchmarkBonus:1,divisionDifficulty:cost.divisionDifficulty(w,10),decimalComplexity:decimalComplexity([ten])},[step('ten','Find 10% of '+w+'.',ten,['divide_by_10'],'10% is one tenth.')],{mentalRoute:'10% is one tenth.'}));
-  if(close(p,5)) {
+  if(close(p,5)){
     var directFive=ten/2;
     out.push(percentCandidate('percent_five',p,w,directFive,{operationCount:2,benchmarkBonus:2,divisionDifficulty:cost.divisionDifficulty(w,10),decimalComplexity:decimalComplexity([ten,directFive]),mentalLoad:1},[step('ten','Find 10% of '+w+'.',ten,['divide_by_10'],'10% is one tenth.'),step('five','Take half of '+ten+'.',directFive,['halving'],'5% is half of 10%.')],{mentalRoute:'Find 10%, then halve it.'}));
   }
-  if(Number.isInteger(p)&&p>=20&&p<=90&&p%10===0&&!close(p,50)) {
+  if(Number.isInteger(p)&&p>=20&&p<=90&&p%10===0&&!close(p,50)){
     var tensCount=p/10,tensResult=ten*tensCount;
     out.push(percentCandidate('percent_'+p+'_from_10',p,w,tensResult,{operationCount:2,benchmarkBonus:1,divisionDifficulty:cost.divisionDifficulty(w,10),multiplicationDifficulty:cost.multiplicationDifficulty(ten,tensCount),decimalComplexity:decimalComplexity([ten,tensResult]),mentalLoad:1},[step('ten','Find 10% of '+w+'.',ten,['divide_by_10'],'10% is one tenth.'),step('scale','Build '+p+'% from '+tensCount+' ten-percent chunks.',tensResult,['multiply_by_small_whole'],'Scale the 10% chunk.')],{mentalRoute:p+'% is '+tensCount+' groups of 10%.'}));
   }
@@ -32,7 +38,6 @@ function percentCandidates(problem){
     var five=ten/2;
     out.push(percentCandidate('percent_10_plus_5',p,w,ten+five,{operationCount:3,benchmarkBonus:2,divisionDifficulty:cost.divisionDifficulty(w,10),decimalComplexity:decimalComplexity([ten,five]),mentalLoad:1},[step('ten','What is 10% of '+w+'?',ten,['divide_by_10'],'10% is one tenth.'),step('five','What is half of '+ten+'?',five,['halving'],'5% is half of 10%.'),step('combine','Combine 10% and 5%.',ten+five,['add_friendly_chunks'],'Add the two parts.')],{mentalRoute:'15% = 10% + 5%.'}));
   }
-
   var near10=Math.round(p/10)*10;
   if(near10>=10&&near10<=90&&!close(near10,p)){
     var diff=p-near10,absDiff=Math.abs(diff);
@@ -42,12 +47,10 @@ function percentCandidates(problem){
       out.push(percentCandidate(id,p,w,result,{operationCount:5,anchorAcquisition:0.1,divisionDifficulty:cost.divisionDifficulty(w,10)+cost.divisionDifficulty(w,100),multiplicationDifficulty:cost.multiplicationDifficulty(ten,near10/10)+cost.multiplicationDifficulty(one,absDiff),decimalComplexity:decimalComplexity([ten,one,anchor,corr]),mentalLoad:2,compensationComplexity:diff<0?1:0.7},[step('ten','Find 10% of '+w+'.',ten,['divide_by_10'],'Use the 10% anchor.'),step('anchor','Build '+near10+'% from 10%.',anchor,['multiply_by_small_whole'],'Scale the 10% chunk.'),step('one','Find 1% of '+w+'.',one,['divide_by_100'],'Use the 1% correction chunk.'),step('correction','Build '+absDiff+'% from 1%.',corr,['multiply_by_small_whole'],'Make the small correction.'),step('adjust',(diff>0?'Add':'Subtract')+' the correction.',result,[diff>0?'add_friendly_chunks':'subtract_friendly_chunks'],'Adjust from the nearby ten.')],{mentalRoute:p+'% = '+near10+'% '+(diff>0?'+ ':'- ')+absDiff+'%.'}));
     }
   }
-
   if(Number.isInteger(p)&&p>0){
     var oneScaled=one*p;
     out.push(percentCandidate('percent_1_then_scale',p,w,oneScaled,{operationCount:2,divisionDifficulty:cost.divisionDifficulty(w,100),multiplicationDifficulty:cost.multiplicationDifficulty(one,p),decimalComplexity:decimalComplexity([one,oneScaled]),mentalLoad:1,routeOverhead:(Number.isInteger(one)?1.15:3.0)+Math.max(0,4-Math.abs(p-Math.round(p/10)*10))*0.55},[step('one','Find 1% of '+w+'.',one,['divide_by_100'],'1% is one hundredth.'),step('scale','Scale that 1% chunk to '+p+'%.',oneScaled,['multiply_by_small_whole'],'Use the clean 1% chunk.')],{mentalRoute:'Find 1%, then scale it to '+p+'%.'}));
   }
-
   var complement=100-p;
   if(p<100&&complement>0&&complement<=20&&Number.isInteger(complement)){
     var tensPart=Math.floor(complement/10)*10,onesPart=complement-tensPart;
@@ -56,7 +59,6 @@ function percentCandidates(problem){
       out.push(percentCandidate('percent_100_minus_'+tensPart+'_minus_'+onesPart,p,w,freeResult,{operationCount:5,anchorAcquisition:0,divisionDifficulty:cost.divisionDifficulty(w,10)+cost.divisionDifficulty(w,100),multiplicationDifficulty:cost.multiplicationDifficulty(ten,tensPart/10)+cost.multiplicationDifficulty(one,onesPart),decimalComplexity:decimalComplexity([ten,one,tensValue,onesValue]),mentalLoad:2,compensationComplexity:1.3,routeOverhead:0.6},[step('whole','Start from 100%: '+w+'.',w,[],'100% is the whole.'),step('tens','Find '+tensPart+'% to remove.',tensValue,['divide_by_10','multiply_by_small_whole'],'Build the tens correction.'),step('ones','Find '+onesPart+'% to remove.',onesValue,['divide_by_100','multiply_by_small_whole'],'Build the small correction.'),step('subtract_tens','Subtract '+tensPart+'%.',w-tensValue,['subtract_friendly_chunks'],'Subtract from the free 100% anchor.'),step('subtract_ones','Subtract the remaining '+onesPart+'%.',freeResult,['subtract_friendly_chunks'],'Finish the correction.')],{mentalRoute:p+'% = 100% - '+tensPart+'% - '+onesPart+'%.'}));
     }
   }
-
   out.push(percentCandidate('percent_formal_decimal',p,w,(p/100)*w,{operationCount:2,divisionDifficulty:cost.divisionDifficulty(p,100),multiplicationDifficulty:cost.multiplicationDifficulty(p/100,w),decimalComplexity:decimalComplexity([p/100,ans]),mentalLoad:1,routeOverhead:1.5},[step('decimal','Convert '+p+'% to '+(p/100)+'.',p/100,['place_value_decimal_shift'],'Percent means divide by 100.'),step('multiply','Multiply by '+w+'.',ans,['multiply_by_small_whole'],'Now multiply the decimal by the whole.')],{mentalRoute:'Convert percent to a decimal and multiply.'}));
   return out;
 }
@@ -71,7 +73,6 @@ function fractionCandidates(problem){
   out.push({strategyId:'fraction_denominator_first',answer:ans,valid:true,features:{operationCount:2,divisionDifficulty:cost.divisionDifficulty(w,d),multiplicationDifficulty:cost.multiplicationDifficulty(w/d,n),fractionComplexity:labels[d]?0.3:0.8,mentalLoad:1},steps:[step('divide','Divide '+w+' by '+d+'.',w/d,['fraction_denominator_first'],'Find one denominator-sized part.'),step('multiply','Multiply by '+n+'.',ans,['multiply_by_small_whole'],'Take '+n+' equal parts.')],concept:'Divide by the denominator, then multiply by the numerator.',mentalRoute:'Denominator first, numerator second.',hint:'Find one part first.'});
   return out;
 }
-
 function whatPercentCandidates(problem){
   var part=problem.part,w=problem.whole,ans=part/w*100,out=[];
   out.push({strategyId:'what_percent_formal',answer:ans,valid:true,features:{operationCount:2,divisionDifficulty:cost.divisionDifficulty(part,w),multiplicationDifficulty:cost.multiplicationDifficulty(part/w,100),decimalComplexity:decimalComplexity([part/w,ans]),mentalLoad:1},steps:[step('ratio','Divide the part by the whole.',part/w,['part_whole_relationship'],'Percent starts with part ÷ whole.'),step('percent','Multiply by 100.',ans,['multiply_by_small_whole'],'Convert the ratio to percent.')],concept:'Percent compares a part to a whole out of 100.',mentalRoute:'part ÷ whole × 100',hint:'Start with part ÷ whole.'});
@@ -82,6 +83,6 @@ function whatPercentCandidates(problem){
   }
   return out;
 }
-
 function generate(problem){if(problem.family==='percent_of_whole')return percentCandidates(problem);if(problem.family==='fraction_of_whole')return fractionCandidates(problem);if(problem.family==='what_percent_of')return whatPercentCandidates(problem);throw new Error('unsupported family');}
-module.exports={generate:generate,close:close};
+return{generate:generate,close:close};
+});
