@@ -1,16 +1,23 @@
 /* ============================================================
    PHASE 2A LEARNER-FACING TEACHING LANGUAGE CONTRACT
 
-   Correct arithmetic is not enough. The selected route must describe the
-   human operation the learner can actually perform and must state mathematical
-   definitions accurately across the supported numeric domain.
+   Correct arithmetic is not enough. The selected route and prerequisite
+   lessons must describe the human operation the learner can actually perform
+   and must state mathematical definitions accurately across the supported
+   numeric domain.
    ============================================================ */
 'use strict';
 var assert=require('assert');
 var full=require('./day1-adaptive-math-model.js');
+var prereq=require('./math-prerequisite-content.js');
 
 function prompts(plan){return plan.chosenPlan.steps.map(function(st){return st.prompt;});}
 function allText(plan){return [plan.chosenPlan.concept,plan.chosenPlan.mentalRoute,plan.chosenPlan.hint].concat(prompts(plan)).join(' ');}
+function lessonText(id){
+  var l=prereq.getLesson(id);
+  assert.ok(l,'missing prerequisite lesson '+id);
+  return [l.title,l.concept,l.why].concat((l.representations||[]).map(function(r){return r.text;})).join(' ');
+}
 
 // Negative coefficient: do not tell a learner to "subtract -4x". Name the
 // equivalent human operation directly: add 4x to both sides.
@@ -41,4 +48,18 @@ assert.ok(allText(sci).match(/absolute value/i),
 assert.ok(!allText(sci).match(/coefficient (?:must )?(?:stay )?between 1 and 10/i),
   'negative scientific notation must not be taught with a positive-only coefficient statement');
 
-console.log('PASS Phase 2A learner-facing algebra, exponent, and scientific-notation language contract');
+// The prerequisite content must teach the same signed-domain definition as the
+// planner. A remediation switch may not reintroduce the obsolete [1,10) rule.
+var coefficientLesson=lessonText('scientific_coefficient_range');
+var normalizeLesson=lessonText('normalize_scientific');
+assert.ok(/absolute value/i.test(coefficientLesson),
+  'scientific coefficient prerequisite must define the valid range by absolute value');
+assert.ok(/absolute value/i.test(normalizeLesson),
+  'scientific normalization prerequisite must define the valid range by absolute value');
+assert.ok(!/coefficient in \[1,10\)/i.test(normalizeLesson),
+  'normalization prerequisite must not silently revert to a positive-only coefficient interval');
+var signedCheck=prereq.getCheckBank('scientific_coefficient_range').find(function(q){return /-4\.5/.test(q.prompt);});
+assert.ok(signedCheck,'scientific coefficient prerequisite needs at least one negative-coefficient check');
+assert.strictEqual(signedCheck.check('-4.5'),true,'negative coefficient check must validate the correct signed coefficient');
+
+console.log('PASS Phase 2A learner-facing algebra, exponent, and scientific-notation language/content contract');
