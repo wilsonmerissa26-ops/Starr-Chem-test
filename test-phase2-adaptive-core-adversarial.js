@@ -106,4 +106,29 @@ assert.strictEqual(JSON.stringify(guarded.returnStack),beforeGuard.returnStack,'
 assert.strictEqual(JSON.stringify(guarded.activePath),beforeGuard.activePath,'blocked jump must not alter active path');
 assert.strictEqual(JSON.stringify(guarded.prerequisiteHistory),beforeGuard.history,'blocked jump must not fake remediation history');
 
+// The first remediation target must belong to the selected problem route. Node
+// existence alone is not enough. This protects the future controller from
+// opening a mathematically unrelated repair and must be side-effect free.
+var runtime=require('./day1-adaptive-runtime.js');
+var topState=runtime.createLearnerState({studentId:'top-level-route-guard'});
+runtime.startProblem(topState,{area:'fractions_percent',family:'percent_of_whole',percent:15,whole:80,source:'test',sourceId:'top-guard-pct'});
+var topOwner=topState.skills.percent_of_whole;
+var topBefore={
+  activeSkillId:topState.current.session.activeSkillId,
+  returnStack:JSON.stringify(topState.current.session.returnStack),
+  activePath:JSON.stringify(topState.current.session.activePath),
+  events:topState.events.length,
+  remediationActive:!!topOwner.remediation.active
+};
+var topBlocked=runtime.openPrerequisiteRepair(topState,'log_product_rule',sm.IDK_REASONS.DONT_UNDERSTAND);
+assert.strictEqual(topBlocked.action,'unrelated_prerequisite_blocked','top-level repair must come from the selected route');
+assert.strictEqual(topBlocked.from,'percent_of_whole');
+assert.ok(topBlocked.allowedPrerequisites.indexOf('halving')>=0,'15% route should allow halving repair');
+assert.strictEqual(topState.current.session.activeSkillId,topBefore.activeSkillId,'blocked top-level repair must not change active skill');
+assert.strictEqual(JSON.stringify(topState.current.session.returnStack),topBefore.returnStack,'blocked top-level repair must not push return stack');
+assert.strictEqual(JSON.stringify(topState.current.session.activePath),topBefore.activePath,'blocked top-level repair must not alter path');
+assert.strictEqual(topState.events.length,topBefore.events,'blocked top-level repair must not emit fake remediation events');
+assert.strictEqual(!!topOwner.remediation.active,topBefore.remediationActive,'blocked top-level repair must not open Student Model remediation');
+assert.strictEqual(topState.skills.log_product_rule,undefined,'blocked top-level repair must not create an unrelated learner skill');
+
 console.log('PASS Phase 2A unfamiliar/adversarial planner, validation, support, and graph contract');
