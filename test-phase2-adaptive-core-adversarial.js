@@ -92,10 +92,18 @@ var backParent=full.completePrerequisite(session,'quartering',true);
 assert.strictEqual(backParent.action,'return_to_parent_problem');assert.strictEqual(session.activeSkillId,'percent_of_whole');assert.strictEqual(backParent.problem.sourceId,'deep-parent');
 
 // Once already inside a prerequisite node, arbitrary cross-graph jumps are not
-// legal merely because the destination node exists.
+// legal merely because the destination node exists. Blocking must be side-effect
+// free so a bad router request cannot corrupt the remediation return path.
 var guarded=full.createSession({area:'fractions_percent',problem:{area:'fractions_percent',family:'percent_of_whole',percent:25,whole:68,source:'test',sourceId:'guard-parent'}});
 full.descendToPrerequisite(guarded,sm.createSkill('percent_of_whole'),'quartering');
+var beforeGuard={activeSkillId:guarded.activeSkillId,returnStack:JSON.stringify(guarded.returnStack),activePath:JSON.stringify(guarded.activePath),history:JSON.stringify(guarded.prerequisiteHistory)};
 var unrelated=full.descendToPrerequisite(guarded,sm.createSkill('quartering'),'log_product_rule');
 assert.strictEqual(unrelated.action,'unrelated_prerequisite_blocked','deeper descent must follow the explicit dependency graph');
+assert.strictEqual(unrelated.from,'quartering');
+assert.deepStrictEqual(unrelated.allowedDependencies,['halving']);
+assert.strictEqual(guarded.activeSkillId,beforeGuard.activeSkillId,'blocked jump must not change active skill');
+assert.strictEqual(JSON.stringify(guarded.returnStack),beforeGuard.returnStack,'blocked jump must not push return stack');
+assert.strictEqual(JSON.stringify(guarded.activePath),beforeGuard.activePath,'blocked jump must not alter active path');
+assert.strictEqual(JSON.stringify(guarded.prerequisiteHistory),beforeGuard.history,'blocked jump must not fake remediation history');
 
 console.log('PASS Phase 2A unfamiliar/adversarial planner, validation, support, and graph contract');
