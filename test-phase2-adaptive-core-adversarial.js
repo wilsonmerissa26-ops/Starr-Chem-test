@@ -118,7 +118,7 @@ var topBefore={
   returnStack:JSON.stringify(topState.current.session.returnStack),
   activePath:JSON.stringify(topState.current.session.activePath),
   events:topState.events.length,
-  remediationActive:!!topOwner.remediation.active
+  remediationActive:!!(topOwner.remediation&&topOwner.remediation.active)
 };
 var topBlocked=runtime.openPrerequisiteRepair(topState,'log_product_rule',sm.IDK_REASONS.DONT_UNDERSTAND);
 assert.strictEqual(topBlocked.action,'unrelated_prerequisite_blocked','top-level repair must come from the selected route');
@@ -128,7 +128,7 @@ assert.strictEqual(topState.current.session.activeSkillId,topBefore.activeSkillI
 assert.strictEqual(JSON.stringify(topState.current.session.returnStack),topBefore.returnStack,'blocked top-level repair must not push return stack');
 assert.strictEqual(JSON.stringify(topState.current.session.activePath),topBefore.activePath,'blocked top-level repair must not alter path');
 assert.strictEqual(topState.events.length,topBefore.events,'blocked top-level repair must not emit fake remediation events');
-assert.strictEqual(!!topOwner.remediation.active,topBefore.remediationActive,'blocked top-level repair must not open Student Model remediation');
+assert.strictEqual(!!(topOwner.remediation&&topOwner.remediation.active),topBefore.remediationActive,'blocked top-level repair must not open Student Model remediation');
 assert.strictEqual(topState.skills.log_product_rule,undefined,'blocked top-level repair must not create an unrelated learner skill');
 
 console.log('PASS Phase 2A unfamiliar/adversarial planner, validation, support, and graph contract');
