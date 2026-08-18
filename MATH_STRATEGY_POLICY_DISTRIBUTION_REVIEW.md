@@ -8,6 +8,8 @@ This review tests the provisional formal-versus-mental selection margin against 
 
 No arithmetic weights, candidate costs, or route choices were changed to produce this report.
 
+The key distribution counts below are now also asserted by `test-math-strategy-generalization.js`, so future scorer changes cannot silently move the boundary distribution without making the test/review record disagree visibly.
+
 ## What was measured
 
 For each of the 351 percent cases, the engine was executed with neutral student fluency. Cases were then filtered to those where `percent_formal_decimal` was the raw lowest-cost candidate and at least one non-formal candidate existed.
