@@ -19,6 +19,7 @@ var MANIFEST=[
   {path:'math-prerequisite-content.js',name:'MathPrerequisiteContent'},
   {path:'day1-adaptive-math-model.js',name:'Day1AdaptiveMathModel'},
   {path:'day1-problem-source-adapters.js',name:'Day1ProblemSourceAdapters'},
+  {path:'math-answer-checker.js',name:'MathAnswerChecker'},
   {path:'day1-adaptive-runtime.js',name:'Day1AdaptiveRuntime'}
 ];
 
