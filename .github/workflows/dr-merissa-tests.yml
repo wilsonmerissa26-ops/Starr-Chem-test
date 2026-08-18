@@ -113,6 +113,7 @@ jobs:
           node --check math-answer-checker.js
           node --check day1-adaptive-runtime.js
           node --check day1-adaptive-browser-loader.js
+          node --check day1/adaptive-classroom-controller.js
       - name: Run math strategy calibration tests
         run: node test-math-strategy-engine.js
       - name: Run math strategy generalization tests
@@ -127,7 +128,11 @@ jobs:
         run: node test-math-prerequisite-content.js
       - name: Run adaptive learner runtime contract
         run: node test-day1-adaptive-runtime.js
+      - name: Run adaptive classroom controller contract
+        run: node test-adaptive-classroom-controller.js
       - name: Run canonical browser composition contract
         run: node test-adaptive-browser-composition.js
+      - name: Run canonical live page composition contract
+        run: node test-day1-canonical-live-composition.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
