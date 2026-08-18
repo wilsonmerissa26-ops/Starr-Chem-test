@@ -2,13 +2,15 @@
 
 ## Status
 
-**PROVISIONAL. Not frozen yet.**
+**FROZEN FOR PHASE 1 IMPLEMENTATION.**
 
-This architecture specification governs the next Day 1 math build, but implementation must not begin until an independent reviewer has read this source file directly and any material findings have been resolved.
+Independent source-file review is complete. Material review findings have been incorporated, including the structured-input requirement, human calibration requirement, learner-scope protection, compensation calibration cases, near-tie handling, and the distinction between free percent anchors and computed anchors.
 
 This document governs the isolated Strategy Engine build before any live classroom integration.
 
 The current repair pack remains separate and stable. Do not modify `day1/guided-problem-tutor-v13.js` to patch individual new percent cases while this engine is being built.
+
+Any later architecture change that conflicts with this frozen specification must be made deliberately through review rather than silently during implementation.
 
 ## Purpose
 
@@ -202,8 +204,10 @@ The library must generate multiple valid candidates where appropriate.
 
 ### Shared anchors
 
-Version 1 must understand these reusable mathematical anchors because they already appear in Day 1 work:
+Version 1 must understand these reusable mathematical anchors because they already appear in Day 1 work or are required for correct route scoring:
 
+- `0%` as a free anchor
+- `100%` as a free anchor
 - halves
 - quarters
 - eighths
@@ -214,6 +218,8 @@ Version 1 must understand these reusable mathematical anchors because they alrea
 - 10%
 - 5%
 - 1%
+
+`0%` and `100%` are special because they require no arithmetic to acquire: `0% of whole = 0` and `100% of whole = whole`. They must have lower anchor-acquisition cost than computed anchors.
 
 Eighth reasoning is in scope now because `fraction_of_whole` problems already include denominators of 8, such as `3/8 of 160`. This does not require teaching `12.5%` notation on Day 1.
 
@@ -231,8 +237,9 @@ Possible candidate families include:
 - 1% anchor
 - benchmark fraction equivalent when exact and instructionally appropriate
 - decomposition into friendly percentages
-- compensation from a nearby friendly percentage
-- swap identity `x% of y = y% of x` when the swap creates a genuinely easier mental route
+- compensation from a nearby computed percentage
+- compensation from the free `0%` or `100%` anchor when the correction is genuinely cheaper
+- swap identity `x% of y = y% of x` when the swap creates an easier mental calculation
 - formal `percent / 100 * whole` route as a valid conceptual method
 
 The engine must not assume that one irregular percentage always uses one strategy.
@@ -271,15 +278,16 @@ The scorer must return both a total cost and a visible cost breakdown for tests 
 At minimum score:
 
 1. operation count
-2. division difficulty
-3. multiplication difficulty
-4. decimal complexity
-5. fraction complexity
-6. number size / mental load
-7. number of intermediate values the learner must hold
-8. use of a high-fluency benchmark such as half, quarter, eighth, fifth, or tenth
-9. compensation complexity
-10. student-fluency adjustment seam
+2. anchor-acquisition cost, with `0%` and `100%` treated as free anchors
+3. division difficulty
+4. multiplication difficulty
+5. decimal complexity
+6. fraction complexity
+7. number size / mental load
+8. number of intermediate values the learner must hold
+9. use of a high-fluency benchmark such as half, quarter, eighth, fifth, or tenth
+10. compensation complexity
+11. student-fluency adjustment seam
 
 ### Difficulty is not binary
 
@@ -290,8 +298,11 @@ Examples:
 - multiplying by `0.5` is much easier than multiplying by `0.68`
 - `1% of 200 = 2` is easier than `1% of 80 = 0.8` for many no-calculator routes
 - `1/8 of 64 = 8` is unusually clean because the whole supports eighths directly
+- reaching `100% of 50 = 50` has zero anchor-acquisition cost, while reaching `90% of 50 = 45` requires computation
 
 The scorer must distinguish degrees of decimal and arithmetic difficulty.
+
+Free-anchor status is one factor, not an automatic winner. A route from `100%` may still lose if its correction requires too many or too-difficult operations.
 
 ### Student fluency seam
 
@@ -333,7 +344,7 @@ Weights must be calibrated against a human-reviewed gold set before they are tru
 
 ### Preserve the already-reviewed calibration work
 
-Do not recreate the first gold set from scratch. The initial calibration batch must be seeded from the cases already worked and reviewed during the August 17 design/review session.
+Do not recreate the first gold set from scratch. The initial calibration batch must be seeded from cases already worked and reviewed during the August 17 design/review session and from the explicitly labeled replacement compensation cases in `MATH_STRATEGY_CALIBRATION_REVIEW.md`.
 
 At minimum preserve these reviewed cases or families:
 
@@ -346,27 +357,28 @@ At minimum preserve these reviewed cases or families:
 - `62% of 50`
 - `83% of 300`
 - `12.5% of 64` as an **internal eighth-reasoning stress test only**, not learner-facing Day 1 scope
-- compensation-review entries for `33%`, `57%`, `69%`, and `88%` are **not yet complete gold cases** because the reviewed whole number and route are not currently preserved in this specification
+- `33% of 60` with preferred `30% + 3%`
+- `57% of 80` with preferred `60% - 3%`
+- `69% of 200` with preferred `70% - 1%` and an accepted near-tie using clean `1%` followed by doubling `69`
+- `88% of 50` with preferred `90% - 2%` and an accepted near-tie using free `100% - 10% - 2%`
 - the curriculum and teaching-contract irregular percentages: `17%`, `27%`, `33%`, `38%`, `58%`, `63%`, `72%`, and `84%`
 
-Where the exact whole number, preferred route, arithmetic, or acceptable near-tie for a reviewed case is not yet captured in a repository fixture, do **not** invent a replacement label. Transcribe the reviewed case from the review record and verify the arithmetic before treating it as gold data.
+Where the exact whole number, preferred route, arithmetic, or acceptable near-tie for a reviewed case is not captured in a repository fixture, do **not** invent a replacement label. Transcribe the reviewed case from the review record and verify the arithmetic before treating it as gold data.
 
 The purpose of preserving this batch is to keep human judgment already exercised during design from being silently replaced by whatever route the first implementation happens to prefer.
 
-### Compensation calibration blocker
+### Compensation calibration resolution
 
-The compensation entries `33%`, `57%`, `69%`, and `88%` are currently percentages without their reviewed whole numbers. That is insufficient for calibration because compensation quality depends on the exact whole, the anchor used, and the arithmetic cost of the correction.
+The original whole-number pairings for the historical `33%`, `57%`, `69%`, and `88%` discussion were unavailable, so they were explicitly retired as unrecoverable historical evidence rather than reconstructed.
 
-Before this specification may be frozen for implementation, each of those four entries must be pinned to:
+Four new cases were created and independently reviewed in `MATH_STRATEGY_CALIBRATION_REVIEW.md`:
 
-1. the exact reviewed problem, including the whole number;
-2. the preferred compensation route;
-3. the exact verified arithmetic for that route;
-4. any acceptable near-tie route that was also judged reasonable.
+- `33% of 60`: APPROVE AS GOLD, preferred `30% + 3%`
+- `57% of 80`: APPROVE AS GOLD, preferred `60% - 3%`
+- `69% of 200`: APPROVE WITH NEAR-TIE, preferred `70% - 1%`, near-tie clean `1%` then double `69`
+- `88% of 50`: APPROVE WITH NEAR-TIE, preferred `90% - 2%`, near-tie `100% - 10% - 2%`
 
-Do not choose convenient wholes after the fact. If the original reviewed pair cannot be recovered, mark that case as unavailable review evidence and create a **new** human-reviewed calibration case explicitly, rather than presenting a newly invented problem as if it were the original reviewed one.
-
-This blocker exists specifically to enforce the same-percent/different-whole rule: a percentage alone is not enough evidence to calibrate route selection.
+The compensation calibration blocker is therefore resolved.
 
 ### Minimum calibration families
 
@@ -382,6 +394,7 @@ The gold set must include:
 - irregular percentages from the teaching contract: 17%, 27%, 33%, 38%, 58%, 63%, 72%, 84%
 - same percentage with different whole numbers
 - friendly whole vs awkward whole
+- free-anchor compensation from 0% or 100% where appropriate
 - halves, quarters, fifths, eighths, tenths
 - what-percent-of cases
 - fraction-of-whole cases
@@ -396,6 +409,7 @@ Known calibration anchors include:
 - `37% of 200` may legitimately favor a clean 1% route
 - `37% of 80` must not be forced to use the identical route simply because the percent is also 37
 - `3/8 of 160` should exploit eighth reasoning rather than convert through unnecessary decimals
+- `88% of 50` must preserve the fact that `100%` has lower anchor-acquisition cost than `90%`, even if both routes remain acceptable near-ties
 
 These are calibration constraints, not exact-string runtime special cases.
 
@@ -464,6 +478,7 @@ Test:
 - candidate generation
 - candidate mathematical validity
 - cost components
+- free-anchor acquisition cost
 - tie handling
 - chosen route
 - support-plan structure
@@ -569,15 +584,14 @@ Do not create separate version-numbered browser patches for this work.
 
 The engine remains isolated until all of the following are true:
 
-1. this specification has completed independent source-file review and is explicitly frozen for implementation
-2. the compensation calibration blocker is resolved, or the unrecoverable original cases are explicitly retired and replaced by newly reviewed cases
-3. exported functions are directly callable in Node tests
-4. calibration set passes
-5. 100+ unseen cases complete with no mathematical invalidity
-6. human review finds no unacceptable route-selection pattern in the unseen report
-7. full existing test suite shows no new regressions
-8. current live classroom repair behavior remains intact
-9. integration design identifies how Classroom, Math Gym, and the support controller consume the same chosen plan
+1. this frozen specification remains satisfied by the implementation
+2. exported functions are directly callable in Node tests
+3. calibration set passes
+4. 100+ unseen cases complete with no mathematical invalidity
+5. human review finds no unacceptable route-selection pattern in the unseen report
+6. full existing test suite shows no new regressions
+7. current live classroom repair behavior remains intact
+8. integration design identifies how Classroom, Math Gym, and the support controller consume the same chosen plan
 
 Only then may live integration begin.
 
