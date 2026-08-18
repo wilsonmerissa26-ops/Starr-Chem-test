@@ -1,0 +1,16 @@
+name: Phase 2A Deep Repair Bank Test
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  deep-bank:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run deep-repair parent-bank exhaustion contract
+        run: node test-phase2-deep-repair-bank-exhaustion.js
