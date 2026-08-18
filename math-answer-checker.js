@@ -8,11 +8,31 @@
 function near(a,b,tol){return Math.abs(Number(a)-Number(b))<=(tol==null?1e-9:tol)*Math.max(1,Math.abs(Number(a)),Math.abs(Number(b)));}
 function absoluteNear(a,b,tol){return Math.abs(Number(a)-Number(b))<=tol;}
 function norm(v){return String(v==null?'':v).trim().toLowerCase().replace(/\s+/g,'').replace(/×/g,'*').replace(/−/g,'-');}
+function escapeRegExp(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+
+// Strict numeric parsing: consume the entire input rather than accepting a
+// numeric prefix (the old parseFloat behavior made "12abc" look like 12).
+// A single trailing percent sign is intentionally accepted because current
+// fractions/percentages practice allows entries such as "8%".
 function numeric(v){
-  var s=String(v==null?'':v).trim().replace(/,/g,'').replace(/%/g,'');
-  var n=parseFloat(s);
+  var s=String(v==null?'':v).trim().replace(/,/g,'');
+  var m=s.match(/^([+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE][+-]?\d+)?)\s*%?$/);
+  if(!m)return null;
+  var n=Number(m[1]);
   return Number.isFinite(n)?n:null;
 }
+
+function numericWithOptionalUnit(v,unit){
+  var raw=String(v==null?'':v).trim().replace(/,/g,'');
+  if(!unit)return numeric(raw);
+  var unitPattern=escapeRegExp(String(unit).trim()).replace(/\\ /g,'\\s*');
+  var re=new RegExp('^([+-]?(?:(?:\\d+(?:\\.\\d*)?)|(?:\\.\\d+))(?:[eE][+-]?\\d+)?)\\s*(?:'+unitPattern+')?$','i');
+  var m=raw.match(re);
+  if(!m)return null;
+  var n=Number(m[1]);
+  return Number.isFinite(n)?n:null;
+}
+
 function fractionValue(v){
   var s=norm(v),m=s.match(/^([+-]?[0-9]+(?:\.[0-9]+)?)\/([+-]?[0-9]+(?:\.[0-9]+)?)$/);
   if(!m)return null;
@@ -44,7 +64,9 @@ function check(problem,input,plan){
     var gotExpr=normalizeExpr(input),ansExpr=normalizeExpr(expected);
     if(gotExpr===ansExpr)return true;
     if(problem.formulaId==='V_lwh_h')return ['v/lw','v/(lw)'].indexOf(gotExpr)>=0;
-    if(problem.formulaId==='P_2l2w_w')return ['p/2-l','(p-2l)/2','p-2l/2'].indexOf(gotExpr)>=0;
+    // P = 2l + 2w -> w = (P - 2l)/2 = P/2 - l.
+    // Do NOT accept p-2l/2: normal precedence makes that p-l, which is different.
+    if(problem.formulaId==='P_2l2w_w')return ['p/2-l','(p-2l)/2'].indexOf(gotExpr)>=0;
     return false;
   }
 
@@ -59,12 +81,21 @@ function check(problem,input,plan){
     return frac!==null&&near(frac,expected);
   }
 
-  var got=numericOrFraction(input);
-  if(got===null)return false;
-  if(family==='estimate_negative_log')return absoluteNear(got,expected,0.15);
-  if(family==='log_product_estimate')return absoluteNear(got,expected,0.03);
-  return near(got,expected,1e-9);
+  if(family==='single_conversion'||family==='stacked_rate'||family==='rate_times_duration'){
+    var targetUnit=family==='rate_times_duration'?problem.unit:problem.to;
+    var unitValue=numericWithOptionalUnit(input,targetUnit);
+    return unitValue!==null&&near(unitValue,expected,1e-9);
+  }
+
+  var gotNumber=numericOrFraction(input);
+  if(gotNumber===null)return false;
+  if(family==='estimate_negative_log')return absoluteNear(gotNumber,expected,0.15);
+  if(family==='log_product_estimate')return absoluteNear(gotNumber,expected,0.03);
+  return near(gotNumber,expected,1e-9);
 }
 
-return{check:check,numeric:numeric,fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr,absoluteNear:absoluteNear};
+return{
+  check:check,numeric:numeric,numericWithOptionalUnit:numericWithOptionalUnit,
+  fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr,absoluteNear:absoluteNear
+};
 });
