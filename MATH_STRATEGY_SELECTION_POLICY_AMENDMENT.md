@@ -2,9 +2,9 @@
 
 ## Status
 
-**MECHANISM REVIEWED; `1.5` THRESHOLD PROVISIONAL PENDING DISTRIBUTION REVIEW.**
+**REVIEWED PHASE 1 INSTRUCTIONAL NEAR-TIE POLICY.**
 
-This amendment records a deliberate refinement to the frozen Phase 1 selection policy after direct source review and re-execution of the carry-corrected awkward-whole cases.
+This amendment records a deliberate refinement to the frozen Phase 1 selection policy after direct source review, carry-corrected re-execution, and full-suite gap-distribution review.
 
 It does not expand Phase 1 scope. It does not add algebra, the full Prerequisite Router, Student Model personalization, or live browser integration.
 
@@ -12,9 +12,9 @@ It does not expand Phase 1 scope. It does not add algebra, the full Prerequisite
 
 The frozen specification correctly requires candidate routes to be scored by exact arithmetic cost and allows formal decimal multiplication as a valid candidate. It also defines a generic near-tie mechanism.
 
-Human review of the carry-corrected unseen cases found that raw arithmetic cost alone is not sufficient to choose the Day 1 instructional default in one specific situation: when formal decimal multiplication is only narrowly cheaper than a mental decomposition, skipping the mental route can discard a useful no-calculator repetition even though the measured cost difference is small.
+Human review found that raw arithmetic cost alone is not sufficient to choose the Day 1 instructional default when formal decimal multiplication and a mental route sit in the same middle-cost cluster. In that zone, defaulting immediately to formal can discard useful no-calculator practice even though the arithmetic advantage is modest.
 
-The opposite extreme was also rejected. When decomposition is meaningfully more expensive, the engine should be allowed to recognize that and use the formal route.
+The opposite extreme was also rejected. When formal is meaningfully cheaper, the engine should be allowed to recognize that and use it.
 
 ## Separate arithmetic ranking from instructional default
 
@@ -24,37 +24,38 @@ For `percent_of_whole` only, if `percent_formal_decimal` is the raw lowest-cost 
 
 1. find the lowest-cost non-formal candidate;
 2. compute `mentalCost - formalCost`;
-3. using the current provisional margin, if the gap is greater than `1.5`, keep formal as the deterministic learner-facing default;
-4. if the gap is less than or equal to `1.5`, use the best mental route as the deterministic Day 1 default and surface formal as the close alternate;
+3. if the formal advantage is **less than or equal to `1.8` cost units**, treat the pair as an **instructional near-tie**: use the best mental route as the deterministic Day 1 default and surface formal as the alternate;
+4. if the formal advantage is **greater than `1.8`**, keep formal as the deterministic learner-facing default;
 5. do not alter either candidate's raw cost to manufacture this result.
 
-The normal `0.5` near-tie threshold remains in place for ordinary same-layer alternatives. The current `1.5` value is a separate instructional-policy margin used only for this formal-versus-mental decision.
+There is intentionally no lower bound such as `1.0`. If the formal advantage is smaller than `1.0`, the routes are even closer and remain inside the instructional near-tie zone.
 
-## Initial calibration basis
+The normal `0.5` near-tie threshold remains unchanged for ordinary same-layer alternatives. The `1.8` value is a separate formal-versus-mental instructional band ceiling.
 
-After correcting carry-blindness, the first four reviewed gaps were:
+## Evidence for using a band instead of splitting the middle cluster
 
-- `17% of 32`: formal advantage `2.050`
-- `27% of 64`: formal advantage `1.700`
-- `69% of 32`: formal advantage `1.050`
-- `88% of 64`: formal advantage `2.600`
+The first reviewed awkward-whole cases established two useful anchors:
 
-That review judged `69% of 32` close enough to preserve the mental repetition as the default, while the wider-gap examples legitimately supported formal selection. The initial `1.5` value separated the reviewed close case (`1.050`) from the next-smallest reviewed gap (`1.700`).
+- `69% of 32`: formal advantage `1.050` — mental default judged instructionally appropriate;
+- `88% of 64`: formal advantage `2.600` — formal default judged legitimately better.
 
-That four-case basis justified the mechanism, but it is not sufficient to freeze the threshold.
+The later full-suite review showed a dense middle cluster at:
 
-## Full-suite distribution finding
+- `1.35`
+- `1.50`
+- `1.65`
+- `1.70`
 
-`MATH_STRATEGY_POLICY_DISTRIBUTION_REVIEW.md` applies the policy analysis to the existing 351-case non-gold percent suite.
+Representative cases were then reviewed directly from source and re-executed:
 
-Key findings:
+- `33% of 64` — gap `1.35`, best mental route `1%` then scale;
+- `84% of 64` — gap `1.50`, best mental route `1%` then scale;
+- `69% of 72` — gap `1.65`, best mental route `70% - 1%`;
+- `27% of 64` — gap `1.70`, best mental route `1%` then scale.
 
-- formal is raw lowest cost in `56` cases;
-- `22` of those `56` cases fall within `±0.3` of the current `1.5` boundary;
-- the override count is `15` at thresholds `1.5` and `1.6` but jumps to `27` at `1.7`;
-- boundary cases cluster at gaps `1.35`, `1.50`, `1.65`, and `1.70`.
+The review concluded that these cases are more meaningfully treated as one middle instructional zone than split by a precise cutoff inside the cluster.
 
-Therefore `1.5` remains the current implementation value but is **not yet a frozen or generally calibrated boundary**. Representative human review across those bands is required before the threshold is considered settled.
+The current `1.8` ceiling sits above the reviewed `1.70` cluster while still leaving the clearly wider `2.05` and `2.60` formal-favoring examples outside the band. It is calibration-derived, not mathematical law, and should be revisited as the reviewed case set grows.
 
 ## Required observability
 
@@ -64,20 +65,25 @@ The engine result must expose enough information to audit the distinction:
 - `chosenStrategyId`
 - `selectionPolicy`
 - `selectionPolicyGap`
-- the formal route in `nearTies` when the close-gap policy switches the learner-facing default to mental
+- the formal route in `nearTies` when the instructional near-tie policy switches the learner-facing default to mental
+
+The raw candidate costs must remain unchanged by this policy.
 
 ## Required tests
 
 Tests must prove:
 
-- `17% of 32` remains formal-default under the current provisional margin;
-- `27% of 64` remains formal-default under the current provisional margin;
-- `69% of 32` keeps formal as raw lowest cost but selects `70% - 1%` as the Day 1 default and surfaces formal as the alternate;
-- `88% of 64` remains formal-default;
+- `69% of 32` remains mental-default with formal raw-cheapest at gap `1.05`;
+- `33% of 64` is mental-default at gap `1.35`;
+- `84% of 64` is mental-default at gap `1.50`;
+- `69% of 72` is mental-default at gap `1.65`;
+- `27% of 64` is mental-default at gap `1.70`;
+- `17% of 32` remains formal-default at gap `2.05`;
+- `88% of 64` remains formal-default at gap `2.60`;
+- exactly `1.8` remains inside the instructional near-tie band;
+- a gap above `1.8` lets formal win;
 - changing arithmetic weights affects raw costs without silently bypassing declared weight multipliers;
 - the policy does not rewrite candidate costs.
-
-These tests verify the current implementation and reviewed seed cases. They do not, by themselves, prove that `1.5` is the final general threshold.
 
 ## Carry-cost assumption
 
