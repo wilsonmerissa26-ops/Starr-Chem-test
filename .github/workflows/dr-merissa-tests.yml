@@ -137,6 +137,8 @@ jobs:
         run: node test-math-prerequisite-content.js
       - name: Run Phase 2A adaptive learner runtime contract
         run: node test-day1-adaptive-runtime.js
+      - name: Run Phase 2A active-remediation reopen contract
+        run: node test-phase2-remediation-reopen.js
       - name: Run Phase 2A unfamiliar and adversarial core contract
         run: node test-phase2-adaptive-core-adversarial.js
       - name: Run Phase 2A generated generalization contract
@@ -169,6 +171,7 @@ jobs:
             route-efficiency-policy.js \
             teaching-plan-copy-policy.js \
             test-day1-adaptive-runtime.js \
+            test-phase2-remediation-reopen.js \
             test-day1-problem-source-adapters.js \
             test-full-day1-adaptive-model.js \
             test-math-answer-checker.js \
