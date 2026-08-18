@@ -2,7 +2,7 @@
 
 ## Status
 
-**HUMAN / SOURCE REVIEW REQUIRED BEFORE PR #27 MAY LEAVE DRAFT.**
+**AUTOMATED / SOURCE-AUDIT GATE COMPLETE; DIRECT HUMAN REVIEW REQUIRED BEFORE PR #27 MAY LEAVE DRAFT.**
 
 This review covers the isolated non-browser Phase 2A core only. It does not authorize `day1/index.html` changes, browser composition, live Math Gym wiring, or removal of the current v8/v9/v10/v13 scripts.
 
@@ -10,118 +10,107 @@ This review covers the isolated non-browser Phase 2A core only. It does not auth
 
 | Claim | Confidence | Evidence |
 |---|---|---|
-| Accepted Phase 1 Strategy Engine remains intact | **Runtime-verified** | Phase 1 calibration + 351-case generalization pass inside the Phase 2A CI; adversarial test rechecks `69% of 32` raw formal / chosen `70%-1%` / gap `1.05`. |
-| All 31 current classroom math prompts normalize and plan | **Runtime-verified** | `test-day1-problem-source-adapters.js` executes the exact prompt list and reports 31/31 covered. |
-| New non-Phase-1 arithmetic is broadly mathematically correct | **Runtime-verified** | `test-phase2-adaptive-core-generalization.js` executes 1,786 identity-generated cases: 972 fraction-arithmetic, 223 algebra, 332 exponent, 120 scientific-notation, 59 log, and 80 unit/rate cases. |
-| Invalid planner structures fail before unsafe arithmetic | **Runtime-verified** | Adversarial suite rejects zero denominators, degenerate algebra, invalid negative-exponent inputs, scientific division by zero, NaN coefficients, inconsistent log factors, zero conversion factors, zero rate denominators, and unsupported families. |
-| Help me understand is separate from Mental route | **Runtime-verified** | Full-model, runtime, and adversarial tests require Understand to expose concept only, zero worked steps, and no `mentalRoute` text; Mental remains a separate mode. |
-| First Step stops after exactly one step | **Runtime-verified** | Full-model and runtime contracts assert `steps.length === 1`. |
-| Math remediation returns to the exact original problem | **Runtime-verified** | Runtime contract descends, passes a prerequisite check, and asserts return to the identical original `sourceId`. |
-| Generic Student Model fresh-item remediation still exists | **Runtime-verified** | Runtime test proves generic `exitRemediation()` returns a fresh item before the math runtime composes its contextual same-problem resolver. |
-| First-level math remediation cannot open an unrelated prerequisite | **Runtime-verified** | Adversarial red/green test requests `log_product_rule` while solving `15% of 80`; runtime blocks it before Student Model remediation, child-skill creation, stack/path mutation, or remediation events. |
-| Deep prerequisite routing cannot jump across unrelated graph branches | **Runtime-verified** | Adversarial red/green test: `quartering -> log_product_rule` is blocked and active skill, stack, path, and history remain unchanged. |
-| Final-answer correctness does not manufacture prerequisite fluency | **Runtime-verified** | Runtime red/green test proves a bare unaided correct answer remains parent-skill evidence only; smaller route skills are not created or credited by inference. |
-| Positive smaller-skill route evidence requires exact observation | **Runtime-verified** | Route fluency requires correct + unaided + `routeVerified:true` + explicit `evidenceSkillIds`; only IDs actually present in the selected route can be credited, arbitrary IDs are ignored, and support blocks credit. |
-| Every prerequisite graph node has content/check infrastructure | **Runtime-verified structurally** | 46 graph nodes each have lesson content, worked-example validation, at least two representation records, and at least three fresh checks whose own validators accept their answers. |
-| Every prerequisite lesson is pedagogically clear and each representation is meaningfully different | **NOT YET HUMAN-VERIFIED** | Automated structural tests cannot establish teaching quality, cognitive load, or whether two representations feel genuinely different to a learner. |
-| The non-percent planner chooses the best possible strategy among alternatives | **NOT CLAIMED** | Most Phase 2A non-percent families currently have one canonical deterministic route, not a Phase-1-style multi-candidate strategy competition. |
-| Browser/live behavior is correct | **NOT TESTED IN PHASE 2A** | Deliberately out of scope. No live page files are changed by PR #27. |
+| Accepted Phase 1 Strategy Engine remains intact | **Runtime-verified** | Phase 1 calibration + 351-case generalization run inside Phase 2A CI; adversarial contract rechecks `69% of 32` raw formal / chosen `70%-1%` / gap `1.05`. |
+| All 31 current classroom math prompts normalize and plan | **Runtime-verified** | `test-day1-problem-source-adapters.js` executes the exact current prompt list. |
+| New non-Phase-1 arithmetic is broadly mathematically correct | **Runtime-verified** | Fixed generated population of 1,786 cases: 972 fraction-arithmetic, 223 algebra, 332 exponent, 120 scientific-notation, 59 log, and 80 unit/rate cases. |
+| Invalid planner structures fail before unsafe arithmetic | **Runtime-verified** | Adversarial contract rejects zero denominators, degenerate algebra, invalid exponent inputs, scientific division by zero, NaN coefficients, inconsistent log factors, invalid conversion/rate factors, unsupported families, and missing landmark routes. |
+| Help me understand is separate from Mental route | **Runtime-verified** | Understand exposes concept only, zero worked steps, no `mentalRoute`; Mental remains separate. |
+| First Step stops after exactly one step | **Runtime-verified** | Full-model/runtime contracts assert one actionable step. |
+| Math remediation returns to the exact original problem | **Runtime-verified** | Runtime descends, verifies prerequisite repair, and returns the identical original `sourceId`. |
+| Generic Student Model fresh-item remediation still exists | **Runtime-verified** | Generic `exitRemediation()` behavior is tested before the math-specific runtime policy is composed. |
+| First-level remediation cannot open an unrelated prerequisite | **Runtime-verified** | A log repair request during `15% of 80` is blocked before Student Model remediation, child-skill creation, stack/path mutation, or remediation events. |
+| Deep prerequisite routing cannot jump across unrelated graph branches | **Runtime-verified** | `quartering -> log_product_rule` is blocked with no state mutation. |
+| Final-answer correctness does not manufacture prerequisite fluency | **Runtime-verified** | Bare correct final answer remains parent-skill evidence only. |
+| Positive smaller-skill route evidence requires exact observation | **Runtime-verified** | Requires correct + unaided + `routeVerified:true` + explicit route-constrained `evidenceSkillIds`; support blocks credit. |
+| Negative-log estimation is human-doable rather than calculator-smuggled | **Runtime-verified** | Current `−log(6×10^-6)` route explicitly uses `log2≈.30`, `log3≈.48`, builds `.78`, subtracts, then rounds. Missing landmarks are rejected. |
+| Day 1 exact-log families stay on power-of-ten landmarks | **Runtime-verified** | `exact_log10` rejects arbitrary non-power-of-ten values; `inverse_log10` rejects fractional exponents. |
+| Scientific-notation signed definition is consistent | **Runtime-verified** | Conversion, multiplication, division, coefficient-range remediation, and normalization remediation use `1 ≤ |coefficient| < 10`; negative checks are included. |
+| Safe equivalent exponent forms are accepted | **Runtime-verified** | `b^-2` = `1/b^2`, `x^0` = `1`, `a^1` = `a`; checker remains intentionally non-CAS. |
+| No-op learner steps are removed when provably unnecessary | **Runtime-verified** | Already-reduced fraction omits fake reduction; reducible result retains it; cost is recomputed after compression. |
+| Every prerequisite graph node has content/check infrastructure | **Runtime-verified structurally** | 46 graph nodes each have lesson content, worked-example validation, representation records, and at least three checks whose validators accept their own answers. |
+| Phase 2A has not changed the live classroom | **Runtime-verified by CI file contract** | `test-phase2a-no-live-integration.js` rejects Phase 2A references in `day1/index.html` and confirms the current v8/v9/v10/v13 stack remains present. |
+| Every prerequisite lesson is pedagogically excellent and every representation is cognitively distinct | **NOT YET HUMAN-VERIFIED** | Structural tests/source audit cannot establish learner comprehension or phone-level cognitive load for all 46 nodes. |
+| The non-percent planner chooses the best possible strategy among alternatives | **NOT CLAIMED** | Most new families currently have one canonical deterministic route, not a Phase-1-style strategy competition. |
+| Browser/live behavior of Phase 2A is correct | **NOT TESTED / NOT INTEGRATED** | Deliberately deferred to Phase 2B. |
 
-## Corrections made during the clean migration
+## Source-audit defects corrected
 
-The clean Phase 2A branch was rebuilt from accepted `main` rather than resolving the conflicted historical Phase 2+ branch in place.
+The clean branch was rebuilt from accepted `main`; the conflicted historical Phase 2+ branch was not merged or conflict-resolved wholesale.
 
-Source review, red tests, and targeted fixes found and corrected seven concrete defects/boundary problems:
+Direct source review, red tests, and targeted fixes corrected these concrete defects/boundaries:
 
-1. `Help me understand` had reused the optional `mentalRoute`; it now has a separate concept-only contract.
-2. Numeric checking used `parseFloat`, so malformed values such as `12abc` could be read as `12`; numeric parsing now consumes the complete input.
-3. Unit answers previously inherited that permissive numeric-prefix behavior; a unit-bearing answer may now use only the expected target unit, not arbitrary trailing text or a wrong unit.
-4. The formula checker accepted `p-2l/2` as equivalent to `(p-2l)/2`; it no longer does because normal precedence makes `p-2l/2 = p-l`.
-5. Once inside a prerequisite node, the router could descend to any graph node that existed. It now requires deeper descent to follow the current node's explicit `dependsOn` edge and blocks unrelated jumps without mutating remediation state.
-6. A correct unaided final answer previously credited every prerequisite ID named anywhere in the selected teaching plan. That overstated learner evidence because a final answer does not prove which route was used or that optional steps such as `substitution_check` or `magnitude_prediction` were performed. Final-answer correctness now remains parent-skill evidence only unless route execution and exact observed smaller skills are explicitly verified.
-7. The first remediation request previously accepted any prerequisite node that existed, so a future controller could open a log repair while the learner was solving a percent problem. First-level remediation is now restricted to prerequisite IDs actually emitted by the selected route and is blocked before any remediation state mutation when unrelated.
+1. **Understand vs Mental:** `Help me understand` had reused `mentalRoute`; it now remains concept-only.
+2. **Malformed numeric answers:** `parseFloat` allowed `12abc` to behave like `12`; numeric parsing now consumes the full input.
+3. **Unit suffixes:** unit-bearing answers now allow the expected target unit, not arbitrary/wrong trailing text.
+4. **Formula precedence:** `p-2l/2` is no longer accepted as `(p-2l)/2`; `P/2-l` remains accepted because it is equivalent.
+5. **Deep graph jumps:** a prerequisite node could jump to any other existing node; deeper descent now follows explicit `dependsOn` edges and blocked jumps are side-effect free.
+6. **Over-crediting learner evidence:** one correct final answer previously credited every prerequisite named in the selected plan. Final correctness is parent-skill evidence only unless exact route execution is explicitly observed.
+7. **Top-level unrelated remediation:** any existing node could be opened as the first repair. First repair must now belong to the selected route and is rejected before remediation state changes if unrelated.
+8. **Negative-log calculator smuggling:** `−log(6×10^-6)` told the learner to estimate but inserted exact `Math.log10(6)` internally. The route now uses explicit `2×3` landmarks, obtains `.78`, computes `5.22`, and rounds to `5.2`.
+9. **Exact-log scope leak:** arbitrary `log(3)` / fractional inverse exponents could enter “exact” families and trigger calculator-only work. Exact families are now integer power-of-ten landmarks only.
+10. **Two-sided algebra wording:** negative coefficient moves could say “Subtract -4x.” Copy now says the equivalent human operation, e.g. “Add 4x.”
+11. **Negative-exponent wording:** standalone negative powers referred to moving a factor across a fraction bar that did not exist. The route now explicitly rewrites the current power as a reciprocal first.
+12. **Scientific signed-domain contradiction:** top-level and prerequisite copy previously used a positive-only coefficient range in some paths. All canonical scientific conversion/multiply/divide/normalization teaching now uses absolute value and preserves sign.
+13. **Symbolic exponent equivalence:** expanded quotient cases could mark `1/b^2` wrong when the canonical output was `b^-2`; safe taught identities are now accepted.
+14. **No-op fraction reduction:** already-reduced answers could end with “Reduce 7/12 to 7/12.” The no-op step and false simplification prerequisite are removed; route cost is recalculated.
+15. **CI scope drift risk:** Phase 2A now has an explicit non-live contract so a future edit cannot quietly load the new core into `day1/index.html` before Phase 2B.
 
-## Representative source-review sample
+## Representative human-review sample
 
-These are intentionally not all current classroom fixtures. They exercise unfamiliar values or architecture boundaries and are useful for judging whether the teaching route itself is appropriate, not merely mathematically correct.
+The remaining review questions are pedagogical/scope judgments, not known arithmetic defects.
 
-| Area | Problem / condition | Current canonical result or behavior | What to judge |
+| Area | Problem / condition | Current canonical behavior | Human judgment still needed |
 |---|---|---|---|
-| Fractions | `7/12 + 5/18` | common denominator route, answer `31/36` | Is the common-denominator explanation concise enough without skipping why equal-sized pieces matter? |
-| Algebra | `2x + 11 = 5x - 4` | keeps remaining coefficient positive, answer `5` | Is "move the smaller x-term" a good default teaching heuristic? |
-| Algebra formula | `P = 2l + 2w`, isolate `w` | `(P-2l)/2`; `P/2-l` accepted as equivalent | Is the symbolic sequence appropriate for Day 1 readiness, or should this remain later-only content? |
-| Exponents | `b^3 / b^5` | `b^-2` | Should the route stop there or automatically connect a negative exponent to reciprocal form in the same lesson? |
-| Exponents | `3^-3` | `1/27` | Is reciprocal meaning explained before evaluation clearly enough? |
-| Scientific notation | `987000` | `9.87 × 10^5` | Does coefficient-first → count shifts → sign create the lowest cognitive load? |
-| Scientific notation | `(6×10^-2)/(1.5×10^3)` | `4×10^-5` | Is coefficient/exponent separation sufficiently explicit when subtracting a positive exponent from a negative one? |
-| Logs | `log(0.001)` | `-3` through inverse power-of-ten relationship | Is this understandable without prior exponent confidence, or should exponent remediation be more visible? |
-| Logs | estimate `log(15)` from supplied `log(3)` and `log(5)` | factor → product rule → add landmarks | Is product-rule teaching justified on Day 1, or too advanced relative to the readiness goal? |
-| Units | unfamiliar single conversion | predict magnitude → state relationship → cancel units → calculate → check | Is magnitude prediction useful support or unnecessary overhead on easy conversions? |
-| Rate | rate × duration | interpret rate → multiply by time → cancel time → simplify | Does this sequence teach dimensional meaning rather than merely an algorithm? |
-| Prerequisite routing | parent → `quartering` → `halving` | repair deepest missing node, unwind one level at a time, return to exact parent problem | Is that repair depth appropriate, and are any graph edges pedagogically missing or unnecessary? |
-| Evidence | correct `15% of 80` final answer | parent percent skill gets correctness evidence; no halving/divide-by-10 fluency is inferred unless those exact route steps are observed | Is this evidence discipline strict enough, and what future UI interactions count as genuine observation? |
+| Fractions | `7/12 + 5/18` | common-denominator route, simplify only if needed | Is the explanation concise enough while still teaching why equal-sized pieces are required? |
+| Algebra | `2x + 11 = 5x - 4` | chooses the move that keeps the remaining x coefficient positive | Is that the best default heuristic for this learner, or should alternate algebra routes be available? |
+| Algebra formula | `P = 2l + 2w`, isolate `w` | `(P-2l)/2`; equivalent `P/2-l` accepted | Does formula rearrangement belong in Day 1 learner-facing scope or only internal/remediation capability? |
+| Exponents | `b^3 / b^5` | canonical answer `b^-2`; reciprocal equivalent accepted | Should teaching automatically continue from `b^-2` to `1/b^2`, or stop at the quotient-rule result? |
+| Scientific notation | `(6×10^-2)/(1.5×10^3)` | separate coefficient/exponent work, signed normalization | Is the sequence sufficiently explicit when subtracting a positive exponent from a negative exponent? |
+| Logs | `log(0.001)` | inverse power-of-ten relationship | Should exponent remediation be surfaced more aggressively before this skill? |
+| Logs | estimate `log(15)` from supplied `log(3)` and `log(5)` | factor → product rule → add landmarks | Is product-rule estimation appropriate Day 1 content or later/internal capability? |
+| Units | easy single conversion | predict magnitude → relationship → cancel → calculate/check | Is magnitude prediction helpful on every easy conversion or unnecessary overhead? |
+| Rate | rate × duration | interpret rate → multiply by duration → cancel time → simplify | Does this feel meaning-first rather than algorithm-first? |
+| Graph | parent → `quartering` → `halving` | repair deepest verified dependency and unwind to exact parent | Are any graph edges too deep, missing, or unnecessary? |
+| Evidence | correct `15% of 80` final answer | parent correctness only unless exact smaller route actions are observed | Which Phase 2B UI actions count as genuine observation of halving/divide-by-10/etc.? |
 
 ## Open human-review questions
 
 ### 1. Canonical route versus strategy competition
 
-Phase 1 needed a cost-ranked candidate library because percentages have many genuinely competing mental routes. Most new Phase 2A families currently have one canonical route. Human review should decide whether that is correct for the Day 1 scope or whether any family needs multiple route candidates before browser integration.
-
-Do not add alternatives merely for architectural symmetry. Add them only where two approaches are genuinely plausible for a learner and choosing between them matters.
+Phase 1 needed multiple cost-ranked percent routes. Most Phase 2A families currently use one canonical route. Do not add alternatives for symmetry; add them only where real learner choice matters.
 
 ### 2. Prerequisite graph quality
 
-The graph is now mechanically guarded at both levels: first repair must come from the selected route, and deeper repair must follow `dependsOn`. Its *edges* still need human review. The question is not whether a referenced node exists. The question is whether failure at the parent skill really justifies descending to that child skill.
-
-Review especially cross-topic support such as:
-
-- scientific notation -> exponent meaning / place value;
-- logs -> exponent landmarks;
-- unit magnitude prediction -> estimation;
-- proportional algebra -> fraction/division meaning.
+Mechanical guards are now strong, but the educational meaning of the edges still requires review. Focus especially on scientific notation ↔ exponent/place-value support, logs ↔ exponent landmarks, unit magnitude prediction ↔ estimation, and proportion ↔ fraction/division meaning.
 
 ### 3. Prerequisite content quality
 
-The 46-node content contract proves availability and self-consistency, not teaching quality. Review should look for:
-
-- circular explanations;
-- representations that are different in name but not cognitively different;
-- examples harder than the prerequisite they are supposed to repair;
-- language that presumes the very concept being taught;
-- too much text for a phone learner;
-- checks that only copy the worked example's surface pattern.
+All 46 nodes are structurally complete, but human review should look for circular explanations, pseudo-different representations, examples harder than the prerequisite, language that assumes the concept, excessive phone text, and checks that merely clone the worked example pattern.
 
 ### 4. Day 1 scope discipline
 
-The full core can plan formula rearrangement and some log/product-rule reasoning. Capability does not automatically mean every family belongs in the learner-facing Day 1 sequence. The later integration gate should distinguish:
+Capability does not equal learner-facing scope. Classify formula rearrangement, log product-rule estimation, and any other expanded family as one of: required Day 1 content, remediation capability, internal stress-test capability, or later content.
 
-- content required by the frozen/current classroom;
-- useful remediation capability;
-- internal stress-test capability;
-- content that should remain unavailable to the learner until later.
+### 5. Phase 2B observation contract
 
-### 5. Personalization evidence
+The core intentionally refuses to infer route skill evidence. Browser integration must define which explicit learner actions genuinely demonstrate `halving`, `divide_by_10`, `substitution_check`, magnitude prediction, cancellation, and related skills. Displaying a step or eventually getting the final answer correct is not enough.
 
-Phase 2A no longer infers prerequisite fluency from a whole-problem answer. Positive smaller-skill route evidence is only possible when a future integration layer explicitly verifies route execution and names the exact observed route skills, while targeted prerequisite checks continue to provide direct smaller-skill evidence.
+## Automated evidence baseline
 
-Human review should now focus on the **observation contract for Phase 2B**: which learner actions genuinely demonstrate `halving`, `divide_by_10`, `substitution_check`, magnitude prediction, cancellation, and similar skills, versus actions that merely coexist with a correct answer.
+The exact current documentation head must complete CI before this handoff is considered final. The immediately preceding code heads have passed the complete repository suite plus:
 
-The future browser/controller must not award route evidence simply because it displayed a step or because the learner eventually reached the correct final answer.
-
-## Current CI evidence
-
-Exact code head `e4234844bca56d17b3be35639d0ff8e72635e549` completed GitHub Actions run **#274** successfully before this documentation-only update. That run passed:
-
-- complete pre-existing repository suite;
 - accepted Phase 1 calibration and 351-case generalization;
-- Phase 2A syntax checks;
-- full adaptive model/support contract;
-- all 31 classroom source-adapter cases;
-- strict answer-checker regressions;
-- prerequisite-content contract across 46 nodes;
-- adaptive runtime, same-problem remediation, and strict route-evidence contract;
-- unfamiliar/adversarial core contract including first-level and deep graph guards;
-- generated 1,786-case correctness/determinism suite;
+- Phase 2A module syntax checks;
+- 31/31 current classroom source coverage;
+- strict answer checker and safe symbolic equivalence;
+- structural prerequisite-content validation across 46 nodes;
+- adaptive runtime, same-problem remediation, route/graph guards, and strict evidence contracts;
+- unfamiliar/adversarial six-area coverage;
+- fixed 1,786-case generated correctness/determinism suite;
+- explicit-landmark and exact-log scope contracts;
+- cognitive-load no-op contract;
+- learner-facing algebra/exponent/scientific language and prerequisite-definition consistency;
+- non-live integration contract;
 - final Day 1 academic/voice release audit.
 
-Passing CI is necessary but not sufficient for Phase 2A acceptance. The next gate is direct human/source review of the routes, graph, evidence boundaries, and teaching content named above.
+Passing these gates is necessary but not sufficient for acceptance. PR #27 must remain draft until the direct human/source review above is completed.
