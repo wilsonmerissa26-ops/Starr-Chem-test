@@ -99,5 +99,15 @@ jobs:
         run: node test-guided-problem-tutor-v13.js
       - name: Run learner support repair regressions
         run: node test-tonight-repair-pass.js
+      - name: Syntax-check standalone Phase 1 strategy engine
+        run: |
+          node --check math-strategy-adapters.js
+          node --check math-strategy-cost.js
+          node --check math-strategy-library.js
+          node --check math-strategy-engine.js
+      - name: Run Phase 1 strategy calibration tests
+        run: node test-math-strategy-engine.js
+      - name: Run Phase 1 strategy generalization tests
+        run: node test-math-strategy-generalization.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js
