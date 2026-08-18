@@ -4,12 +4,14 @@
    CANONICAL DAY 1 ADAPTIVE MATH MODEL ENTRY
 
    The migrated model policy remains intact in its base module. This entry adds
-   reviewed scope guards, specialized planners, and learner-facing copy
-   corrections without silently expanding Day 1 into calculator-only work.
+   reviewed scope guards, specialized planners, route-efficiency corrections,
+   and learner-facing copy corrections without silently expanding Day 1 into
+   calculator-only or no-op work.
    ============================================================ */
 
 var base=require('./day1-adaptive-math-model-policy.js');
 var negativeLog=require('./log-negative-estimate-planner.js');
+var routeEfficiency=require('./route-efficiency-policy.js');
 var teachingCopy=require('./teaching-plan-copy-policy.js');
 
 function closeToInteger(v){
@@ -40,6 +42,7 @@ function planProblem(problem,options){
   }else{
     planned=base.planProblem(validated,options);
   }
+  planned=routeEfficiency.apply(validated,planned,options||{});
   return teachingCopy.apply(validated,planned);
 }
 
