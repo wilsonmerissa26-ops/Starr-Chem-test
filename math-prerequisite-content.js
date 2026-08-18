@@ -36,13 +36,13 @@ coefficient.checks=[
 
 var normalize=core._lessons.normalize_scientific;
 if(!normalize)throw new Error('missing normalize_scientific prerequisite content');
-normalize.concept='After multiplying or dividing in scientific notation, adjust the coefficient so 1 ≤ |coefficient| < 10 and compensate with the exponent.';
+normalize.concept="After multiplying or dividing in scientific notation, adjust the coefficient so its absolute value satisfies 1 ≤ |coefficient| < 10, then compensate with the exponent.";
 normalize.why='Moving the coefficient decimal by one place changes its magnitude by a factor of 10. The exponent changes in the opposite direction so the value stays the same; the sign of the coefficient is preserved.';
 normalize.representations=[
-  {id:'diagram',text:'Use a linked decimal/exponent move: shift the coefficient magnitude into 1 ≤ |coefficient| < 10, then change the exponent by the opposite power of ten.'},
+  {id:'diagram',text:"Use a linked decimal/exponent move: shift the coefficient until its absolute value satisfies 1 ≤ |coefficient| < 10, then change the exponent by the opposite power of ten."},
   {id:'worked_example',text:normalize.workedExample.prompt+' → '+normalize.workedExample.explanation},
   {id:'concrete_analogy',text:'Treat the coefficient and power of ten like two sides of a trade: if the coefficient becomes ten times smaller, the power-of-ten part becomes ten times larger, while the coefficient sign stays the same.'},
-  {id:'build_together',text:"First check |coefficient|. Preserve its sign, move the decimal until 1 ≤ |coefficient| < 10, then compensate in the exponent."}
+  {id:'build_together',text:"First check the coefficient's absolute value. Preserve its sign, move the decimal until 1 ≤ |coefficient| < 10, then compensate in the exponent."}
 ];
 normalize.checks=[
   {id:'ns-1',prompt:'Normalize 0.8 × 10^5',answer:'8 × 10^4',check:exactText('8*10^4')},
