@@ -11,6 +11,25 @@
 
 var core = require('./day1-adaptive-math-model-core.js');
 
+/*
+   HUMAN-REVIEWED PREREQUISITE EDGE CORRECTIONS
+
+   A deeper remediation edge must teach the smaller idea that is actually
+   missing, not merely point to something mathematically adjacent.
+
+   - Reciprocal meaning does not depend on the fraction-of-a-whole procedure.
+     The reciprocal lesson itself is the correct repair until/unless a genuine
+     fraction-meaning prerequisite node is introduced.
+   - Proportion structure does not depend on the fraction-of-a-whole procedure.
+     Equal-ratio structure is taught directly by the proportion lesson.
+   - Conversion magnitude prediction depends on understanding unit
+     relationships (large unit vs small unit), not generic arithmetic
+     estimation.
+*/
+core.PREREQUISITES.reciprocal_meaning.dependsOn=[];
+core.PREREQUISITES.proportion_structure.dependsOn=[];
+core.PREREQUISITES.magnitude_prediction.dependsOn=['unit_relationship'];
+
 function clone(v){ return JSON.parse(JSON.stringify(v)); }
 function finite(v,label){var n=Number(v);if(!Number.isFinite(n))throw new Error(label+' must be finite');return n;}
 function integer(v,label){var n=finite(v,label);if(!Number.isInteger(n))throw new Error(label+' must be an integer');return n;}
