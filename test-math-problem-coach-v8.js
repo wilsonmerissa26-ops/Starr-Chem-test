@@ -8,4 +8,9 @@ ok('irregular percentage strategies are present',s.indexOf('58% can be 60% − 2
 ok('conversion coach teaches direction and cancellation',s.indexOf('Cancel the matching units')>=0&&s.indexOf('smaller unit makes the number larger')>=0);
 ok('scientific notation coach handles subtracting negative',s.indexOf('−5 − (−2) becomes −5 + 2')>=0);
 ok('algebra coach requires same move on both sides',s.indexOf('BOTH sides')>=0);
+var aStart=s.indexOf('function accepted('),aEnd=s.indexOf('function install()',aStart);
+ok('semantic answer matcher is present',aStart>=0&&aEnd>aStart);
+var accepted=new Function(s.slice(aStart,aEnd)+';return accepted;')();
+ok('algebra tiny check accepts equivalent divide language',['divide','Division','÷4','/4','divide by 4','divide both sides by 4'].every(function(v){return accepted(v,'divide')}));
+ok('algebra tiny check rejects wrong inverse operations',['multiply','multiplication','subtract','add'].every(function(v){return !accepted(v,'divide')}));
 console.log('\nMath problem coach v8: '+p+' passed, '+f+' failed');if(f)process.exit(1);

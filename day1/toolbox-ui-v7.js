@@ -7,10 +7,20 @@ var references={
  'Logs & estimation':{title:'Logs & estimation',rule:'log₁₀(x) asks: 10 to what power equals x?',meaning:'Use powers-of-ten anchors and a small landmark set instead of memorizing dozens of log values.',example:'log(6) = log(2×3) ≈ 0.30 + 0.48 = 0.78.',mental:'Know log(1)=0, log(10)=1, log(100)=2 and useful landmarks log(2)≈0.30, log(3)≈0.48, log(5)≈0.70.'},
  'Unit conversions':{title:'Unit conversions',rule:'Multiply by a conversion ratio equal to 1 so the unwanted unit cancels.',meaning:'The amount does not change, only the unit used to describe it.',example:'750 mL × (1 L / 1000 mL) = 0.750 L. The mL units cancel.',mental:'Predict direction first: going to a bigger unit makes the numerical value smaller; going to a smaller unit makes it larger.'}
 };
+var chemistryAtoms=[['H','1'],['C','4'],['N','5'],['O','6'],['Si','4'],['P','5'],['S','6']];
 function txt(el){return (el&&el.textContent||'').replace(/\s+/g,' ').trim();}
 function currentReference(){var body=txt(document.getElementById('view'));var keys=Object.keys(references);for(var i=0;i<keys.length;i++){if(body.indexOf(keys[i])>=0)return references[keys[i]];}return null;}
+function chemistryView(view){return !!view.querySelector('iframe[title^="Chemistry"]')||/Chemistry Foundation/i.test(txt(view));}
+function ensureChemistryToolbox(view){
+ if(!chemistryView(view)||view.querySelector('[data-chemistry-toolbox]'))return;
+ var details=document.createElement('details');details.className='card';details.setAttribute('data-chemistry-toolbox','1');details.style.margin='10px 0 14px';
+ var atoms=chemistryAtoms.map(function(x){return '<span class="pill"><b>'+x[0]+'</b> = '+x[1]+' valence e⁻</span>';}).join('');
+ details.innerHTML='<summary style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;border:1px solid #d9cbe7;border-radius:13px;background:white;color:#513567;padding:10px 13px;font-weight:800;list-style:none">🧪 Chemistry Toolbox</summary><div class="card" style="margin:10px 0 0;box-shadow:none"><div class="phase">Lewis-structure quick reference</div><p><b>Valence electrons for today’s atoms</b></p><div class="chips">'+atoms+'</div><p><b>Build order</b><br>1. Count total valence electrons.<br>2. Choose the center atom. Hydrogen is never the center.<br>3. Each single bond uses 2 electrons.<br>4. Place remaining electrons as lone pairs and check the structure.</p><p class="muted">Reference only. Use it to look up facts; do the chemistry reasoning in the lesson.</p></div>';
+ var firstCard=view.querySelector('.card');if(firstCard)firstCard.parentNode.insertBefore(details,firstCard);else view.insertBefore(details,view.firstChild);
+}
 function upgrade(){
  var view=document.getElementById('view');if(!view)return;
+ ensureChemistryToolbox(view);
  var oldPercent=view.querySelector('[data-percent-toolbox]');if(oldPercent)oldPercent.remove();
  var details=[].slice.call(view.querySelectorAll('details.card')).find(function(d){var s=d.querySelector('summary');return s&&/Math Toolbox/i.test(txt(s));});
  if(!details||details.dataset.toolboxV7)return;
