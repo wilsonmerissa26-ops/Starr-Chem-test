@@ -47,6 +47,10 @@ jobs:
         run: node --check math-gym-engine.js
       - name: Run Math Gym engine tests
         run: node test-math-gym-engine.js
+      - name: Run Math Gym structured adaptive-input contract
+        run: node test-math-gym-strategy-input.js
+      - name: Run Math Gym shared adaptive-evidence contract
+        run: node test-math-gym-adaptive-evidence.js
       - name: Syntax-check Day 1 orchestrator
         run: node --check day1-orchestrator.js
       - name: Run Day 1 orchestrator tests
@@ -99,5 +103,38 @@ jobs:
         run: node test-guided-problem-tutor-v13.js
       - name: Run learner support repair regressions
         run: node test-tonight-repair-pass.js
+      - name: Syntax-check canonical adaptive math modules
+        run: |
+          node --check math-strategy-adapters.js
+          node --check math-strategy-cost.js
+          node --check math-strategy-library.js
+          node --check math-strategy-engine.js
+          node --check day1-adaptive-math-model.js
+          node --check day1-problem-source-adapters.js
+          node --check math-prerequisite-content.js
+          node --check math-answer-checker.js
+          node --check day1-adaptive-runtime.js
+          node --check day1-adaptive-browser-loader.js
+          node --check day1/adaptive-classroom-controller.js
+      - name: Run math strategy calibration tests
+        run: node test-math-strategy-engine.js
+      - name: Run math strategy generalization tests
+        run: node test-math-strategy-generalization.js
+      - name: Run full Day 1 adaptive math model contract
+        run: node test-full-day1-adaptive-model.js
+      - name: Run current classroom problem-source coverage
+        run: node test-day1-problem-source-adapters.js
+      - name: Run canonical answer checker contract
+        run: node test-math-answer-checker.js
+      - name: Run prerequisite teaching content contract
+        run: node test-math-prerequisite-content.js
+      - name: Run adaptive learner runtime contract
+        run: node test-day1-adaptive-runtime.js
+      - name: Run adaptive classroom controller contract
+        run: node test-adaptive-classroom-controller.js
+      - name: Run canonical browser composition contract
+        run: node test-adaptive-browser-composition.js
+      - name: Run canonical live page composition contract
+        run: node test-day1-canonical-live-composition.js
       - name: Run Day 1 release academic and voice audit
         run: node test-day1-release-audit.js

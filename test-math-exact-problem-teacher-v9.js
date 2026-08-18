@@ -1,5 +1,5 @@
 var fs=require('fs'),s=fs.readFileSync('day1/math-exact-problem-teacher-v9.js','utf8'),h=fs.readFileSync('day1/index.html','utf8'),c=fs.readFileSync('day1/classroom-v5.js','utf8'),p=0,f=0;function ok(n,x){if(x){console.log('PASS  '+n);p++}else{console.log('FAIL  '+n);f++}}
-ok('v9 loaded after v8',h.indexOf('math-exact-problem-teacher-v9.js')>h.indexOf('math-problem-coach-v8.js'));
+ok('legacy v9 exact teacher is retained but not loaded by canonical live Day 1',h.indexOf('math-exact-problem-teacher-v9.js')<0&&s.length>0);
 var qs=[];var re=/\{p:'([^']+)'/g,m;while((m=re.exec(c)))qs.push(m[1]);ok('found all Day 1 math questions',qs.length===31);qs.forEach(function(q){ok('exact teacher covers '+q,s.indexOf("'"+q+"':[")>=0)});
 ok('exact teacher checks first move',s.indexOf('First move check')>=0&&s.indexOf('Check first move')>=0);
 ok('exact teacher does not reveal full answer before first-step response for algebra',s.indexOf('subtracting x from BOTH sides')>=0);
