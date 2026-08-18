@@ -3,7 +3,7 @@ function shouldAutoAdvance(mode){return mode==='speed';}
 function ensureAdaptiveItem(deps,state,item){
   if(!deps||!deps.runtime||!deps.adapters||!state||!item)return null;
   var problem=deps.adapters.fromMathGymItem(item);
-  if(!state.current||!state.current.problem||state.current.problem.sourceId!==problem.sourceId)deps.runtime.startProblem(state,problem);
+  if(!state.current||!state.current.problem||state.current.problem.sourceId!==problem.sourceId){deps.runtime.startProblem(state,problem);state.current.mathGymHadWrong=false;}
   return{problem:problem,plan:state.current.plan};
 }
 function applyAdaptiveHint(deps,state,item){
@@ -14,8 +14,10 @@ function applyAdaptiveHint(deps,state,item){
 function applyAdaptiveSubmission(deps,state,item,mode,raw,unit){
   var ready=ensureAdaptiveItem(deps,state,item);if(!ready)return null;
   var correct=deps.checker.check(ready.problem,raw,ready.plan);
-  var ids=correct?deps.runtime.recordPlanFluency(state,true,{input:raw,assisted:false}):[];
-  return{correct:correct,problem:ready.problem,plan:ready.plan,runtimeResult:{correct:correct,routeFluencySkillIds:ids,mode:mode||'practice'}};
+  var hadWrongBefore=!!state.current.mathGymHadWrong;
+  if(!correct)state.current.mathGymHadWrong=true;
+  var ids=correct?deps.runtime.recordPlanFluency(state,true,{input:raw,assisted:hadWrongBefore}):[];
+  return{correct:correct,problem:ready.problem,plan:ready.plan,runtimeResult:{correct:correct,routeFluencySkillIds:ids,mode:mode||'practice',hadWrongBeforeCorrect:correct&&hadWrongBefore}};
 }
 var rules={shouldAutoAdvance:shouldAutoAdvance,ensureAdaptiveItem:ensureAdaptiveItem,applyAdaptiveHint:applyAdaptiveHint,applyAdaptiveSubmission:applyAdaptiveSubmission};
 if(typeof module!=='undefined'&&module.exports)module.exports=rules;
