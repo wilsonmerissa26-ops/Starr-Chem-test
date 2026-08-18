@@ -39,4 +39,12 @@ var estimate=plan({
 });
 assert.strictEqual(estimate.answer,0.78);
 
+// The low-level core must not carry a second calculator-based implementation
+// of negative-log estimation. The canonical entry owns that family through the
+// explicit-landmark planner; reaching directly into core must fail closed.
+var core=require('./day1-adaptive-math-model-core.js');
+assert.throws(function(){
+  core.planProblem({area:'logs',family:'estimate_negative_log',front:6,exponent:6});
+},/unsupported logs family/i,'core must not retain a dead Math.log10 negative-log fallback');
+
 console.log('PASS Phase 2A exact-log scope stays on human-doable power-of-ten landmarks');
