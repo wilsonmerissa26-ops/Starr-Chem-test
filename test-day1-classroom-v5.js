@@ -8,6 +8,9 @@ ok('unit conversion teaching is multi-step',js.indexOf('Dimensional analysis for
 ok('scientific notation has actual practice bank',js.indexOf("p:'Write 0.00061 in scientific notation.'")>=0&&js.indexOf("p:'(4×10^6)(2×10^-3) ='")>=0);
 ok('exponents have actual practice bank',js.indexOf("p:'2^(-4) ='")>=0&&js.indexOf("p:'(x^3)^2 ='")>=0);
 ok('wrong answer stays on same problem',js.indexOf('Same problem. Try again.')>=0);
+ok('practice feedback sits beside answer controls',js.indexOf('id=\"feedback\" role=\"status\" aria-live=\"polite\"')>=0&&js.indexOf('id=\"feedback\"')<js.indexOf('id=\"prevProblem\"'));
+ok('correct math answer waits for explicit Continue',js.indexOf('id=\"continueProblem\"')>=0&&js.indexOf("$('continueProblem').onclick=function(){problem(a,s,true);save();render()}")>=0&&!js.includes('setTimeout(function(){problem(a,s,true);render()},850'));
+ok('wrong answer feedback is brought into mobile view',js.indexOf("$('feedback').scrollIntoView({behavior:'smooth',block:'nearest'})")>=0);
 ok('same-skill skip is explicit',js.indexOf("Skip → new '+esc(a.name)+' problem")>=0);
 ok('previous problem control exists',js.indexOf('Previous problem')>=0);
 ok('print save fallback exists',js.indexOf('Print / Save this page')>=0);
