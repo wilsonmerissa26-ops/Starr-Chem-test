@@ -47,7 +47,26 @@ function submitPrerequisiteCheck(state,itemId,input){
   return result;
 }
 
+function recordCurrentAnswer(state,correct,input,opts){
+  opts=opts||{};
+  var result=core.recordCurrentAnswer(state,correct,input,opts);
+  var ids=result&&Array.isArray(result.routeFluencySkillIds)?result.routeFluencySkillIds:[];
+  var inputs=opts.evidenceInputsBySkill&&typeof opts.evidenceInputsBySkill==='object'?
+    opts.evidenceInputsBySkill:{};
+
+  ids.forEach(function(id){
+    var skill=state&&state.skills&&state.skills[id];
+    if(!skill||!skill.attempts||!skill.attempts.length)return;
+    var attempt=skill.attempts[skill.attempts.length-1];
+    var expectedMarker='::verified-route::'+id;
+    if(String(attempt.itemId||'').indexOf(expectedMarker)<0)return;
+    attempt.input=Object.prototype.hasOwnProperty.call(inputs,id)?inputs[id]:null;
+  });
+  return result;
+}
+
 module.exports=Object.assign({},core,{
   openPrerequisiteRepair:openPrerequisiteRepair,
-  submitPrerequisiteCheck:submitPrerequisiteCheck
+  submitPrerequisiteCheck:submitPrerequisiteCheck,
+  recordCurrentAnswer:recordCurrentAnswer
 });
