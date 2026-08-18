@@ -38,6 +38,14 @@ assert.ok(prompts(neg)[0].indexOf('2^-4')>=0&&prompts(neg)[0].indexOf('1/2^4')>=
 assert.ok(!allText(neg).match(/move the factor across the fraction bar/i),
   'standalone negative exponent must not refer to a fraction bar that does not exist yet');
 
+// The prerequisite lesson must teach the same reciprocal meaning. Remediation
+// cannot reintroduce the old fraction-bar wording after the main route is fixed.
+var negLesson=lessonText('negative_exponent_rule');
+assert.ok(/reciprocal/i.test(negLesson),
+  'negative-exponent prerequisite must explicitly teach reciprocal meaning');
+assert.ok(!/move (?:the )?(?:factor )?across (?:the )?fraction bar/i.test(negLesson),
+  'negative-exponent prerequisite must not depend on a fraction bar already existing');
+
 // Scientific notation permits negative coefficients. The mathematical rule is
 // 1 <= |coefficient| < 10, not coefficient between positive 1 and 10.
 var sci=full.planProblem({area:'scientific_notation',family:'convert_to_scientific',value:-450000,source:'teaching-language'});
@@ -47,6 +55,32 @@ assert.ok(allText(sci).match(/absolute value/i),
   'scientific-notation teaching must state the coefficient rule using absolute value');
 assert.ok(!allText(sci).match(/coefficient (?:must )?(?:stay )?between 1 and 10/i),
   'negative scientific notation must not be taught with a positive-only coefficient statement');
+
+// Signed-domain consistency also applies after scientific multiplication and
+// division. Their normalize steps may not fall back to positive-only wording.
+var sciMultiply=full.planProblem({
+  area:'scientific_notation',family:'multiply_scientific',
+  leftCoefficient:-4,leftExponent:6,rightCoefficient:2,rightExponent:-3,
+  source:'teaching-language'
+});
+assert.strictEqual(sciMultiply.answer.coefficient,-8);
+assert.strictEqual(sciMultiply.answer.exponent,3);
+assert.ok(allText(sciMultiply).match(/absolute value/i),
+  'scientific multiplication normalization must teach the signed coefficient rule');
+assert.ok(!allText(sciMultiply).match(/coefficient must be between 1 and 10/i),
+  'scientific multiplication must not use a positive-only normalization hint');
+
+var sciDivide=full.planProblem({
+  area:'scientific_notation',family:'divide_scientific',
+  leftCoefficient:-9,leftExponent:-5,rightCoefficient:3,rightExponent:-2,
+  source:'teaching-language'
+});
+assert.strictEqual(sciDivide.answer.coefficient,-3);
+assert.strictEqual(sciDivide.answer.exponent,-3);
+assert.ok(allText(sciDivide).match(/absolute value/i),
+  'scientific division normalization must teach the signed coefficient rule');
+assert.ok(!allText(sciDivide).match(/coefficient must be between 1 and 10/i),
+  'scientific division must not use a positive-only normalization hint');
 
 // The prerequisite content must teach the same signed-domain definition as the
 // planner. A remediation switch may not reintroduce the obsolete [1,10) rule.
