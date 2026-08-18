@@ -12,6 +12,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Run canonical model/runtime entry boundary
+        run: node test-phase2-canonical-entry-boundary.js
       - name: Run deep-repair parent-bank exhaustion contract
         run: node test-phase2-deep-repair-bank-exhaustion.js
       - name: Run route-evidence audit integrity contract
