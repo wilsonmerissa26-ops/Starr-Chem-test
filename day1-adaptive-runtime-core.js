@@ -103,6 +103,8 @@ function requestSupport(state,mode){
   return result;
 }
 
+// These are the smaller skills the selected route could exercise. They are
+// potential evidence targets, not proof that the learner actually used them.
 function routeSkillIds(plan){
   if(!plan)return[];
   var candidate=(plan.candidates||[]).find(function(c){return c.strategyId===plan.chosenStrategyId;});
@@ -112,19 +114,38 @@ function routeSkillIds(plan){
   return Object.keys(seen);
 }
 
-// Positive route-level fluency evidence is only credited for an unaided correct
-// solution. A wrong whole-problem answer does not prove which prerequisite failed,
-// so negative evidence is gathered through targeted prerequisite checks instead.
+// A correct final answer is evidence for the parent problem skill only. It does
+// not prove which route the learner used or that every prerequisite named in a
+// teaching plan was demonstrated. Positive smaller-skill fluency is credited
+// only when the integration layer explicitly verifies route execution and names
+// the exact observed skills. Requested ids are constrained to the selected
+// route, preventing arbitrary renderer-supplied skills from entering the model.
 function recordPlanFluency(state,correct,opts){
   opts=opts||{};
   var cur=requireCurrent(state);
-  if(!correct||cur.supportUsed||opts.assisted)return[];
-  var ids=routeSkillIds(cur.plan),ts=opts.timestamp||now();
+  if(!correct||cur.supportUsed||opts.assisted||opts.routeVerified!==true)return[];
+  if(!Array.isArray(opts.evidenceSkillIds)||!opts.evidenceSkillIds.length)return[];
+
+  var potential=routeSkillIds(cur.plan),allowed={};
+  potential.forEach(function(id){allowed[id]=true;});
+  var seen={},ids=[];
+  opts.evidenceSkillIds.forEach(function(id){
+    id=String(id||'');
+    if(allowed[id]&&!seen[id]){seen[id]=true;ids.push(id);}
+  });
+  if(!ids.length)return[];
+
+  var ts=opts.timestamp||now();
   ids.forEach(function(id){
     var skill=ensureSkill(state,id);
-    sm.recordAttempt(skill,(cur.problem.sourceId||'problem')+'::route::'+id,true,null,ts,opts.input==null?null:opts.input);
+    sm.recordAttempt(skill,(cur.problem.sourceId||'problem')+'::verified-route::'+id,true,null,ts,opts.input==null?null:opts.input);
   });
-  if(ids.length)event(state,'ROUTE_FLUENCY_EVIDENCE',{sourceId:cur.problem.sourceId||null,skillIds:ids.slice(),strategyId:cur.plan.chosenStrategyId});
+  event(state,'ROUTE_FLUENCY_EVIDENCE',{
+    sourceId:cur.problem.sourceId||null,
+    skillIds:ids.slice(),
+    strategyId:cur.plan.chosenStrategyId,
+    evidenceSource:'verified_route_execution'
+  });
   return ids;
 }
 
@@ -230,7 +251,13 @@ function recordCurrentAnswer(state,correct,input,opts){
   if(correct){
     if(independent)sm.recordIndependentAttempt(skill,cur.problem.sourceId,true,!!opts.correctExplanation,ts,input);
     else sm.recordAttempt(skill,cur.problem.sourceId,true,null,ts,input);
-    var fluencyIds=recordPlanFluency(state,true,{timestamp:ts,input:input,assisted:!!opts.assisted});
+    var fluencyIds=recordPlanFluency(state,true,{
+      timestamp:ts,
+      input:input,
+      assisted:!!opts.assisted,
+      routeVerified:opts.routeVerified===true,
+      evidenceSkillIds:opts.evidenceSkillIds
+    });
     event(state,'ANSWER_CORRECT',{sourceId:cur.problem.sourceId||null,independent:independent,routeFluencySkillIds:fluencyIds});
     return{correct:true,independent:independent,routeFluencySkillIds:fluencyIds,mastery:sm.evaluateMastery(skill)};
   }
