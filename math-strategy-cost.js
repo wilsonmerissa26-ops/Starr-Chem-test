@@ -13,6 +13,13 @@ var WEIGHTS = {
   routeOverhead: 1.0
 };
 
+// Personalization is deliberately bounded so learner evidence can break close
+// calls without making an objectively much harder route look cheap. A fluent
+// route can lower cost by at most 0.45; a weak route can raise it by at most
+// 0.45. That is intentionally no larger than the engine's current near-tie
+// window and can be recalibrated against learner evidence later.
+var FLUENCY_MAX_ADJUSTMENT = 0.45;
+
 function decimals(n) {
   n = Number(n);
   if (!Number.isFinite(n) || Number.isInteger(n)) return 0;
@@ -51,6 +58,28 @@ function addSubtractDifficulty(a, b) {
   return 0.2 + (decimals(a) + decimals(b)) * 0.18 + (Math.max(Math.abs(a),Math.abs(b)) >= 100 ? 0.1 : 0);
 }
 
+function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
+function candidateSkillIds(candidate){
+  var seen={};
+  (candidate.steps||[]).forEach(function(st){
+    (st.prerequisiteSkillIds||[]).forEach(function(id){seen[id]=true;});
+  });
+  return Object.keys(seen);
+}
+function fluencyAdjustment(candidate, studentFluency){
+  if (!studentFluency || typeof studentFluency !== 'object') return 0;
+  var ids=candidateSkillIds(candidate), values=[];
+  ids.forEach(function(id){
+    if (Object.prototype.hasOwnProperty.call(studentFluency,id)) {
+      var v=Number(studentFluency[id]);
+      if (Number.isFinite(v)) values.push(clamp(v,-1,1));
+    }
+  });
+  if(!values.length) return 0;
+  var avg=values.reduce(function(a,b){return a+b;},0)/values.length;
+  return Math.round((-FLUENCY_MAX_ADJUSTMENT*avg)*1000)/1000;
+}
+
 function scoreCandidate(candidate, options) {
   options = options || {};
   var f = candidate.features || {};
@@ -65,18 +94,20 @@ function scoreCandidate(candidate, options) {
     benchmarkBonus: (f.benchmarkBonus || 0) * WEIGHTS.benchmarkBonus,
     compensationComplexity: (f.compensationComplexity || 0) * WEIGHTS.compensationComplexity,
     routeOverhead: f.routeOverhead || 0,
-    studentFluencyAdjustment: 0
+    studentFluencyAdjustment: fluencyAdjustment(candidate, options.studentFluency)
   };
-  void options.studentFluency;
   var total = Object.keys(breakdown).reduce(function(sum,k){ return sum + breakdown[k]; },0);
   return { total: Math.round(total * 1000) / 1000, breakdown: breakdown };
 }
 
 module.exports = {
   WEIGHTS: WEIGHTS,
+  FLUENCY_MAX_ADJUSTMENT: FLUENCY_MAX_ADJUSTMENT,
   decimals: decimals,
   divisionDifficulty: divisionDifficulty,
   multiplicationDifficulty: multiplicationDifficulty,
   addSubtractDifficulty: addSubtractDifficulty,
+  candidateSkillIds: candidateSkillIds,
+  fluencyAdjustment: fluencyAdjustment,
   scoreCandidate: scoreCandidate
 };
