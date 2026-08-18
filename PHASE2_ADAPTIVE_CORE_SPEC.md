@@ -2,7 +2,7 @@
 
 ## Status
 
-**DRAFT GATE. IMPLEMENTATION MAY PROCEED ON THE ISOLATED PHASE 2A BRANCH. LIVE DAY 1 INTEGRATION IS NOT AUTHORIZED BY THIS DOCUMENT.**
+**DRAFT GATE. CORE IMPLEMENTATION AND AUTOMATED SOURCE-AUDIT CONTRACTS MAY PROCEED ON THE ISOLATED PHASE 2A BRANCH. LIVE DAY 1 INTEGRATION IS NOT AUTHORIZED BY THIS DOCUMENT.**
 
 Phase 1, the standalone fractions/percentages Strategy Engine, is accepted on `main` and is consumed as a dependency. Phase 2A must not fork, replace, or silently retune the accepted Phase 1 scorer or reviewed formal-versus-mental selection policy.
 
@@ -28,6 +28,7 @@ The goal of Phase 2A is a trustworthy pure-logic model that can later be integra
 5. **Prerequisite Content** owns prerequisite teaching representations and check banks; the graph alone is not remediation.
 6. **Problem Source Adapters** normalize source-specific inputs. The core must not scrape runtime Markdown or turn structured Math Gym data into display text and parse it back.
 7. **Answer Checker** performs deterministic answer validation. DOM/renderers must not decide correctness.
+8. **Teaching Copy / Route Efficiency policy** may repair learner-facing wording or remove provable no-op steps, but must not secretly change mathematical answers or invent a new route.
 
 ## Required support-control separation
 
@@ -97,16 +98,51 @@ Required checks include:
 
 - numeric and percent inputs;
 - equivalent fractions;
-- symbolic exponent forms;
 - scientific notation and numeric scientific equivalents where intentionally allowed;
 - absolute tolerances for estimation families;
 - unit-bearing numeric answers where units are display text;
-- symbolic formula rearrangements only when mathematically equivalent.
+- symbolic formula rearrangements only when mathematically equivalent;
+- safe equivalent exponent identities that the course actually teaches, without pretending to be a general computer-algebra system.
 
 Explicit regressions:
 
 - reject numeric junk such as `12abc`;
-- reject algebraically non-equivalent rearrangements such as `p-2l/2` for `w=(P-2l)/2`.
+- reject algebraically non-equivalent rearrangements such as `p-2l/2` for `w=(P-2l)/2`;
+- accept `b^-2` and `1/b^2` as equivalent;
+- accept `x^0` and `1` as equivalent in the supported nonzero-base exponent-rule context;
+- accept `a^1` and `a` as equivalent.
+
+## Human-doable log requirements
+
+Day 1 log planning must never describe an estimate while silently inserting calculator precision.
+
+Rules:
+
+- `exact_log10` is limited to integer powers of ten;
+- `inverse_log10` is limited to integer exponents;
+- arbitrary values such as `log(3)` require an explicit estimation/landmark capability rather than hidden `Math.log10(3)` work;
+- negative-log estimation must carry explicit learner-usable landmark evidence;
+- for the current `−log(6×10^-6)` classroom problem, the source carries `6 = 2 × 3`, `log(2)≈0.30`, `log(3)≈0.48`, builds `log(6)≈0.78`, computes `6−0.78=5.22`, then rounds to `5.2`;
+- a negative-log estimate with no explicit usable landmark route must fail rather than fall back to calculator precision.
+
+## Teaching-definition consistency
+
+A top-level route and its prerequisite remediation content must not teach conflicting definitions.
+
+Required examples:
+
+- scientific notation uses **`1 ≤ |coefficient| < 10`** across conversion, multiplication, division, and normalization prerequisite lessons; negative coefficients are valid and their sign is preserved;
+- a negative exponent is introduced as a reciprocal transformation, not as “move the factor across the fraction bar” when no fraction bar exists;
+- two-sided algebra with a negative term names the human operation directly, e.g. “Add 4x,” rather than “Subtract -4x.”
+
+## Cognitive-load / no-op requirements
+
+A canonical route must not force a step that provably changes nothing merely because a generic algorithm contains that step.
+
+- an already-reduced fraction must not display or credit a fake “reduce `7/12` to `7/12`” step;
+- a genuinely reducible fraction keeps its simplification step;
+- when a no-op step is removed, operation-count features and candidate cost must be recomputed so the audit trail matches the learner-facing route;
+- wording-only teaching corrections must not alter answers, route IDs, prerequisite metadata, or mathematical selection.
 
 ## Current source coverage gate
 
@@ -124,7 +160,7 @@ For every supported problem family:
 - every emitted step must carry an explicit prerequisite-skill list, even when empty;
 - invalid/unsupported families must fail explicitly rather than falling through to an unrelated route.
 
-Phase 2A review must include representative unfamiliar cases from every area, not only current classroom examples.
+Phase 2A also maintains a fixed 1,786-case generated correctness/determinism population for the non-Phase-1 families, in addition to the accepted Phase 1 351-case suite and the exact 31 classroom prompts.
 
 ## Non-goals for Phase 2A
 
@@ -139,23 +175,29 @@ Phase 2A does **not**:
 - merge the quarantined Phase 2+ branch wholesale;
 - claim live integration readiness merely because Node tests pass.
 
+CI must explicitly verify that Phase 2A modules remain absent from `day1/index.html` until Phase 2B.
+
 Browser composition, canonical answer-checker wiring, explicit route-observation/evidence wiring, Math Gym live evidence wiring, controller behavior, and `day1/index.html` cutover belong to a later Phase 2B integration gate.
 
 ## Phase 2A acceptance gate
 
 Before Phase 2A can be accepted into `main`:
 
-1. all new core modules syntax-check;
-2. full-model planner contract passes;
-3. all 31 classroom source-adapter cases pass;
-4. strict answer-checker contract passes, including malformed-input regressions;
-5. every prerequisite graph node passes teaching/check-content validation;
-6. adaptive runtime same-problem remediation, selected-route first-descent, graph-edge descent, and anti-loop contracts pass;
-7. support-role separation tests pass;
-8. learner-evidence tests prove that final-answer correctness cannot manufacture prerequisite fluency and that only explicitly observed route skills can be credited;
-9. representative unfamiliar/adversarial cases across all six areas pass;
-10. broad generated mathematical correctness/determinism coverage passes for the non-Phase-1 families;
-11. the complete existing repository CI remains green;
-12. human/source review finds no unacceptable planning, graph, evidence, or teaching pattern.
+1. all new core/policy modules syntax-check;
+2. CI proves Phase 2A remains non-live;
+3. full-model planner contract passes;
+4. all 31 classroom source-adapter cases pass;
+5. strict answer-checker contract passes, including malformed-input and safe symbolic-equivalence regressions;
+6. every prerequisite graph node passes teaching/check-content validation;
+7. adaptive runtime same-problem remediation, selected-route first-descent, graph-edge descent, and anti-loop contracts pass;
+8. support-role separation tests pass;
+9. learner-evidence tests prove that final-answer correctness cannot manufacture prerequisite fluency and that only explicitly observed route skills can be credited;
+10. representative unfamiliar/adversarial cases across all six areas pass;
+11. the fixed 1,786-case generated mathematical correctness/determinism population passes;
+12. exact-log / explicit-landmark scope tests pass;
+13. cognitive-load no-op tests pass;
+14. learner-facing teaching-language and prerequisite-definition consistency tests pass;
+15. the complete existing repository CI remains green;
+16. direct human/source review finds no unacceptable planning, graph, evidence, scope, or teaching pattern.
 
 Only after that gate is passed should a separate Phase 2B browser/live integration review begin.
