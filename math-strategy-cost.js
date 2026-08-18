@@ -1,3 +1,8 @@
+(function(root,factory){
+  var api=factory();
+  if(typeof module==='object'&&module.exports)module.exports=api;
+  else root.MathStrategyCost=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
 
 var WEIGHTS = {
@@ -12,12 +17,6 @@ var WEIGHTS = {
   compensationComplexity: 0.45,
   routeOverhead: 1.0
 };
-
-// Personalization is deliberately bounded so learner evidence can break close
-// calls without making an objectively much harder route look cheap. A fluent
-// route can lower cost by at most 0.45; a weak route can raise it by at most
-// 0.45. That is intentionally no larger than the engine's current near-tie
-// window and can be recalibrated against learner evidence later.
 var FLUENCY_MAX_ADJUSTMENT = 0.45;
 
 function decimals(n) {
@@ -29,7 +28,6 @@ function decimals(n) {
   var p = s.split('.')[1];
   return p ? Math.min(p.length, 4) : 0;
 }
-
 function divisionDifficulty(value, divisor) {
   var result = value / divisor;
   if (Number.isInteger(result)) return divisor === 2 || divisor === 4 || divisor === 8 || divisor === 10 || divisor === 100 ? 0.15 : 0.35;
@@ -38,7 +36,6 @@ function divisionDifficulty(value, divisor) {
   if (d === 2) return 0.85;
   return 1.25;
 }
-
 function multiplicationDifficulty(a, b) {
   a = Number(a); b = Number(b);
   if (a === 0 || b === 0 || a === 1 || b === 1) return 0;
@@ -53,17 +50,13 @@ function multiplicationDifficulty(a, b) {
   if (Number.isInteger(other) && other < 100 && small < 10) return 0.8 + decimalPenalty;
   return 1.35 + decimalPenalty + Math.min(0.8, Math.log10(other + 1) * 0.2);
 }
-
 function addSubtractDifficulty(a, b) {
   return 0.2 + (decimals(a) + decimals(b)) * 0.18 + (Math.max(Math.abs(a),Math.abs(b)) >= 100 ? 0.1 : 0);
 }
-
 function clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
 function candidateSkillIds(candidate){
   var seen={};
-  (candidate.steps||[]).forEach(function(st){
-    (st.prerequisiteSkillIds||[]).forEach(function(id){seen[id]=true;});
-  });
+  (candidate.steps||[]).forEach(function(st){(st.prerequisiteSkillIds||[]).forEach(function(id){seen[id]=true;});});
   return Object.keys(seen);
 }
 function fluencyAdjustment(candidate, studentFluency){
@@ -79,7 +72,6 @@ function fluencyAdjustment(candidate, studentFluency){
   var avg=values.reduce(function(a,b){return a+b;},0)/values.length;
   return Math.round((-FLUENCY_MAX_ADJUSTMENT*avg)*1000)/1000;
 }
-
 function scoreCandidate(candidate, options) {
   options = options || {};
   var f = candidate.features || {};
@@ -100,14 +92,10 @@ function scoreCandidate(candidate, options) {
   return { total: Math.round(total * 1000) / 1000, breakdown: breakdown };
 }
 
-module.exports = {
-  WEIGHTS: WEIGHTS,
-  FLUENCY_MAX_ADJUSTMENT: FLUENCY_MAX_ADJUSTMENT,
-  decimals: decimals,
-  divisionDifficulty: divisionDifficulty,
-  multiplicationDifficulty: multiplicationDifficulty,
-  addSubtractDifficulty: addSubtractDifficulty,
-  candidateSkillIds: candidateSkillIds,
-  fluencyAdjustment: fluencyAdjustment,
-  scoreCandidate: scoreCandidate
+return {
+  WEIGHTS: WEIGHTS,FLUENCY_MAX_ADJUSTMENT: FLUENCY_MAX_ADJUSTMENT,decimals: decimals,
+  divisionDifficulty: divisionDifficulty,multiplicationDifficulty: multiplicationDifficulty,
+  addSubtractDifficulty: addSubtractDifficulty,candidateSkillIds: candidateSkillIds,
+  fluencyAdjustment: fluencyAdjustment,scoreCandidate: scoreCandidate
 };
+});
