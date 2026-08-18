@@ -6,6 +6,7 @@
 'use strict';
 
 function near(a,b,tol){return Math.abs(Number(a)-Number(b))<=(tol==null?1e-9:tol)*Math.max(1,Math.abs(Number(a)),Math.abs(Number(b)));}
+function absoluteNear(a,b,tol){return Math.abs(Number(a)-Number(b))<=tol;}
 function norm(v){return String(v==null?'':v).trim().toLowerCase().replace(/\s+/g,'').replace(/×/g,'*').replace(/−/g,'-');}
 function numeric(v){
   var s=String(v==null?'':v).trim().replace(/,/g,'').replace(/%/g,'');
@@ -60,11 +61,10 @@ function check(problem,input,plan){
 
   var got=numericOrFraction(input);
   if(got===null)return false;
-  var tolerance=1e-9;
-  if(family==='estimate_negative_log')tolerance=0.15;
-  else if(family==='log_product_estimate')tolerance=0.03;
-  return near(got,expected,tolerance);
+  if(family==='estimate_negative_log')return absoluteNear(got,expected,0.15);
+  if(family==='log_product_estimate')return absoluteNear(got,expected,0.03);
+  return near(got,expected,1e-9);
 }
 
-return{check:check,numeric:numeric,fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr};
+return{check:check,numeric:numeric,fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr,absoluteNear:absoluteNear};
 });
