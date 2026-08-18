@@ -117,6 +117,7 @@ jobs:
           node --check day1-problem-source-adapters-core.js
           node --check day1-problem-source-adapters.js
           node --check log-negative-estimate-planner.js
+          node --check route-efficiency-policy.js
           node --check teaching-plan-copy-policy.js
           node --check math-prerequisite-content-core.js
           node --check math-prerequisite-content.js
@@ -124,6 +125,8 @@ jobs:
           node --check math-student-model-policy.js
           node --check day1-adaptive-runtime-core.js
           node --check day1-adaptive-runtime.js
+      - name: Verify Phase 2A remains non-live
+        run: node test-phase2a-no-live-integration.js
       - name: Run Phase 2A full adaptive model contract
         run: node test-full-day1-adaptive-model.js
       - name: Run Phase 2A classroom source coverage
