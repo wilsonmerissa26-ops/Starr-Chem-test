@@ -8,13 +8,14 @@
 'use strict';
 if(!adapters||!library||!cost)throw new Error('Math Strategy Engine dependencies missing');
 var NEAR_TIE=0.5;
-// Human review of the carry-corrected awkward-whole set separated one close
-// formal-vs-mental case (gap 1.05) from the next-smallest reviewed gap (1.70).
-// This policy threshold is deliberately separate from arithmetic cost: when
-// formal decimal multiplication is only narrowly cheaper, Day 1 defaults to
-// the best mental route while surfacing formal as an alternate. Wide gaps let
-// the formal route win outright. Revalidate this boundary as calibration grows.
-var FORMAL_MENTAL_CLOSE_MARGIN=1.5;
+// Human review of the carry-corrected awkward-whole cases and the full
+// 351-case gap distribution found a middle cluster from roughly 1.35 to 1.70.
+// Do not split that cluster with a knife-edge threshold. When formal decimal
+// multiplication is raw-cheapest but its advantage is at most 1.8 cost units,
+// Day 1 treats the routes as an instructional near-tie: default to the best
+// mental route and keep formal visible as the alternate. Gaps above 1.8 let
+// formal win outright. This band is calibration-derived, not mathematical law.
+var FORMAL_MENTAL_NEAR_TIE_MAX=1.8;
 function expectedAnswer(p){
   if(p.family==='percent_of_whole')return p.percent*p.whole/100;
   if(p.family==='fraction_of_whole')return p.numerator*p.whole/p.denominator;
@@ -33,12 +34,12 @@ function chooseWithInstructionPolicy(problem,candidates){
     var bestMental=candidates.filter(function(c){return c.strategyId!=='percent_formal_decimal';})[0];
     if(bestMental){
       policyGap=Math.round((bestMental.cost-rawCheapest.cost)*1000)/1000;
-      if(policyGap<=FORMAL_MENTAL_CLOSE_MARGIN){
+      if(policyGap<=FORMAL_MENTAL_NEAR_TIE_MAX){
         chosen=bestMental;
         forcedAlternate=rawCheapest;
-        policy='mental_default_when_formal_advantage_is_close';
+        policy='mental_default_in_formal_mental_near_tie_band';
       }else{
-        policy='formal_wins_with_wide_cost_advantage';
+        policy='formal_wins_outside_formal_mental_near_tie_band';
       }
     }
   }
@@ -64,5 +65,5 @@ function plan(problem,options){
     rawLowestCostStrategyId:decision.rawCheapest.strategyId
   };
 }
-return{plan:plan,expectedAnswer:expectedAnswer,NEAR_TIE:NEAR_TIE,FORMAL_MENTAL_CLOSE_MARGIN:FORMAL_MENTAL_CLOSE_MARGIN,chooseWithInstructionPolicy:chooseWithInstructionPolicy};
+return{plan:plan,expectedAnswer:expectedAnswer,NEAR_TIE:NEAR_TIE,FORMAL_MENTAL_NEAR_TIE_MAX:FORMAL_MENTAL_NEAR_TIE_MAX,chooseWithInstructionPolicy:chooseWithInstructionPolicy};
 });
