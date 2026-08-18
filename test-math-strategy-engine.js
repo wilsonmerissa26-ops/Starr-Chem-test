@@ -45,6 +45,24 @@ function nearTieIds(result){return(result.nearTies||[]).map(function(c){return c
   assert.strictEqual(planPercent(12.5,64).chosenStrategyId,'percent_eighth');
 })();
 
+(function allDeclaredWeightsActuallyAffectTheirDimensions(){
+  var keys=['anchorAcquisition','divisionDifficulty','multiplicationDifficulty','routeOverhead'];
+  var original={};keys.forEach(function(k){original[k]=cost.WEIGHTS[k];});
+  try{
+    cost.WEIGHTS.anchorAcquisition=2;
+    cost.WEIGHTS.divisionDifficulty=3;
+    cost.WEIGHTS.multiplicationDifficulty=4;
+    cost.WEIGHTS.routeOverhead=5;
+    var scored=cost.scoreCandidate({features:{anchorAcquisition:2,divisionDifficulty:3,multiplicationDifficulty:4,routeOverhead:5},steps:[]},{studentFluency:null});
+    assert.strictEqual(scored.breakdown.anchorAcquisition,4,'anchorAcquisition weight must be live');
+    assert.strictEqual(scored.breakdown.divisionDifficulty,9,'divisionDifficulty weight must be live');
+    assert.strictEqual(scored.breakdown.multiplicationDifficulty,16,'multiplicationDifficulty weight must be live');
+    assert.strictEqual(scored.breakdown.routeOverhead,25,'routeOverhead weight must be live');
+  } finally {
+    keys.forEach(function(k){cost.WEIGHTS[k]=original[k];});
+  }
+})();
+
 (function formalMultiplicationCarryFeatureMatchesReviewedArithmetic(){
   assert.strictEqual(cost.percentFormalCarryCount(17,32),0,'0.17×32 partial-product addition has 0 carries');
   assert.strictEqual(cost.percentFormalCarryCount(27,64),1,'0.27×64 partial-product addition has 1 carry');
@@ -59,7 +77,24 @@ function nearTieIds(result){return(result.nearTies||[]).map(function(c){return c
   assert.strictEqual(f27.costBreakdown.carryOperations,cost.WEIGHTS.operationCount);
   assert.strictEqual(f69.costBreakdown.carryOperations,2*cost.WEIGHTS.operationCount);
   assert.strictEqual(f88.costBreakdown.carryOperations,0);
+  assert.strictEqual(f88.cost,f17.cost,'the two reviewed zero-carry formal routes must retain equal formal cost');
   assert.ok(f69.cost>f27.cost && f27.cost>f17.cost,'formal route cost must reflect 2 carries > 1 carry > 0 carries');
+})();
+
+(function reviewedGapSizeInstructionPolicy(){
+  var a=planPercent(17,32),b=planPercent(27,64),c=planPercent(69,32),d=planPercent(88,64);
+  assert.strictEqual(engine.FORMAL_MENTAL_CLOSE_MARGIN,1.5);
+  assert.strictEqual(a.chosenStrategyId,'percent_formal_decimal');
+  assert.strictEqual(b.chosenStrategyId,'percent_formal_decimal');
+  assert.strictEqual(c.rawLowestCostStrategyId,'percent_formal_decimal');
+  assert.strictEqual(c.chosenStrategyId,'percent_70_minus_1','close formal advantage should default to the reviewed mental route');
+  assert.ok(nearTieIds(c).indexOf('percent_formal_decimal')>=0,'formal route should remain surfaced as the close alternate');
+  assert.strictEqual(c.selectionPolicy,'mental_default_when_formal_advantage_is_close');
+  assert.strictEqual(c.selectionPolicyGap,1.05);
+  assert.strictEqual(d.chosenStrategyId,'percent_formal_decimal');
+  assert.strictEqual(a.selectionPolicy,'formal_wins_with_wide_cost_advantage');
+  assert.strictEqual(b.selectionPolicy,'formal_wins_with_wide_cost_advantage');
+  assert.strictEqual(d.selectionPolicy,'formal_wins_with_wide_cost_advantage');
 })();
 
 (function correctnessAndDeterminism(){
@@ -69,4 +104,4 @@ function nearTieIds(result){return(result.nearTies||[]).map(function(c){return c
   var a=planPercent(88,50),b=planPercent(88,50);assert.strictEqual(a.chosenStrategyId,b.chosenStrategyId);assert.deepStrictEqual(nearTieIds(a),nearTieIds(b));
 })();
 
-console.log('PASS math strategy engine calibration and carry-sensitivity contract');
+console.log('PASS math strategy engine calibration, weight-wiring, carry-sensitivity, and selection-policy contract');
