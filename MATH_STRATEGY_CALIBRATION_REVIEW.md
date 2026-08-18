@@ -2,17 +2,19 @@
 
 ## Status
 
-**REVIEW REQUIRED. These are new candidate calibration cases, not recovered historical cases.**
+**REVIEW COMPLETE. Approved as new calibration evidence.**
 
-The original August 17 compensation-review pairings for `33%`, `57%`, `69%`, and `88%` could not be recovered with their exact whole numbers. Per `MATH_STRATEGY_ENGINE_SPEC.md`, they are not being reconstructed from memory or presented as original evidence.
+The original August 17 compensation-review pairings for `33%`, `57%`, `69%`, and `88%` could not be recovered with their exact whole numbers. Per `MATH_STRATEGY_ENGINE_SPEC.md`, they were not reconstructed from memory or presented as original evidence.
 
-This file proposes four **new** calibration cases for human review. They may become gold cases only after review confirms that the preferred route is instructionally sensible for the exact numbers.
+Four **new** calibration cases were created, independently reviewed, and arithmetic-verified. Two were approved as the preferred route and two were approved with explicit near-tie alternatives.
 
-## Candidate 1: 33% of 60
+## Gold Case 1: 33% of 60
+
+**Review outcome: APPROVE AS GOLD.**
 
 Exact answer: `19.8`
 
-Proposed preferred route: build from `30% + 3%`.
+Preferred route: build from `30% + 3%`.
 
 Verified arithmetic:
 
@@ -22,19 +24,21 @@ Verified arithmetic:
 - `3% of 60 = 1.8`
 - `18 + 1.8 = 19.8`
 
-Why this is a useful calibration case:
+Review finding:
 
-- 33% is close to 30%, but not identical to one-third.
-- The whole makes 10% very clean while 1% introduces only one decimal place.
-- A scorer should be able to compare a 30% + 3% route against a raw 1%-chunk route and formal decimal multiplication without hard-coding the prompt.
+- No free-anchor shortcut applies.
+- `33%` is not near enough to `0%` or `100%` to create a lower-cost free-anchor compensation route.
+- For this whole, `30% + 3%` is the reviewed lowest-cost route.
 
-Near-tie candidate for review: none assumed. If a reviewer judges another route comparably easy, record it explicitly.
+Accepted near-tie: none recorded.
 
-## Candidate 2: 57% of 80
+## Gold Case 2: 57% of 80
+
+**Review outcome: APPROVE AS GOLD.**
 
 Exact answer: `45.6`
 
-Proposed preferred route: compensate from `60% - 3%`.
+Preferred route: compensate from `60% - 3%`.
 
 Verified arithmetic:
 
@@ -44,19 +48,20 @@ Verified arithmetic:
 - `3% of 80 = 2.4`
 - `48 - 2.4 = 45.6`
 
-Why this is a useful calibration case:
+Review finding:
 
-- 57% is close to 60%.
-- The route combines a clean 10% anchor with a small correction.
-- A raw `1% × 57` route is mathematically valid but should normally carry more mental-load cost.
+- The natural alternative `50% + 5% + 2%` requires three terms instead of two.
+- `60% - 3%` wins cleanly for this whole.
 
-Near-tie candidate for review: none assumed.
+Accepted near-tie: none recorded.
 
-## Candidate 3: 69% of 200
+## Gold Case 3: 69% of 200
+
+**Review outcome: APPROVE WITH NEAR-TIE.**
 
 Exact answer: `138`
 
-Proposed preferred route: compensate from `70% - 1%`.
+Preferred default route: compensate from `70% - 1%`.
 
 Verified arithmetic:
 
@@ -65,19 +70,26 @@ Verified arithmetic:
 - `1% of 200 = 2`
 - `140 - 2 = 138`
 
-Why this is a useful calibration case:
+Accepted near-tie route: clean `1%` route followed by doubling `69`.
 
-- Both the anchor and correction are whole numbers.
-- It should strongly reward a nearby-anchor compensation route.
-- It provides a clean contrast with problems where 1% is decimal or awkward.
+Verified near-tie arithmetic:
 
-Near-tie candidate for review: a direct clean 1%-based calculation may be mathematically easy here because `1% = 2`, but repeating or multiplying that unit by 69 should still be scored separately from the two-step compensation route. Whether it qualifies as a near-tie is for human review.
+- `1% of 200 = 2`
+- `69 × 2 = 138`
 
-## Candidate 4: 88% of 50
+Review finding:
+
+- `1% of 200 = 2` is unusually clean.
+- Doubling `69` is easy mental arithmetic.
+- The scorer must preserve both as reasonable routes rather than forcing compensation to appear uniquely superior.
+
+## Gold Case 4: 88% of 50
+
+**Review outcome: APPROVE WITH NEAR-TIE.**
 
 Exact answer: `44`
 
-Proposed preferred route: compensate from `90% - 2%`.
+Preferred route: compensate from `90% - 2%`.
 
 Verified arithmetic:
 
@@ -87,24 +99,32 @@ Verified arithmetic:
 - `2% of 50 = 1`
 - `45 - 1 = 44`
 
-Why this is a useful calibration case:
+Accepted near-tie route: compensate from the free `100%` anchor as `100% - 10% - 2%`.
 
-- The 1% value is decimal, but the 2% correction resolves to a whole number.
-- It tests whether the scorer looks at the whole route rather than penalizing any decimal intermediate equally.
-- It is a useful example of why arithmetic difficulty must be graded, not binary.
+Verified near-tie arithmetic:
 
-Near-tie candidate for review: none assumed.
+- `100% of 50 = 50` with no computation required
+- `10% of 50 = 5`
+- `2% of 50 = 1`
+- `50 - 5 - 1 = 44`
 
-## Review gate
+Review finding:
 
-For each case, the reviewer should mark one of:
+- `90%` is not a free anchor. It requires computation before subtraction.
+- `100%` is free by definition because it is simply the whole.
+- A scorer should therefore assign lower anchor-acquisition cost to `0%` and `100%` than to computed anchors such as `10%`, `25%`, `50%`, `70%`, or `90%`.
+- The two routes remain close enough to preserve as near-ties for calibration.
 
-- **APPROVE AS GOLD**: preferred route is sensible for the exact numbers.
-- **APPROVE WITH NEAR-TIE**: preferred route is sensible, but another route should be preserved as near-equivalent.
-- **REVISE**: keep the percentage but change the whole or route, with verified arithmetic.
-- **REJECT**: remove this case from calibration.
+## Scoring implication surfaced by review
 
-These cases do not become gold calibration data until that review happens.
+`0%` and `100%` are the only universal percent anchors that require no arithmetic to acquire:
+
+- `0% of whole = 0`
+- `100% of whole = whole`
+
+Candidate scoring should distinguish **free anchors** from **computed anchors**. Distance from a free anchor may therefore justify compensation even when the percentage is not especially close to another traditional benchmark.
+
+This is a scoring factor, not a rule that compensation from `0%` or `100%` always wins. The exact whole number, correction cost, operation count, decimal complexity, and student-fluency weighting still determine the final route ranking.
 
 ## Scope protection
 
