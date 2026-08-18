@@ -164,6 +164,21 @@ function openPrerequisiteRepair(state,prerequisiteSkillId,reason){
   var cur=requireCurrent(state);
   var owner=ensureSkill(state,cur.parentSkillId);
   if(!math.prerequisiteNode(prerequisiteSkillId))throw new Error('unknown prerequisite '+prerequisiteSkillId);
+
+  // The first remediation target must be a smaller skill actually named by the
+  // selected route. Node existence alone is not diagnosis. Reject unrelated
+  // requests before opening Student Model remediation, creating a child skill,
+  // mutating the return stack, or emitting a remediation event.
+  var allowedPrerequisites=routeSkillIds(cur.plan);
+  if(allowedPrerequisites.indexOf(prerequisiteSkillId)<0){
+    return{
+      action:'unrelated_prerequisite_blocked',
+      from:cur.parentSkillId,
+      skillId:prerequisiteSkillId,
+      allowedPrerequisites:allowedPrerequisites.slice()
+    };
+  }
+
   sm.handleIdk(owner,reason,cur.problem.sourceId,prerequisiteSkillId,now());
   var descent=math.descendToPrerequisite(cur.session,owner,prerequisiteSkillId);
   if(descent.action!=='teach_prerequisite')return descent;
