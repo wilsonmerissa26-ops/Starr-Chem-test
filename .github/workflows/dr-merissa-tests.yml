@@ -63,6 +63,8 @@ jobs:
         run: node test-day1-classroom-v5.js
       - name: Syntax-check visible Math Gym UI
         run: node --check day1/math-gym-ui.js
+      - name: Run Math Gym tiered help tests
+        run: node test-math-gym-ui-help.js
       - name: Syntax-check teaching upgrades
         run: node --check day1/teaching-upgrades-v6.js
       - name: Run Day 1 mobile interaction stability regression
