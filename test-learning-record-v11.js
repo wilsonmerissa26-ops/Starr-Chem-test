@@ -7,5 +7,7 @@ ok('notebook has still-working section',s.indexOf('Things I am still working on'
 ok('notebook has repaired section',s.indexOf('Problems I repaired')>=0);
 ok('summary reports learning evidence',s.indexOf('Learning evidence')>=0);
 ok('IDK click records exact current question',s.indexOf("e.target.id==='idk'")>=0&&s.indexOf('currentQuestion()')>=0);
-ok('correct retry repairs same question',s.indexOf("e.target.id==='check'")>=0&&s.indexOf("#view #feedback .good")>=0);
+ok('wrong check also records confusion because corrective help is shown',s.indexOf('if(bad&&q)rememberConfusion(q)')>=0);
+ok('only a known confusion can become repaired',s.indexOf('if(i<0)return false')>=0&&s.indexOf('good&&q&&markRepaired(q)')>=0);
+ok('repaired problem is explicitly not independent mastery evidence',s.indexOf('It is not independent mastery evidence.')>=0);
 console.log('\nLearning record v11: '+p+' passed, '+f+' failed');if(f)process.exit(1);
