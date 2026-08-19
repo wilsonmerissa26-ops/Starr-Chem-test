@@ -48,20 +48,27 @@ CASES.forEach(function(row,i){
   assert.strictEqual(check.check(p,row[3],plan),false,'should reject '+row[1]+' => '+row[3]);
 });
 
-// Scientific numeric equivalents are accepted even if notation is omitted.
+var algebraProblem=adapt.fromClassroomPrompt('algebra','4x + 5 = x + 20. Solve for x.');
+var algebraPlan=model.planProblem(algebraProblem);
+['5','x=5','X = 5','x equals 5','x is 5','5=x','5 = X'].forEach(function(v){
+  assert.strictEqual(check.check(algebraProblem,v,algebraPlan),true,'equivalent algebra answer should be accepted: '+v);
+});
+['y=5','5=y','x+5','five','x=4'].forEach(function(v){
+  assert.strictEqual(check.check(algebraProblem,v,algebraPlan),false,'non-equivalent algebra answer must stay rejected: '+v);
+});
+assert.strictEqual(check.algebraNumeric('x = -3.5'),-3.5);
+assert.strictEqual(check.algebraNumeric('y = -3.5'),null);
+
 var sp=adapt.fromClassroomPrompt('scientific_notation','(4×10^6)(2×10^-3) =');
 assert.ok(check.check(sp,'8000',model.planProblem(sp)));
 
-// Fraction equivalence is value based.
 var fp=adapt.fromClassroomPrompt('fractions_percent','5/6 − 1/3 =');
 assert.ok(check.check(fp,'3/6',model.planProblem(fp)));
 
-// Numeric parsing must consume the whole answer, not silently accept a prefix.
 var pct=adapt.fromClassroomPrompt('fractions_percent','15% of 80 =');
 assert.strictEqual(check.check(pct,'12abc',model.planProblem(pct)),false,'numeric junk must not be accepted as 12');
 assert.strictEqual(check.numeric('12abc'),null,'strict numeric parser must reject trailing junk');
 
-// Unit-bearing answers may contain the expected target unit, but not arbitrary text or a wrong unit.
 var liters=adapt.fromClassroomPrompt('unit_conversions','0.062 L to mL =');
 var litersPlan=model.planProblem(liters);
 assert.strictEqual(check.check(liters,'62',litersPlan),true,'bare numeric unit-conversion answer may be accepted');
@@ -69,16 +76,12 @@ assert.strictEqual(check.check(liters,'62 mL',litersPlan),true,'correct target u
 assert.strictEqual(check.check(liters,'62 kg',litersPlan),false,'wrong unit must be rejected');
 assert.strictEqual(check.check(liters,'62mLjunk',litersPlan),false,'unit suffix must also consume the whole input');
 
-// Symbolic rearrangements are accepted only when they are mathematically equivalent.
 var formulaProblem={family:'formula_rearrangement',formulaId:'P_2l2w_w'};
 var formulaPlan={answer:'(P-2l)/2'};
 assert.strictEqual(check.check(formulaProblem,'(P-2l)/2',formulaPlan),true);
 assert.strictEqual(check.check(formulaProblem,'P/2-l',formulaPlan),true);
 assert.strictEqual(check.check(formulaProblem,'P-2l/2',formulaPlan),false,'normal precedence makes P-2l/2 equal P-l, not (P-2l)/2');
 
-// Expanded exponent families may legitimately end with zero, one, or negative
-// exponents. Equivalent reciprocal/identity forms must not be rejected merely
-// because the planner chose power notation as its canonical display form.
 var quotientNegative={area:'exponents',family:'same_base_quotient',base:'b',leftExponent:3,rightExponent:5};
 var quotientNegativePlan=model.planProblem(quotientNegative);
 assert.strictEqual(quotientNegativePlan.answer,'b^-2');
@@ -97,4 +100,4 @@ var productOnePlan=model.planProblem(productOne);
 assert.strictEqual(productOnePlan.answer,'a^1');
 assert.strictEqual(check.check(productOne,'a',productOnePlan),true,'a^1 and a are equivalent');
 
-console.log('PASS canonical math answer checker covers '+CASES.length+' current classroom problems plus strict-input and symbolic-equivalence regressions');
+console.log('PASS canonical math answer checker covers '+CASES.length+' current classroom problems plus algebra phrasing, strict-input, and symbolic-equivalence regressions');
