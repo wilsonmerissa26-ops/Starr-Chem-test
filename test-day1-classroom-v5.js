@@ -1,5 +1,5 @@
 "use strict";
-var fs=require('fs');var crypto=require('crypto');var js=fs.readFileSync('day1/classroom-v5.js','utf8');var html=fs.readFileSync('day1/index.html','utf8');var chem=fs.readFileSync('chemistry-teacher-preview/chemistry-teaching-fixes-v2.js','utf8');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+var fs=require('fs');var crypto=require('crypto');var js=fs.readFileSync('day1/classroom-v5.js','utf8');var html=fs.readFileSync('day1/index.html','utf8');var chem=fs.readFileSync('chemistry-teacher-preview/chemistry-teaching-fixes-v2.js','utf8');var algEq=require('./day1/algebra-answer-equivalence-v20.js');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 ok('v5 is live runtime',html.indexOf('classroom-v5.js')>=0);
 var runtimeCacheToken=crypto.createHash('sha256').update(js).digest('hex').slice(0,12);
 ok('live classroom runtime cache token matches current JS',html.indexOf('classroom-v5.js?v='+runtimeCacheToken)>=0);
@@ -19,4 +19,7 @@ ok('print save fallback exists',js.indexOf('Print / Save this page')>=0);
 ok('chemistry IDK teaches electron budget',chem.indexOf('electrons left = total valence electrons')>=0);
 ok('chemistry IDK teaches center logic',chem.indexOf('how to choose the center')>=0);
 ok('chemistry narration normalization exists',chem.indexOf('normalizeSpeech')>=0);
+ok('algebra equivalence shim loads before v19 check guard',html.indexOf('algebra-answer-equivalence-v20.js')>=0&&html.indexOf('algebra-answer-equivalence-v20.js')<html.indexOf('math-check-input-guard-v19.js'));
+[['5','5'],['x=5','5'],['X = 5','5'],['x equals 5','5'],['x is 5','5'],['5=x','5'],['5 = X','5'],['-3.5','-3.5'],['x = -3.5','-3.5']].forEach(function(row){ok('algebra equivalent answer normalizes '+row[0],algEq.normalize(row[0])===row[1]);});
+[['y=5','y=5'],['x+5','x+5'],['five','five'],['5=y','5=y']].forEach(function(row){ok('non-equivalent algebra text is preserved '+row[0],algEq.normalize(row[0])===row[1]);});
 console.log('\n'+p+' passed, '+f+' failed');if(f)process.exit(1);
