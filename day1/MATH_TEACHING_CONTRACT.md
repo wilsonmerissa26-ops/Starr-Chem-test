@@ -31,6 +31,63 @@ A full lesson follows:
 
 Skills must be decomposed into teachable subskills. If evidence identifies one broken subskill, teach that subskill instead of restarting the entire topic.
 
+## Fresh-problem transfer rule
+
+Teaching, guided practice, and independent proof have different jobs and must not reuse the same exact item as though repetition were transfer.
+
+For every skill, the normal progression is:
+
+**Teach/model with Example A -> guided or reduced-support work on fresh Example B -> independent work on fresh Example C -> later fresh retention/fluency items as needed.**
+
+Hard rules:
+
+- A problem whose answer, solution path, decisive step, or substantial scaffold has been shown is **instructionally contaminated for independent mastery**.
+- A contaminated problem may remain useful for learning or correction, but it must never be counted as Independent, Transfer, or cold-mastery evidence.
+- Choosing **Teach me**, **Walk me through it**, **Give me a hint**, or equivalent substantial support on a problem changes that item's evidence role. The engine must obtain a fresh equivalent item before claiming unsupported mastery.
+- Fresh items must assess the same underlying skill without merely copying the same surface problem. Change numbers, wording, representation, or context while preserving the intended construct and difficulty.
+- Question banks may contain five or six items per skill without requiring the learner to complete all five or six in one sitting. Items are evidence resources, not a mandatory worksheet.
+- Unused equivalent items should be preserved for later transfer, retention, or fluency checks when possible.
+
+## Stop when evidence is sufficient
+
+The engine must not continue serving near-identical questions simply because more questions exist in the bank.
+
+- If the learner demonstrates the target independently on fresh transfer evidence, stop the immediate concept drill and move forward unless additional fluency work is specifically indicated.
+- If the learner is accurate but inefficient, additional work belongs under **fluency/Math Gym**, not disguised as more conceptual mastery testing.
+- If the learner is inconsistent, use only enough fresh evidence to determine whether the skill is stable.
+- If the learner repeats the same error, stop repeating the same problem type. Diagnose the broken prerequisite or representation and reteach differently.
+- If teaching is not producing progress after reasonable supported attempts, stop the loop, mark the skill/prerequisite for further instruction or review, and return later rather than frustrating the learner indefinitely.
+- Later spaced retrieval is stronger retention evidence than several immediate copies completed while the method is still in working memory.
+
+The engine should always know why another item is being served: **understanding, transfer, uncertainty resolution, fluency, or retention**. If none applies, stop.
+
+## No unexplained tools
+
+The system must not require a formula, rule, conversion, mathematical operation, chemistry convention, or strategy that the learner has neither demonstrated nor been taught.
+
+When a required prerequisite is missing:
+
+1. Identify the missing prerequisite rather than treating the downstream answer as the only error.
+2. Teach the prerequisite in plain language, including why it works.
+3. Model it with an instructional example.
+4. Give the learner a fresh supported opportunity to use it.
+5. Add or expose the compact reference in the Toolbox when it is a reusable rule.
+6. Return to the original skill with a fresh problem after the prerequisite check passes.
+
+A rule may not appear for the first time inside a hint as though the learner was expected to know it already.
+
+For logs/scientific notation, teaching and Toolbox support must explicitly include the relationship when needed:
+
+`log(a x 10^n) = log(a) + n`
+
+and the underlying fact:
+
+`log(10^n) = n`.
+
+Example: `log(6 x 10^-6) = log(6) - 6 ≈ 0.78 - 6 = -5.22`; therefore `-log(6 x 10^-6) ≈ 5.22`.
+
+The lesson must explain the sign and meaning. The Toolbox is the later quick reference, not a substitute for that explanation.
+
 ## What teaching means
 
 Teaching is not a rule sentence. A teaching segment must include:
