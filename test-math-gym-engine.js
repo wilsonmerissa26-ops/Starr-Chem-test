@@ -35,7 +35,10 @@ for(i=0;i<20;i++){
   var item=G.generateLinearEquation(rng(100+i)),q=item.params;
   ok('linear equation '+i+' is constructed around chosen integer x',q.a*item.answer+q.b===q.c*item.answer+q.d&&Number.isInteger(item.answer)&&item.check(item.answer));
 }
-var prop=G.generateProportion(rng(3));ok('proportion is answer-first and exact',Math.abs(prop.answer-Number(prop.answer))<1e-10&&prop.check(prop.answer));
+var algebra=G.generateLinearEquation(rng(808));
+[''+algebra.answer,'x='+algebra.answer,'X = '+algebra.answer,'x equals '+algebra.answer,'x is '+algebra.answer,algebra.answer+'=x'].forEach(function(v){ok('Math Gym algebra accepts equivalent '+v,algebra.check(v));});
+['y='+algebra.answer,algebra.answer+'=y','x+'+algebra.answer,'five'].forEach(function(v){ok('Math Gym algebra rejects non-equivalent '+v,!algebra.check(v));});
+var prop=G.generateProportion(rng(3));ok('proportion is answer-first and exact',Math.abs(prop.answer-Number(prop.answer))<1e-10&&prop.check(prop.answer)&&prop.check('x = '+prop.answer));
 var form=G.generateFormulaRearrangement(rng(4));ok('curated formula rearrangement accepts its verified key',form.check(form.answer));
 
 var neg=G.generateNegativeExponent(rng(5));ok('negative exponent returns exact reciprocal',neg.check(neg.answer));
