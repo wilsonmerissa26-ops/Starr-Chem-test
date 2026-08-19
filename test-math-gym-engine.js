@@ -1,6 +1,8 @@
-var G=require('./math-gym-engine.js');
+var G=require('./math-gym-engine-v2.js');
 var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 function rng(seed){var s=seed>>>0;return function(){s=(1664525*s+1013904223)>>>0;return s/4294967296;};}
+function seq(values){var i=0;return function(){return values[i++%values.length];};}
+function fractionPromptValue(item){var m=String(item.prompt).match(/^([+-]?\d+)\/([+-]?\d+)\s+of\s+([+-]?(?:\d+(?:\.\d*)?|\.\d+))$/i);return m?Number(m[1])/Number(m[2])*Number(m[3]):null;}
 
 ok('practice allows hints and is untimed',G.MODES.practice.hints===true&&G.MODES.practice.timed===false&&!G.MODES.practice.changesStatus);
 ok('speed round has no hints and is timed',G.MODES.speed.hints===false&&G.MODES.speed.timed===true);
@@ -10,8 +12,26 @@ ok('mastery is fresh unaided and may change status',G.MODES.mastery.fresh&&G.MOD
 var r=rng(7),frac=G.generateFraction(r);ok('fraction answer validates exactly',frac.check(frac.answer));
 var pct=G.generatePercent(r);ok('percent generator produces clean self-validating answer',pct.check(pct.answer+'%'));
 var ofw=G.generateFractionOfWhole(r);ok('fraction-of-whole generator produces clean integer answer',Number.isInteger(ofw.answer)&&ofw.check(ofw.answer));
+ok('fraction-of-whole displayed prompt agrees with hidden answer',Math.abs(fractionPromptValue(ofw)-ofw.answer)<1e-10);
 
-for(var i=0;i<20;i++){
+// Real-device regressions from 2026-08-19. These sequences reproduce the old
+// reduced-fraction construction bug exactly: the visible prompt was right but
+// the hidden key used the unreduced denominator.
+var threeFourth=G.generateFractionOfWhole(seq([.65,.75,.71]));
+ok('regression: generator displays 3/4 of 80',threeFourth.prompt==='3/4 of 80');
+ok('regression: 3/4 of 80 accepts 60',threeFourth.answer===60&&threeFourth.check('60'));
+ok('regression: 3/4 of 80 rejects stale hidden key 30',!threeFourth.check('30'));
+var oneHalf=G.generateFractionOfWhole(seq([.9,.45,.99]));
+ok('regression: generator displays 1/2 of 400',oneHalf.prompt==='1/2 of 400');
+ok('regression: 1/2 of 400 accepts 200',oneHalf.answer===200&&oneHalf.check('200'));
+ok('regression: 1/2 of 400 rejects stale hidden key 40',!oneHalf.check('40'));
+
+for(var i=0;i<500;i++){
+  var semantic=G.generateFractionOfWhole(rng(7000+i));
+  ok('fraction-of-whole semantic alignment '+i,Math.abs(fractionPromptValue(semantic)-semantic.answer)<1e-10&&semantic.check(String(semantic.answer)));
+}
+
+for(i=0;i<20;i++){
   var item=G.generateLinearEquation(rng(100+i)),q=item.params;
   ok('linear equation '+i+' is constructed around chosen integer x',q.a*item.answer+q.b===q.c*item.answer+q.d&&Number.isInteger(item.answer)&&item.check(item.answer));
 }
