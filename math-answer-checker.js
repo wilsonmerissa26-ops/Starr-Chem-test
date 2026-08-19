@@ -10,16 +10,24 @@ function absoluteNear(a,b,tol){return Math.abs(Number(a)-Number(b))<=tol;}
 function norm(v){return String(v==null?'':v).trim().toLowerCase().replace(/\s+/g,'').replace(/×/g,'*').replace(/−/g,'-');}
 function escapeRegExp(s){return String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 
-// Strict numeric parsing: consume the entire input rather than accepting a
-// numeric prefix (the old parseFloat behavior made "12abc" look like 12).
-// A single trailing percent sign is intentionally accepted because current
-// fractions/percentages practice allows entries such as "8%".
 function numeric(v){
   var s=String(v==null?'':v).trim().replace(/,/g,'');
   var m=s.match(/^([+-]?(?:(?:\d+(?:\.\d*)?)|(?:\.\d+))(?:[eE][+-]?\d+)?)\s*%?$/);
   if(!m)return null;
   var n=Number(m[1]);
   return Number.isFinite(n)?n:null;
+}
+
+function algebraNumeric(v){
+  var direct=numeric(v);
+  if(direct!==null)return direct;
+  var raw=String(v==null?'':v).trim().replace(/,/g,'').replace(/−/g,'-');
+  var num='([+-]?(?:(?:\\d+(?:\\.\\d*)?)|(?:\\.\\d+))(?:[eE][+-]?\\d+)?)';
+  var left=raw.match(new RegExp('^x\\s*(?:=|equals|is)\\s*'+num+'$','i'));
+  if(left)return Number(left[1]);
+  var right=raw.match(new RegExp('^'+num+'\\s*(?:=|equals)\\s*x$','i'));
+  if(right)return Number(right[1]);
+  return null;
 }
 
 function numericWithOptionalUnit(v,unit){
@@ -47,10 +55,6 @@ function sci(v){
 function normalizeExpr(v){return norm(v).replace(/\*/g,'').replace(/^\((.*)\)$/,'$1');}
 function expectedFromPlan(plan){return plan&&Object.prototype.hasOwnProperty.call(plan,'answer')?plan.answer:null;}
 
-// Safe symbolic equivalence for the exact power forms emitted by Phase 2A.
-// This is deliberately NOT a general algebra parser. It recognizes only the
-// identities the engine itself teaches and can prove without precedence risk:
-// b^-n = 1/b^n, b^0 = 1, and b^1 = b.
 function parsePower(v){
   var s=normalizeExpr(v),m=s.match(/^([a-z][a-z0-9]*|[0-9]+)\^\(?([+-]?\d+)\)?$/);
   return m?{base:m[1],exponent:Number(m[2])}:null;
@@ -86,10 +90,13 @@ function check(problem,input,plan){
     var gotExpr=normalizeExpr(input),ansExpr=normalizeExpr(expected);
     if(gotExpr===ansExpr)return true;
     if(problem.formulaId==='V_lwh_h')return ['v/lw','v/(lw)'].indexOf(gotExpr)>=0;
-    // P = 2l + 2w -> w = (P - 2l)/2 = P/2 - l.
-    // Do NOT accept p-2l/2: normal precedence makes that p-l, which is different.
     if(problem.formulaId==='P_2l2w_w')return ['p/2-l','(p-2l)/2'].indexOf(gotExpr)>=0;
     return false;
+  }
+
+  if(family==='two_sided_linear'||family==='one_sided_linear'||family==='proportion'){
+    var algebra=algebraNumeric(input);
+    return algebra!==null&&near(algebra,expected,1e-9);
   }
 
   if(family==='same_base_product'||family==='same_base_quotient'||family==='same_base_mixed'||family==='power_of_power')return symbolicPowerEquivalent(input,expected);
@@ -117,7 +124,7 @@ function check(problem,input,plan){
 }
 
 return{
-  check:check,numeric:numeric,numericWithOptionalUnit:numericWithOptionalUnit,
+  check:check,numeric:numeric,algebraNumeric:algebraNumeric,numericWithOptionalUnit:numericWithOptionalUnit,
   fractionValue:fractionValue,sci:sci,normalizeExpr:normalizeExpr,
   parsePower:parsePower,symbolicPowerEquivalent:symbolicPowerEquivalent,
   absoluteNear:absoluteNear
