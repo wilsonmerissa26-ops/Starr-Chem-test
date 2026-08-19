@@ -40,9 +40,10 @@ function addLogTools(){
  ['log(10^n) = n','log(a×10^n) = log(a) + n'].forEach(function(t){var s=document.createElement('span');s.className='pill';s.setAttribute('data-log-power-rule','1');s.textContent=t;chips.appendChild(s);});
 }
 function apply(){
- var t=title(),visual=view.querySelector('.stage .visual.small');
+ var t=title(),stage=view.querySelector('.stage'),card=stage&&stage.closest('.card'),heading=card&&card.querySelector('h2'),visual=view.querySelector('.stage .visual.small');
  if(visual&&examples[t])visual.textContent=examples[t];
  if(explanations[t]){var b=view.querySelector('.teacher .bubble div');if(b)b.textContent=explanations[t];}
+ if(t==='Build log(6)'&&heading)heading.textContent='Build a log from known landmarks';
  addLogTools();
 }
 function readPatchedLesson(){
