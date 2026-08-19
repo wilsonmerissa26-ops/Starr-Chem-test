@@ -1,5 +1,5 @@
 "use strict";
-var fs=require('fs');var crypto=require('crypto');var js=fs.readFileSync('day1/classroom-v5.js','utf8');var html=fs.readFileSync('day1/index.html','utf8');var chem=fs.readFileSync('chemistry-teacher-preview/chemistry-teaching-fixes-v2.js','utf8');var algEq=require('./day1/algebra-answer-equivalence-v20.js');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+var fs=require('fs');var crypto=require('crypto');var js=fs.readFileSync('day1/classroom-v5.js','utf8');var html=fs.readFileSync('day1/index.html','utf8');var chem=fs.readFileSync('chemistry-teacher-preview/chemistry-teaching-fixes-v2.js','utf8');var fresh=fs.readFileSync('day1/fresh-teaching-examples-v21.js','utf8');var stop=fs.readFileSync('day1/practice-stop-v22.js','utf8');var algEq=require('./day1/algebra-answer-equivalence-v20.js');var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 ok('v5 is live runtime',html.indexOf('classroom-v5.js')>=0);
 var runtimeCacheToken=crypto.createHash('sha256').update(js).digest('hex').slice(0,12);
 ok('live classroom runtime cache token matches current JS',html.indexOf('classroom-v5.js?v='+runtimeCacheToken)>=0);
@@ -22,4 +22,12 @@ ok('chemistry narration normalization exists',chem.indexOf('normalizeSpeech')>=0
 ok('algebra equivalence shim loads before v19 check guard',html.indexOf('algebra-answer-equivalence-v20.js')>=0&&html.indexOf('algebra-answer-equivalence-v20.js')<html.indexOf('math-check-input-guard-v19.js'));
 [['5','5'],['x=5','5'],['X = 5','5'],['x equals 5','5'],['x is 5','5'],['5=x','5'],['5 = X','5'],['-3.5','-3.5'],['x = -3.5','-3.5']].forEach(function(row){ok('algebra equivalent answer normalizes '+row[0],algEq.normalize(row[0])===row[1]);});
 [['y=5','y=5'],['x+5','x+5'],['five','five'],['5=y','5=y']].forEach(function(row){ok('non-equivalent algebra text is preserved '+row[0],algEq.normalize(row[0])===row[1]);});
+ok('fresh teaching examples patch is live',html.indexOf('fresh-teaching-examples-v21.js')>=0);
+ok('practice stop patch is live',html.indexOf('practice-stop-v22.js')>=0);
+['7/8 − 1/4','2/5 of 150','6x + 4 = 2x + 28','3/x = 9/18','3⁻² = 1/3² = 1/9','0.0048 = 4.8 × 10⁻³','log(15)=log(3)+log(5)','−log(3×10⁻⁵)','640 mL → L','0.02 mol/s'].forEach(function(x){ok('fresh teaching example present '+x,fresh.indexOf(x)>=0);});
+['5/6 − 1/3','3/8 of 160','7x + 2 = 3x + 26','2/x = 6/15','2⁻⁴ = 1/2⁴ = 1/16','0.00061 = 6.1 × 10⁻⁴','−log(6×10⁻⁶)','750 mL → L','0.015 mol/s'].forEach(function(x){ok('practice fixture is not reused by v21 teaching '+x,fresh.indexOf(x)<0);});
+ok('log product rule is explicitly explained in teacher patch',fresh.indexOf('log(ab)=log(a)+log(b)')>=0&&fresh.indexOf('log(10^n)=n')>=0);
+ok('log power rules are added to toolbox',fresh.indexOf('log(10^n) = n')>=0&&fresh.indexOf('log(a×10^n) = log(a) + n')>=0);
+ok('practice stop covers all six banks',stop.indexOf('fractions_percent:6')>=0&&stop.indexOf('algebra:4')>=0&&stop.indexOf('exponents:5')>=0&&stop.indexOf('scientific_notation:5')>=0&&stop.indexOf('logs:4')>=0&&stop.indexOf('unit_conversions:7')>=0);
+ok('practice completion stops instead of wrapping',stop.indexOf('Finish skill ✓')>=0&&stop.indexOf("c.session.phase='entry'")>=0&&stop.indexOf("c.session.status='Practice set complete'")>=0);
 console.log('\n'+p+' passed, '+f+' failed');if(f)process.exit(1);
