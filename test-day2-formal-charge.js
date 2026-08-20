@@ -44,9 +44,11 @@ ok('teaching and guided contexts are not reused in independent bank',F.ITEMS.eve
 
 ok('transfer 1 has correct carbon nitrogen and total charges',F.TRANSFERS[0].fields.carbon===0&&F.TRANSFERS[0].fields.nitrogen===1&&F.TRANSFERS[0].fields.total===1);
 ok('transfer 2 is fresh negative nitrogen transfer',F.TRANSFERS[1].fields.nitrogen===-1&&F.TRANSFERS[1].fields.total===-1);
-ok('T1 explanation accepts correct own-words calculation',F.explanationLooksRight('Nitrogen has 5 valence electrons and 4 bonds, so its formal charge is +1.',F.TRANSFERS[0])===true);
+ok('T1 explanation accepts full V N B reasoning',F.explanationLooksRight('Nitrogen has 5 valence electrons, no lone pairs, and 4 bonds, so its formal charge is +1.',F.TRANSFERS[0])===true);
+ok('T1 explanation rejects missing nonbonding-accounting step',F.explanationLooksRight('Nitrogen has 5 valence electrons and 4 bonds, so its formal charge is +1.',F.TRANSFERS[0])===false);
 ok('T1 explanation rejects bare memorized answer',F.explanationLooksRight('Nitrogen is +1.',F.TRANSFERS[0])===false);
 ok('T2 explanation accepts correct V N B reasoning',F.explanationLooksRight('N starts with 5 valence electrons, has 4 nonbonding electrons and 2 bonds, so 5 - 4 - 2 = -1.',F.TRANSFERS[1])===true);
+ok('T2 explanation rejects numbers without component meaning',F.explanationLooksRight('5 minus 4 minus 2 equals -1.',F.TRANSFERS[1])===false);
 
 var js=fs.readFileSync('day2/formal-charge.js','utf8');
 var html=fs.readFileSync('day2/index.html','utf8');
