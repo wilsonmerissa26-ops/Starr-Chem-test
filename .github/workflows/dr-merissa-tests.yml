@@ -65,6 +65,10 @@ jobs:
         run: node test-day1-classroom-v4.js
       - name: Syntax-check Day 1 v5 classroom
         run: node --check day1/classroom-v5.js
+      - name: Syntax-check semantic answer equivalence guard
+        run: node --check semantic-answer-equivalence.js
+      - name: Run semantic answer equivalence contract
+        run: node test-semantic-answer-equivalence.js
       - name: Syntax-check chemistry teaching fixes
         run: node --check chemistry-teacher-preview/chemistry-teaching-fixes-v2.js
       - name: Run Day 1 v5 teaching-contract regressions
