@@ -27,10 +27,10 @@ var ITEMS=[
  {id:'FC-I6',element:'C',context:'Carbon with one triple bond, one single bond, and no lone pairs.',V:4,N:0,B:4,FC:0,tags:['multiple']}
 ];
 var TRANSFERS=[
- {id:'T1',title:'Fresh transfer: methylammonium, CH₃NH₃⁺',body:'Carbon is bonded to three H and to N. Nitrogen is bonded to carbon and three H and has no lone pair.',fields:{carbon:0,nitrogen:1,total:1},explain:{numbers:['5','4'],charge:1},help:'Focus on nitrogen: V = 5, N = 0, B = 4. Carbon has four bonds and no lone pairs.'},
+ {id:'T1',title:'Fresh transfer: methylammonium, CH₃NH₃⁺',body:'Carbon is bonded to three H and to N. Nitrogen is bonded to carbon and three H and has no lone pair.',fields:{carbon:0,nitrogen:1,total:1},explain:{numbers:['5','4'],charge:1,needsZeroNonbonding:true},help:'Focus on nitrogen: V = 5, N = 0, B = 4. Carbon has four bonds and no lone pairs.'},
  {id:'T2',title:'Fresh transfer: NH₂⁻',body:'Nitrogen is bonded to two H and has two lone pairs.',fields:{nitrogen:-1,total:-1},explain:{numbers:['5','4','2'],charge:-1},help:'Two lone pairs are 4 nonbonding electrons. Nitrogen has two single bonds.'}
 ];
-function explanationLooksRight(text,transfer){var s=String(text||'').toLowerCase().replace(/−/g,'-');if(s.length<12)return false;var nums=transfer.explain.numbers.every(function(n){return s.indexOf(n)>=0;});var hasRule=/valence|\bfc\b|formal charge|nonbond|lone pair|bond/.test(s);var charge=transfer.explain.charge>0?/(\+1|positive\s*1|equals?\s*1|=\s*1)/.test(s):/(-1|negative\s*1|minus\s*1)/.test(s);return nums&&hasRule&&charge;}
+function explanationLooksRight(text,transfer){var s=String(text||'').toLowerCase().replace(/−/g,'-');if(s.length<12)return false;var nums=transfer.explain.numbers.every(function(n){return s.indexOf(n)>=0;});var hasValence=/valence|starts? with|\bv\s*=/.test(s);var hasNonbond=/nonbond|lone pair|\bn\s*=/.test(s);var hasBond=/bond|\bb\s*=/.test(s);var zeroNonbond=!transfer.explain.needsZeroNonbonding||/\bn\s*=\s*0\b|\b0\s+nonbond|no\s+(?:lone\s*pairs?|nonbonding)/.test(s);var charge=transfer.explain.charge>0?/(\+1|positive\s*1|equals?\s*1|=\s*1)/.test(s):/(-1|negative\s*1|minus\s*1)/.test(s);return nums&&hasValence&&hasNonbond&&hasBond&&zeroNonbond&&charge;}
 var API={VALENCE:VALENCE,formalCharge:formalCharge,parseCharge:parseCharge,chargeText:chargeText,sumCharges:sumCharges,diagnose:diagnose,masteryCreditAllowed:masteryCreditAllowed,sufficientEvidence:sufficientEvidence,GATE_A:GATE_A,GATE_B:GATE_B,LESSONS:LESSONS,GUIDED:GUIDED,ITEMS:ITEMS,TRANSFERS:TRANSFERS,explanationLooksRight:explanationLooksRight};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;
 if(typeof document==='undefined')return;
@@ -38,7 +38,7 @@ if(typeof document==='undefined')return;
 var KEY='dr-merissa-day2-formal-charge-v1',view=document.getElementById('view');
 var state={screen:'home',gateRound:'A',lesson:0,records:[],itemIndex:0,itemAttempts:0,itemHelp:0,transferIndex:0,status:'Not started',errors:[]};
 try{state=Object.assign(state,JSON.parse(localStorage.getItem(KEY)||'{}'));state.records=state.records||[];state.errors=state.errors||[];}catch(e){}
-function esc(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])});}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c])});}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}var n=document.getElementById('saveState');if(n)n.textContent='Saved';}
 function speak(text){if(!('speechSynthesis'in window))return;window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(String(text).replace(/FC/g,'formal charge').replace(/−/g,' minus ').replace(/\+/g,' plus '));u.rate=.84;window.speechSynthesis.speak(u);}
 function shell(inner){return '<div class="topline"><div><div class="phase">DAY 2</div><h1>Formal Charge</h1></div><div class="save" id="saveState">Saved</div></div>'+inner;}
