@@ -45,6 +45,10 @@ jobs:
         run: node --check day1/chemistry-vocabulary-v24.js
       - name: Run Day 1 chemistry vocabulary tests
         run: node test-day1-chemistry-vocabulary.js
+      - name: Syntax-check Day 2 formal charge engine
+        run: node --check day2/formal-charge.js
+      - name: Run Day 2 formal charge tests
+        run: node test-day2-formal-charge.js
       - name: Run notebook and review queue tests
         run: node test-notebook-review-queue.js
       - name: Syntax-check Math Gym engine
