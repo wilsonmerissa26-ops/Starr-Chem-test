@@ -5,7 +5,8 @@ var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log
 
 ok('vocabulary check contains six Day 1 terms',V.TERMS.length===6);
 ok('term ids are unique',new Set(V.TERMS.map(function(t){return t.id})).size===V.TERMS.length);
-ok('every term has one keyed multiple-choice answer',V.TERMS.every(function(t){return t.term&&t.definition&&Array.isArray(t.choices)&&t.choices.length===3&&t.answer>=0&&t.answer<t.choices.length&&t.choices[t.answer]===t.definition||t.id==='octet'||t.id==='central_atom'||t.id==='bond';}));
+ok('every term has one keyed multiple-choice answer',V.TERMS.every(function(t){return !!(t.term&&t.definition&&Array.isArray(t.choices)&&t.choices.length===3&&t.answer>=0&&t.answer<t.choices.length&&t.choices[t.answer]===t.definition);}));
+ok('correct answer positions are varied',new Set(V.TERMS.map(function(t){return t.answer})).size===3);
 var names=V.TERMS.map(function(t){return t.term.toLowerCase()}).join(' ');
 ok('Day 1 vocabulary includes valence electrons',names.indexOf('valence electron')>=0);
 ok('Day 1 vocabulary includes lone pair and Lewis structure',names.indexOf('lone pair')>=0&&names.indexOf('lewis structure')>=0);
