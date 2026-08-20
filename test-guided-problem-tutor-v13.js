@@ -12,6 +12,9 @@ ok('conversion walkthrough exists',js.indexOf('Let the units decide the directio
 ok('g-to-mg ambiguous relationship wording is repaired',fix.repairedPrompt('2.4 g to mg =','What is the relationship between 1 g and mg?')==='How many milligrams are in 1 gram?');
 ok('g-to-mg repair does not alter other questions',fix.repairedPrompt('3500 mcg to mg =','How many mcg equal 1 mg?')==='How many mcg equal 1 mg?');
 ok('g-to-mg intro now matches the numeric checker',fix.repairedIntro('2.4 g to mg =','First identify which unit is smaller.')==='Start with the exact gram-to-milligram conversion factor.');
-ok('original g-to-mg checker still requires the 1000 relationship',js.indexOf("'2.4 g to mg ='")>=0&&js.indexOf("return /1000/.test(norm(v))")>=0);
+['1000','1,000','1000.0','1000 mg','1,000 milligrams'].forEach(function(v){ok('g-to-mg accepts exact valid form '+v,fix.exactMgAnswer(v)===true);});
+['1000 ng','1000 kg','1000 g','1000 bananas','21000','10001 mg','1000 mg extra','mg is smaller'].forEach(function(v){ok('g-to-mg rejects over-broad form '+v,fix.exactMgAnswer(v)===false);});
+ok('g-to-mg guard only targets its own exact step',fix.isTargetStep('2.4 g to mg =','How many milligrams are in 1 gram?')===true&&fix.isTargetStep('3500 mcg to mg =','How many mcg equal 1 mg?')===false);
+ok('legacy v13 checker is known broad but intercepted before it can grade the target step',js.indexOf("'2.4 g to mg ='")>=0&&js.indexOf("return /1000/.test(norm(v))")>=0&&fs.readFileSync('day1/guided-unit-conversion-prompt-v26.js','utf8').indexOf('stopImmediatePropagation')>=0);
 ok('exponent walkthrough exists',js.indexOf('Negative exponent = reciprocal')>=0&&js.indexOf('Power of a power')>=0);
 console.log('\nGuided problem tutor v13: '+p+' passed, '+f+' failed');if(f)process.exit(1);
