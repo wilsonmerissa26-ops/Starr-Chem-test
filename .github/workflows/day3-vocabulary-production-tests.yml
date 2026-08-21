@@ -25,3 +25,5 @@ jobs:
         run: node test-day3-vocabulary-production.js
       - name: Run Day 3 vocabulary natural-language adversarial tests
         run: node test-day3-vocabulary-natural-language.js
+      - name: Run Day 3 vocabulary red-team semantics and migration tests
+        run: node test-day3-vocabulary-red-team-v34.js
