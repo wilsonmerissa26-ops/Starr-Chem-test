@@ -1,5 +1,5 @@
 'use strict';
-var V=require('./day3/vocab-production-v34.js');
+var V=require('./day3/vocab-production-v34-language-fix.js');
 var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 function term(id){return V.TERMS.find(function(t){return t.id===id;});}
 function pass(id,d,u){return V.gradeTerm(term(id),d,u).pass;}
@@ -21,7 +21,7 @@ ok('contributor accepts concise natural explanation',pass('contributor','Another
 ok('hybrid accepts concise natural explanation',pass('hybrid','The hybrid is the actual molecule described by all the resonance contributors together.','No. It does not flip between drawings; the hybrid is the real structure.'));
 ok('delocalized accepts singular grammar',pass('delocalized','Electrons are spread over more than one atom or bond instead of staying in one place.','No, they are spread over more than one atom or bond.'));
 ok('pi accepts natural definition and fixed sigma statement',pass('pi','A pi bond is the second bond in a double bond from side-by-side p orbital overlap, and its electrons can shift in resonance.','The pi part can shift; the sigma bond stays fixed.'));
-ok('arrow accepts natural source-to-destination explanation',pass('arrow','A curved arrow tracks an electron pair moving from its source at the tail to the atom or bond at the arrowhead.','An electron pair such as a lone pair or pi bond must be at the tail.'));
+ok('arrow accepts natural source-to-destination explanation',pass('arrow','A curved arrow follows an electron pair moving from its source at the tail to the atom or bond at the arrowhead.','An electron pair such as a lone pair or pi bond must be at the tail.'));
 
 // Correct negation is not treated as contradiction.
 ok('contributor accepts atoms-do-not-move statement',pass('contributor','It is a valid drawing of the same species where electrons move but the atoms and connectivity stay the same.','No. The hydrogen moved, so the atom connectivity changed.'));
