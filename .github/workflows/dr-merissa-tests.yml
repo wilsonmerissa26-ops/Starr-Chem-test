@@ -99,6 +99,10 @@ jobs:
         run: node --check day1/math-exact-problem-teacher-v9.js
       - name: Run exact-problem math teacher tests
         run: node test-math-exact-problem-teacher-v9.js
+      - name: Syntax-check strict first-move checker
+        run: node --check day1/math-first-move-check-v29.js
+      - name: Run strict first-move adversarial tests
+        run: node test-math-first-move-check-v29.js
       - name: Syntax-check progressive math lesson stepper
         run: node --check day1/math-lesson-stepper-v10.js
       - name: Run progressive math lesson stepper tests
