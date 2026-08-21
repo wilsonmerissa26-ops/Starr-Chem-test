@@ -1,0 +1,30 @@
+'use strict';
+var fs=require('fs'),M=require('./day1/math-coach-check-v30.js'),S=require('./semantic-answer-equivalence.js'),p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+function c(prompt,v){return M.check(prompt,v,S)}function fb(prompt,v,a,last){return M.feedback(prompt,v,a||1,last||'',S)}
+ok('tiny-step contract covers all eight coach families',Object.keys(M.CONTRACTS).length===8);
+ok('percent exact numeric answer passes',c('If 58% is rewritten as 60% − 2%, what percent do you subtract?','2')==='2');
+ok('percent-mark equivalent passes',c('If 58% is rewritten as 60% − 2%, what percent do you subtract?','2%')==='2');
+ok('numeric substring 12 does not pass expected 2',c('If 58% is rewritten as 60% − 2%, what percent do you subtract?','12')===null);
+ok('conversion direction synonym passes',c('When converting liters to milliliters, should the numerical value get larger or smaller?','bigger')==='larger');
+ok('conversion conflicting direction is blocked',c('When converting liters to milliliters, should the numerical value get larger or smaller?','larger and smaller')===null);
+ok('scientific arithmetic exact answer passes',c('What is −5 − (−2)?','-3')==='-3');
+ok('scientific arithmetic near-looking wrong number is blocked',c('What is −5 − (−2)?','-30')===null);
+ok('exponent multiplication wording passes',c('For (x^3)^2, do you add or multiply the exponents?','multiplication')==='multiply');
+ok('exponent conflicting operations are blocked',c('For (x^3)^2, do you add or multiply the exponents?','multiply then add')===null);
+ok('log exact exponent passes',c('log(100) equals what exponent?','2.0')==='2');
+ok('log substring value 12 is blocked',c('log(100) equals what exponent?','12')===null);
+ok('algebra divide wording passes',c('If 4x = 24, what operation isolates x?','divide both sides')==='divide');
+ok('algebra division noun passes',c('If 4x = 24, what operation isolates x?','division')==='divide');
+ok('algebra conflicting inverse operations are blocked',c('If 4x = 24, what operation isolates x?','multiply then divide')===null);
+ok('fraction denominator phrase passes',c('Before adding 1/3 + 1/4, what must match first?','the denominators must match')==='denominator');
+ok('fraction negated keyword is blocked',c('Before adding 1/3 + 1/4, what must match first?','not denominator')===null);
+ok('fraction unrelated word containing denominator is blocked',c('Before adding 1/3 + 1/4, what must match first?','denominatorish')===null);
+ok('general rule phrase passes',c('What should you identify before calculating?','the math relationship')==='rule');
+ok('general keyword salad is blocked',c('What should you identify before calculating?','rule bananas')===null);
+ok('wrong number feedback reacts without giving correct number',/I read “12”/.test(fb('If 58% is rewritten as 60% − 2%, what percent do you subtract?','12'))&&!/answer is 2|subtract 2/i.test(fb('If 58% is rewritten as 60% − 2%, what percent do you subtract?','12')));
+ok('wrong direction feedback names learner choice without giving target direction',/You chose smaller/.test(fb('When converting liters to milliliters, should the numerical value get larger or smaller?','smaller'))&&!/should be larger|answer is larger/i.test(fb('When converting liters to milliliters, should the numerical value get larger or smaller?','smaller')));
+ok('wrong algebra operation feedback names learner operation without revealing divide',/You chose multiply/.test(fb('If 4x = 24, what operation isolates x?','multiply'))&&!/choose divide|answer is divide/i.test(fb('If 4x = 24, what operation isolates x?','multiply')));
+ok('repeated tiny-step wrong response is recognized',/same response again/i.test(fb('log(100) equals what exponent?','3',2,'3')));
+ok('different second tiny-step answer is not mislabeled repeated',!/same response again/i.test(fb('log(100) equals what exponent?','4',2,'3')));
+var src=fs.readFileSync('day1/math-coach-check-v30.js','utf8');ok('v30 blocks legacy wrong handler before it can auto-show easier example',src.indexOf('stopImmediatePropagation')>=0);ok('v30 wrong feedback does not contain v8 worked-example copy',src.indexOf('750 mL × (1 L / 1000 mL)')<0&&src.indexOf('x + 5 = 12')<0);
+console.log('\nMath coach check v30: '+p+' passed, '+f+' failed');if(f)process.exit(1);
