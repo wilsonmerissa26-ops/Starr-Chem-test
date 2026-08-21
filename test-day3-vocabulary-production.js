@@ -1,5 +1,5 @@
 'use strict';
-var V=require('./day3/vocab-production-v34.js');
+var V=require('./day3/vocab-production-v34-language-fix.js');
 var fs=require('fs');
 var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 function term(id){return V.TERMS.find(function(t){return t.id===id;});}
@@ -7,7 +7,6 @@ function pass(id,d,u){return V.gradeTerm(term(id),d,u).pass;}
 
 ok('five vocabulary terms',V.TERMS.length===5);
 if(fs.existsSync('day3/resonance.js')){var R=require('./day3/resonance.js');ok('term IDs match frozen resonance runtime',V.TERMS.map(function(x){return x.id;}).join('|')===R.VOCAB.map(function(x){return x.id;}).join('|'));ok('term names match frozen resonance runtime',V.TERMS.map(function(x){return x.term;}).join('|')===R.VOCAB.map(function(x){return x.term;}).join('|'));}
-
 ok('contributor accepts independent explanation',pass('contributor','It is another way to draw the same molecule where the electron placement changes but the atoms stay connected the same.','No. The hydrogen moved to a different carbon, so the connectivity changed and they are not resonance contributors.'));
 ok('contributor clue fragment does not pass',!pass('contributor','It is a drawing.','They look different.'));
 ok('contributor same molecule alone does not pass',!pass('contributor','It is the same molecule.','No.'));
@@ -40,6 +39,7 @@ ok('prerequisite gate is not intercepted',!V.shouldTakeOver({gateResolved:false,
 var html=fs.readFileSync('day3/index.html','utf8');
 ok('Day 3 loads audited v34 vocabulary layer',html.indexOf('vocab-production-v34.js')>=0);
 ok('v34 vocabulary loads after resonance runtime',html.indexOf('vocab-production-v34.js')>html.indexOf('resonance.js'));
+ok('language correction loads after v34 core',html.indexOf('vocab-production-v34-language-fix.js')>html.indexOf('vocab-production-v34.js'));
 ok('retired v32 vocabulary is not loaded by Day 3 page',html.indexOf('vocab-production-v32.js')<0);
 ok('retired v33 patch is not loaded by Day 3 page',html.indexOf('vocab-natural-language-v33.js')<0);
 
