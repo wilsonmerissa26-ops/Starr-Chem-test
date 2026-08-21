@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AStarryia Day 3 — Resonance</title>
+<style>
+:root{font-family:Inter,system-ui,-apple-system,sans-serif;background:#f4f2f8;color:#171721;--p:#65369a;--soft:#eee7f6;--good:#237048;--bad:#9b3131;--line:#dfd8e8;--ink:#171721}
+*{box-sizing:border-box}body{margin:0}.app{width:min(100%,940px);margin:auto;padding:18px 14px 90px}
+.topline{position:sticky;top:0;z-index:10;background:rgba(244,242,248,.97);backdrop-filter:blur(8px);padding:12px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.topline h1{margin:2px 0 0;font-size:clamp(24px,5vw,36px)}.phase{font-size:.82rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#65369a}.save,.muted{color:#6c6574;font-size:.9rem}
+.hero,.card{background:white;border:1px solid var(--line);border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 8px 25px rgba(55,30,80,.06)}
+.hero h2,.card h2,.card h3{margin-top:3px}.teacher{display:flex;gap:13px}.avatar{width:52px;height:52px;flex:0 0 52px;border-radius:50%;display:grid;place-items:center;background:#ece1fa;font-weight:900;color:#5b2f8d}.bubble{line-height:1.55}
+.structure{white-space:pre-line;background:#fcfaff;border:2px dashed #ccbadd;border-radius:17px;padding:20px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(.96rem,3vw,1.15rem);line-height:1.65;margin:12px 0;overflow-wrap:anywhere}
+.lowRisk,.subtleBox,.warning{border-radius:14px;padding:15px;margin:14px 0}.lowRisk{background:#f7f3fb;border:1px solid #d9cae7}.subtleBox{background:#faf8fc;border:1px solid var(--line)}.warning{background:#fff8df;border:1px solid #ead89b}
+.success{background:#eef8f2;border-color:#b9ddc7}.badText{color:var(--bad)}
+.feedback{margin-top:12px;padding:13px;border-radius:13px}.feedback.good{background:#eef8f2;color:var(--good)}.feedback.bad{background:#fff0ee;color:var(--bad)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}.btn{appearance:none;border:0;border-radius:13px;padding:12px 15px;min-height:46px;font-weight:800;background:var(--p);color:white;touch-action:manipulation;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}.btn.secondary{background:var(--soft);color:#3d2656}.btn.ghost{background:white;color:#513567;border:1px solid #dacde6}.linkBtn{width:max-content}
+.choice{width:100%;text-align:left;border:1px solid #d5c9df;background:white;color:var(--ink);border-radius:13px;padding:13px 14px;margin-top:8px;cursor:pointer;font:inherit}.choice:hover,.choice:focus{border-color:#65369a;outline:none;box-shadow:0 0 0 2px rgba(101,54,154,.08)}
+.grid,.builder{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:14px 0}.field,.grid label{font-weight:800}.field b,.grid label b{display:block}.field span,.grid label span{display:block;font-weight:500;color:#6c6574;font-size:.8rem;margin-bottom:5px}
+.input{width:100%;padding:14px;border:1px solid #cfc3da;border-radius:12px;font-size:1rem;background:white;margin-top:6px}.textarea{min-height:120px;resize:vertical;line-height:1.45}
+.evidence{display:flex;gap:8px;flex-wrap:wrap;background:#eee7f6;border-radius:13px;padding:12px 14px;margin:14px 0;color:#452b5b}.evidence span{background:white;border-radius:999px;padding:6px 9px;font-size:.84rem}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.chips span{background:#eee7f6;color:#4d3361;border-radius:999px;padding:8px 11px;font-weight:700;font-size:.84rem}
+@media(max-width:650px){.app{padding:10px 10px 80px}.grid,.builder{grid-template-columns:1fr}.actions .btn{flex:1 1 46%}.card,.hero{padding:15px}.teacher{display:block}.avatar{margin-bottom:10px}.topline{padding-top:8px}}
+</style>
+</head>
+<body>
+<main class="app"><section id="view"></section></main>
+<script src="resonance.js?v=20260821a"></script>
+</body>
+</html>

@@ -51,6 +51,10 @@ jobs:
         run: node test-day2-formal-charge.js
       - name: Run Day 3 resonance curriculum contract tests
         run: node test-day3-curriculum.js
+      - name: Syntax-check Day 3 resonance engine
+        run: node --check day3/resonance.js
+      - name: Run Day 3 resonance runtime tests
+        run: node test-day3-resonance.js
       - name: Run notebook and review queue tests
         run: node test-notebook-review-queue.js
       - name: Syntax-check Math Gym engine
