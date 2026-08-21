@@ -1,0 +1,27 @@
+name: Day 3 Vocabulary Production Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  vocabulary-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check Day 3 vocabulary production layer
+        run: node --check day3/vocab-production-v32.js
+      - name: Syntax-check Day 3 vocabulary natural-language layer
+        run: node --check day3/vocab-natural-language-v33.js
+      - name: Run Day 3 vocabulary production contract
+        run: node test-day3-vocabulary-production.js
+      - name: Run Day 3 vocabulary natural-language adversarial tests
+        run: node test-day3-vocabulary-natural-language.js
