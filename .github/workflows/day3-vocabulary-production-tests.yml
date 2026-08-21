@@ -17,8 +17,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Syntax-check audited Day 3 vocabulary layer
+      - name: Syntax-check audited Day 3 vocabulary core
         run: node --check day3/vocab-production-v34.js
+      - name: Syntax-check Day 3 vocabulary language correction
+        run: node --check day3/vocab-production-v34-language-fix.js
       - name: Run Day 3 vocabulary production contract
         run: node test-day3-vocabulary-production.js
       - name: Run Day 3 vocabulary natural-language tests
