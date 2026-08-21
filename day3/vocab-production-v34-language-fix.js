@@ -12,6 +12,7 @@ var arrow=term('arrow');
 add(part(arrow,'electrons',false),/\b(?:curved\s+arrow|arrow)\b.{0,25}\b(?:follows?|represents?|describes?)\b.{0,25}\b(?:electron pair|electrons?)\b/i);
 add(part(arrow,'source',false),/\b(?:tail|source)\b\s+(?:is|marks?|shows?)\s+(?:the\s+)?(?:electron\s+)?source\b/i);
 add(part(arrow,'dest',false),/\b(?:head|arrowhead)\b.{0,25}\b(?:shows?|marks?|points?\s+to)\b.{0,30}\b(?:atom|bond|destination|where)\b/i);
+add(part(arrow,'dest',false),/\b(?:electron pair|electrons?)\b.{0,35}\b(?:moving|moves?|goes?|shifting)\b.{0,50}\bto\b.{0,20}\b(?:atom|bond|head|arrowhead|destination)\b/i);
 
 return api;
 });
