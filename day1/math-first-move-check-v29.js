@@ -47,7 +47,7 @@ function normalize(question,prompt,v,sem){var c=C[tidy(question)];if(!c)return n
  if(c.kind==='number'){var n=strictNumber(v);return n!==null&&near(n,c.expected,c.tol)?String(c.expected):null;}
  if(c.kind==='fraction'){var s=lower(v).replace(/\s+/g,'');return s===c.expected?c.expected:null;}
  if(c.kind==='algebra'){var s2=sem&&typeof sem.normalizeShortAnswer==='function'?sem.normalizeShortAnswer(v,prompt):tidy(v);return lower(s2).replace(/\s+/g,'')==='4x'?'4x':null;}
- if(c.kind==='power'){var s3=sem&&typeof sem.normalizeShortAnswer==='function'?sem.normalizeShortAnswer(v,prompt):tidy(v);return lower(s3).replace(/\s+/g,'')==='10^-4'?'10^-4':null;}
+ if(c.kind==='power'){var numericPower=strictNumber(v);if(numericPower!==null&&near(numericPower,.0001,1e-12))return'10^-4';var s3=sem&&typeof sem.normalizeShortAnswer==='function'?sem.normalizeShortAnswer(v,prompt):tidy(v);return lower(s3).replace(/\s+/g,'')==='10^-4'?'10^-4':null;}
  if(c.kind==='pair'){var s4=sem&&typeof sem.normalizeShortAnswer==='function'?sem.normalizeShortAnswer(v,prompt):tidy(v);var nums=numbersIn(s4);return nums.length===2&&((nums[0]===2&&nums[1]===3)||(nums[0]===3&&nums[1]===2))?'2 and 3':null;}
  if(c.kind==='direction'){var d=direction(v,sem);return d===c.expected?c.expected:null;}
  if(c.kind==='operation'){var o=operation(v,sem);return o===c.expected?c.expected:null;}
