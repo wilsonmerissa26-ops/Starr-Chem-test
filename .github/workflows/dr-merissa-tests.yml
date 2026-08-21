@@ -111,10 +111,14 @@ jobs:
         run: node --check day1/guided-problem-tutor-v13.js
       - name: Run same-problem guided tutor tests
         run: node test-guided-problem-tutor-v13.js
-      - name: Syntax-check responsive guided feedback
+      - name: Syntax-check responsive guided unit feedback
         run: node --check day1/guided-responsive-feedback-v27.js
-      - name: Run responsive guided feedback adversarial tests
+      - name: Run responsive guided unit feedback adversarial tests
         run: node test-guided-responsive-feedback-v27.js
+      - name: Syntax-check responsive guided math feedback
+        run: node --check day1/guided-responsive-feedback-v28.js
+      - name: Run responsive guided math feedback adversarial tests
+        run: node test-guided-responsive-feedback-v28.js
       - name: Run learner support repair regressions
         run: node test-tonight-repair-pass.js
       - name: Syntax-check standalone Phase 1 strategy engine
