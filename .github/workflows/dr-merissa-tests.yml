@@ -55,6 +55,14 @@ jobs:
         run: node --check day3/resonance.js
       - name: Run Day 3 resonance runtime tests
         run: node test-day3-resonance.js
+      - name: Syntax-check audited Day 3 vocabulary layer
+        run: node --check day3/vocab-production-v34.js
+      - name: Run Day 3 vocabulary production contract
+        run: node test-day3-vocabulary-production.js
+      - name: Run Day 3 vocabulary natural-language tests
+        run: node test-day3-vocabulary-natural-language.js
+      - name: Run Day 3 vocabulary red-team semantics and migration tests
+        run: node test-day3-vocabulary-red-team-v34.js
       - name: Run notebook and review queue tests
         run: node test-notebook-review-queue.js
       - name: Syntax-check Math Gym engine
