@@ -1,0 +1,25 @@
+name: Day 1 Vocabulary Production Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  vocabulary-production:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check Day 1 vocabulary data
+        run: node --check day1/chemistry-vocabulary-data-v33.js
+      - name: Syntax-check Day 1 vocabulary engine
+        run: node --check day1/chemistry-vocabulary-production-v33.js
+      - name: Run Day 1 vocabulary production contract
+        run: node test-day1-chemistry-vocabulary.js
