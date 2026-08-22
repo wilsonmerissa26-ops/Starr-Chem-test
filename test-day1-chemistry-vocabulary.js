@@ -39,6 +39,23 @@ ok('supported term is queued for later no-clue retrieval',s.queue[0]==='valence_
 V.applyAttempt(s,t,good,'review');
 ok('later no-clue review can become independent',s.records.valence_electron.status==='independent');
 
+ok('three failed explanations is the teaching ceiling',V.MAX_FAILED_EXPLANATIONS===3);
+var bad=V.gradeTerm(t,'It is an electron.','Electrons do things.');
+var e=V.fresh();
+V.applyAttempt(e,t,bad,'cold');
+ok('one failed written attempt does not auto-teach',V.failedExplanationStreak(e,t)===1&&!V.shouldAutoTeach(e,t));
+V.applyAttempt(e,t,bad,'support');
+ok('two failed written attempts do not auto-teach',V.failedExplanationStreak(e,t)===2&&!V.shouldAutoTeach(e,t));
+V.applyAttempt(e,t,bad,'support');
+ok('third failed written attempt triggers direct teaching',V.failedExplanationStreak(e,t)===3&&V.shouldAutoTeach(e,t));
+V.beginTeach(e,t,false);
+ok('direct teaching is marked as support state rather than mastery',e.phase==='teach'&&e.teachingShown===true&&!V.shouldAutoTeach(e,t));
+ok('every Day 1 word has a complete application answer for teaching',V.TERMS.every(function(x){return typeof V.TEACH_USE[x.id]==='string'&&V.TEACH_USE[x.id].length>30;}));
+var bounded=V.fresh();bounded.records.valence_electron={status:'supported',attempts:[]};bounded.termId='valence_electron';bounded.teachingShown=true;bounded.returnReview=false;V.stopAfterTeaching(bounded,t);
+ok('failed post-teaching encounter becomes Needs review and moves on',bounded.records.valence_electron.status==='needs_review'&&bounded.queue.indexOf('valence_electron')>=0&&bounded.index===1);
+var reviewBounded=V.fresh();reviewBounded.records.valence_electron={status:'supported',attempts:[]};reviewBounded.queue=['valence_electron'];reviewBounded.phase='review';reviewBounded.termId='valence_electron';reviewBounded.teachingShown=true;reviewBounded.returnReview=true;V.stopAfterTeaching(reviewBounded,t);
+ok('review failure after teaching does not loop forever',reviewBounded.records.valence_electron.status==='needs_review'&&reviewBounded.queue.length===0&&reviewBounded.phase==='needs');
+
 var r=V.fresh();r.index=6;r.phase='review';r.queue=['valence_electron'];V.normalizePhase(r);
 ok('review state is not overwritten when initial round is over',r.phase==='review');
 var c=V.fresh();c.index=6;c.phase='cold';V.normalizePhase(c);
@@ -50,6 +67,9 @@ var source=fs.readFileSync('day1/chemistry-vocabulary-production-v33.js','utf8')
 ok('production UI contains written definition and application textareas',source.indexOf('chemProdDef')>=0&&source.indexOf('chemProdUse')>=0&&source.indexOf('<textarea')>=0);
 ok('word bank appears only in repair renderer',source.indexOf('The word bank is support, not mastery evidence')>=0);
 ok('immediate post-teach recall is labeled supported',source.indexOf("kind=review?'review':post?'support_recall':'cold'")>=0);
+ok('direct teaching shows both meaning and application answer',source.indexOf('What it means')>=0&&source.indexOf('How to use it here')>=0&&source.indexOf('TEACH_USE')>=0);
+ok('I do not know routes to teaching instead of repeated empty guesses',/chemProdIdk[\s\S]*beginTeach\(s,t/.test(source));
+ok('post-teaching failure has bounded Needs-review route',source.indexOf('stopAfterTeaching')>=0&&source.indexOf("status='needs_review'")>=0);
 ok('legacy multiple-choice state is named but never read as proof',source.indexOf("getItem(LEGACY_KEY)")<0);
 ok('vocabulary layer never calls Day1Orchestrator',source.indexOf('Day1Orchestrator')<0);
 ok('vocabulary layer never writes mastery evidence',source.indexOf('addEvidence')<0&&source.indexOf('recordEvidence')<0);
