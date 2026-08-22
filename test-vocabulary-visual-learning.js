@@ -27,4 +27,8 @@ ok('visual layer never writes evidence',source.indexOf('addEvidence')<0&&source.
 ok('visual layer protects cold proof via allowedPhase',source.indexOf("p==='targeted repair'||p==='teach the word'")>=0);
 ok('visual layer has reduced-motion support',source.indexOf('prefers-reduced-motion')>=0);
 ok('visual layer supports both current vocabulary wrappers',source.indexOf('data-day1-vocab-production-v3')>=0&&source.indexOf('data-vocab-production-v3')>=0);
+var day1=fs.readFileSync('day1/index.html','utf8'),day3=fs.readFileSync('day3/index.html','utf8');
+ok('Day 1 loads visual layer after written vocabulary engine',day1.indexOf('vocabulary-visual-learning-v1.js')>day1.indexOf('chemistry-vocabulary-production-v33.js'));
+ok('Day 3 loads visual layer after written vocabulary engine',day3.indexOf('vocabulary-visual-learning-v1.js')>day3.indexOf('vocab-production-v34-language-fix.js'));
+ok('both learner pages load the same shared visual framework',(day1.match(/vocabulary-visual-learning-v1\.js/g)||[]).length===1&&(day3.match(/vocabulary-visual-learning-v1\.js/g)||[]).length===1);
 console.log('\nVocabulary visual learning: '+p+' passed, '+f+' failed');if(f)process.exit(1);
