@@ -1,0 +1,30 @@
+'use strict';
+var fs=require('fs');
+var V=require('./vocabulary-visual-learning-v1.js');
+var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
+
+ok('Day 1 has six visual concepts',Object.keys(V.DAY1).length===6);
+ok('Day 3 has five visual concepts',Object.keys(V.DAY3).length===5);
+ok('all visual concepts have caption kind and svg',Object.keys(V.DAY1).concat(Object.keys(V.DAY3)).every(function(id,i){var set=i<6?V.DAY1:V.DAY3;var x=set[id];return !!(x&&x.caption&&x.kind&&x.markup.indexOf('<svg')>=0&&x.markup.indexOf('role="img"')>=0);}));
+ok('targeted repair can offer visuals',V.allowedPhase('Targeted repair'));
+ok('teach the word can offer visuals',V.allowedPhase('Teach the word'));
+ok('cold vocabulary does not offer visuals',!V.allowedPhase('Vocabulary from memory'));
+ok('no-clue retrieval does not offer visuals',!V.allowedPhase('No-clue retrieval'));
+ok('hide-and-recall practice does not offer visuals',!V.allowedPhase('Hide-and-recall practice'));
+ok('quick match does not offer visuals',!V.allowedPhase('Quick Match • practice only'));
+ok('Day 1 valence title maps correctly',V.findTermId('day1','Valence electron')==='valence_electron');
+ok('Day 3 pi title maps correctly',V.findTermId('day3','pi bond (π bond)')==='pi');
+ok('Day 1 support offers visual',V.shouldOffer('day1','Targeted repair','Lone pair'));
+ok('Day 1 cold proof blocks visual',!V.shouldOffer('day1','Vocabulary from memory','Lone pair'));
+ok('Day 3 teaching offers visual',V.shouldOffer('day3','Teach the word','curved arrow'));
+ok('Day 3 no-clue proof blocks visual',!V.shouldOffer('day3','No-clue retrieval','curved arrow'));
+ok('visual markup explains it is support then hide',V.visualMarkup('day1','octet').indexOf('hide the visual and explain it yourself')>=0);
+ok('visual markup includes replay control',V.visualMarkup('day3','arrow').indexOf('Play / replay')>=0);
+var source=fs.readFileSync('vocabulary-visual-learning-v1.js','utf8');
+ok('visual layer never reads localStorage',source.indexOf('localStorage')<0);
+ok('visual layer never calls Day1Orchestrator',source.indexOf('Day1Orchestrator')<0);
+ok('visual layer never writes evidence',source.indexOf('addEvidence')<0&&source.indexOf('recordEvidence')<0);
+ok('visual layer protects cold proof via allowedPhase',source.indexOf("p==='targeted repair'||p==='teach the word'")>=0);
+ok('visual layer has reduced-motion support',source.indexOf('prefers-reduced-motion')>=0);
+ok('visual layer supports both current vocabulary wrappers',source.indexOf('data-day1-vocab-production-v3')>=0&&source.indexOf('data-vocab-production-v3')>=0);
+console.log('\nVocabulary visual learning: '+p+' passed, '+f+' failed');if(f)process.exit(1);
