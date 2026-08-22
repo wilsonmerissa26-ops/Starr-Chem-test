@@ -1,5 +1,6 @@
 'use strict';
 var V=require('./day3/vocab-production-v34-language-fix.js');
+var E=require('./day3/vocab-escalation-v35.js');
 var fs=require('fs');
 var p=0,f=0;function ok(n,c){if(c){console.log('PASS  '+n);p++;}else{console.log('FAIL  '+n);f++;}}
 function term(id){return V.TERMS.find(function(t){return t.id===id;});}
@@ -36,12 +37,32 @@ ok('old vocabulary state is not treated as done',!V.doneMain({vocabProductionVer
 ok('old post-vocabulary teaching state is gated back into production vocab',V.shouldTakeOver({gateResolved:true,screen:'teach',vocabIndex:5,vocabProductionVersion:2,vocab:{}}));
 ok('prerequisite gate is not intercepted',!V.shouldTakeOver({gateResolved:false,screen:'gate'}));
 
+ok('Day 3 escalation uses three failed written attempts as ceiling',E.MAX_FAILED_EXPLANATIONS===3);
+var es={records:{contributor:{attempts:[{kind:'cold',pass:false}]}}};
+ok('one Day 3 miss does not auto-teach',E.failedExplanationStreak(es,'contributor')===1&&!E.shouldAutoTeach(es,'contributor'));
+es.records.contributor.attempts.push({kind:'support',pass:false});
+ok('two Day 3 misses do not auto-teach',E.failedExplanationStreak(es,'contributor')===2&&!E.shouldAutoTeach(es,'contributor'));
+es.records.contributor.attempts.push({kind:'support',pass:false});
+ok('third Day 3 miss triggers auto-teaching',E.failedExplanationStreak(es,'contributor')===3&&E.shouldAutoTeach(es,'contributor'));
+E.markTeaching(es,'contributor');
+ok('already-taught term cannot auto-loop straight back into teaching',!E.shouldAutoTeach(es,'contributor'));
+ok('every Day 3 term has a complete application answer',V.TERMS.every(function(x){return typeof E.TEACH_USE[x.id]==='string'&&E.TEACH_USE[x.id].length>30;}));
+
 var html=fs.readFileSync('day3/index.html','utf8');
 ok('Day 3 loads audited v34 vocabulary layer',html.indexOf('vocab-production-v34.js')>=0);
 ok('v34 vocabulary loads after resonance runtime',html.indexOf('vocab-production-v34.js')>html.indexOf('resonance.js'));
 ok('language correction loads after v34 core',html.indexOf('vocab-production-v34-language-fix.js')>html.indexOf('vocab-production-v34.js'));
+ok('teaching escalation loads after semantic language correction',html.indexOf('vocab-escalation-v35.js')>html.indexOf('vocab-production-v34-language-fix.js'));
+ok('visual support loads after teaching escalation',html.indexOf('vocabulary-visual-learning-v1.js')>html.indexOf('vocab-escalation-v35.js'));
 ok('retired v32 vocabulary is not loaded by Day 3 page',html.indexOf('vocab-production-v32.js')<0);
 ok('retired v33 patch is not loaded by Day 3 page',html.indexOf('vocab-natural-language-v33.js')<0);
+
+var escalation=fs.readFileSync('day3/vocab-escalation-v35.js','utf8');
+ok('Day 3 escalation auto-clicks existing Teach control at threshold',escalation.indexOf("getElementById('vteach')")>=0&&escalation.indexOf('b.click()')>=0);
+ok('Day 3 direct teaching supplies application answer',escalation.indexOf('How to use it here')>=0&&escalation.indexOf('TEACH_USE')>=0);
+ok('Day 3 post-teaching repair is bounded into Needs review',escalation.indexOf('escalationPostTeachRepair')>=0&&escalation.indexOf("status='needs_review'")>=0&&escalation.indexOf('endTaughtEncounter')>=0);
+ok('Day 3 escalation does not alter resonance main state',escalation.indexOf('dr-merissa-day3-resonance-v1')<0);
+ok('Day 3 escalation does not write mastery evidence',escalation.indexOf('addEvidence')<0&&escalation.indexOf('recordEvidence')<0);
 
 var curr=fs.readFileSync('Day3_Vocabulary_Production_Addendum.md','utf8');
 ok('curriculum requires no-clue written explanation',/no-clue written explanation/i.test(curr));
@@ -51,4 +72,4 @@ ok('curriculum requires later no-clue retrieval after support',/later.*no-clue r
 ok('curriculum rejects contradiction-by-keyword passing',/contradict|conflict/i.test(curr)&&/keyword|clue/i.test(curr));
 ok('curriculum requires migration of prior recognition-only progress',/saved|prior|old/i.test(curr)&&/teach|guided|practice/i.test(curr));
 
-console.log('\nDay 3 vocabulary production v34: '+p+' passed, '+f+' failed');if(f)process.exit(1);
+console.log('\nDay 3 vocabulary production v34 + escalation v35: '+p+' passed, '+f+' failed');if(f)process.exit(1);
