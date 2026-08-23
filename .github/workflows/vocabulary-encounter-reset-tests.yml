@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'day1/chemistry-vocabulary-production-v33.js'
+      - 'day1/vocab-encounter-reset-v34.js'
+      - 'day1/index.html'
       - 'day3/vocab-production-v34.js'
       - 'day3/vocab-escalation-v35.js'
       - 'test-vocabulary-encounter-reset.js'
@@ -20,6 +22,7 @@ jobs:
       - name: Syntax-check vocabulary runtimes
         run: |
           node --check day1/chemistry-vocabulary-production-v33.js
+          node --check day1/vocab-encounter-reset-v34.js
           node --check day3/vocab-production-v34.js
           node --check day3/vocab-escalation-v35.js
       - name: Run encounter reset red-team
