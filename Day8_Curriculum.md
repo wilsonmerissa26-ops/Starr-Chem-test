@@ -50,3 +50,84 @@ Independent items plus clean transfer earn Transfer and unlock Day 9. Otherwise 
 
 ## 13. Contract acceptance
 Tests must cover syntax, these chemical anchors, state transitions, natural-language variants, adversarial misconceptions, support/mastery separation, storage migration, and mobile/reduced-motion markup.
+
+
+## 14. Auditable runtime question and answer-key bank
+
+The wording below is the learner-visible production task. Fallbacks are fresh equivalents and never repair the contaminated original.
+
+### D8-G-DIAGRAM — guided
+
+**Question:** A diagram has reactants at 40, peak at 90, products at 10 kJ/mol. State ΔG and forward activation barrier.
+
+**Chemistry answer key:** ΔG = 10−40 = −30 kJ/mol; forward barrier = 90−40 = 50 kJ/mol.
+
+**Semantic evidence required:** `-30`; `90` or `peak` or `transition state`; `50`; `activation`.
+
+### D8-I-THERMO — independent
+
+**Question:** Reactants are at 20 and products at −15 kJ/mol. Calculate ΔG and state favorability without claiming a rate.
+
+**Chemistry answer key:** ΔG = −35 kJ/mol, so products are thermodynamically favored; this does not determine rate.
+
+**Semantic evidence required:** `-35`; `negative`; `product`; `thermodynamic` or `favor`; `not` or `rate` or `speed`.
+
+### D8-F-THERMO — independent fallback
+
+**Question:** Fresh equivalent: reactants 5, products 30 kJ/mol. Give ΔG and favored side.
+
+**Chemistry answer key:** ΔG = +25 kJ/mol and reactants are thermodynamically favored.
+
+**Semantic evidence required:** `25` or `+25`; `positive`; `reactant`; `favor`.
+
+### D8-I-BARRIER — independent
+
+**Question:** Path A has ΔG‡ 25 kJ/mol and path B 60 kJ/mol to the same product. Which is faster, and what does this not say about equilibrium?
+
+**Chemistry answer key:** Path A is faster because its barrier is lower; barriers do not determine product equilibrium.
+
+**Semantic evidence required:** `path a` or `a`; `faster`; `lower` or `barrier` or `25`; `not`; `equilibrium` or `favor` or `thermodynamic`.
+
+### D8-F-BARRIER — independent fallback
+
+**Question:** Fresh equivalent: compare barriers 45 and 20 kJ/mol and separate rate from favorability.
+
+**Chemistry answer key:** The 20 kJ/mol path is faster; no favorability follows.
+
+**Semantic evidence required:** `20` or `second` or `path b`; `faster`; `lower barrier`; `not` or `favor` or `equilibrium`.
+
+### D8-I-CONTRAST — independent
+
+**Question:** Explain how a reaction with ΔG° = −40 kJ/mol and ΔG‡ = 150 kJ/mol can be favorable but slow.
+
+**Chemistry answer key:** Negative ΔG° favors products thermodynamically, while the high barrier makes the reaction kinetically slow.
+
+**Semantic evidence required:** `negative` or `-40`; `product` or `thermodynamic` or `favor`; `150` or `high`; `activation` or `barrier`; `slow` or `kinetic`.
+
+### D8-F-CONTRAST — independent fallback
+
+**Question:** Fresh equivalent: explain positive ΔG with a small activation barrier.
+
+**Chemistry answer key:** Reactants are thermodynamically favored, although the low barrier can make the forward process fast.
+
+**Semantic evidence required:** `positive`; `reactant` or `thermodynamic` or `favor`; `small` or `low`; `barrier`; `fast` or `rate`.
+
+### D8-T-TWO-PATHS — transfer
+
+**Question:** Two routes share reactants at 0 and products at −20. Peaks are 35 and 70 kJ/mol. State thermodynamic result and faster route.
+
+**Chemistry answer key:** Products are favored by ΔG = −20 for both routes; the 35 kJ/mol route is faster.
+
+**Semantic evidence required:** `-20`; `product` or `favor`; `35`; `faster`; `lower` or `barrier`; `same` or `equilibrium` or `thermodynamic`.
+
+### D8-T-TWO-PATHS-FALLBACK — transfer fallback
+
+**Question:** Fresh transfer: products lie +10 above reactants; catalysts lower the peak from 80 to 30. Explain equilibrium and rate.
+
+**Chemistry answer key:** Reactants remain favored; lowering the barrier speeds the reaction but does not change equilibrium.
+
+**Semantic evidence required:** `+10` or `positive`; `reactant` or `favor`; `30` or `lower`; `faster`; `not` or `change` or `equilibrium`.
+
+## 15. Support, retrieval, and routing behavior
+
+The cold prompt shows no definition, choices, word bank, or support visual. Hint identifies the feature to inspect; First step asks for the species/result before its reason; Walkthrough and IDK reveal the complete keyed reasoning and contaminate that encounter. Wrong answers remain on the same problem for bounded repair. A correct contaminated response routes to the named fresh equivalent. Only a first-attempt, unsupported response to an Independent item counts. After supported teach-back, the later fallback is a fresh no-clue retrieval with a reset attempt budget. Notebook records clean versus supported encounters; Review records the misconception code; Summary reports clean evidence and transfer. Missing prerequisite evidence routes to that day’s Review without resetting completed days.

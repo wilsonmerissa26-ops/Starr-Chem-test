@@ -50,3 +50,84 @@ Independent items plus clean transfer earn Transfer and unlock Day 6. Otherwise 
 
 ## 13. Contract acceptance
 Tests must cover syntax, these chemical anchors, state transitions, natural-language variants, adversarial misconceptions, support/mastery separation, storage migration, and mobile/reduced-motion markup.
+
+
+## 14. Auditable runtime question and answer-key bank
+
+The wording below is the learner-visible production task. Fallbacks are fresh equivalents and never repair the contaminated original.
+
+### D5-G-PROCESS — guided
+
+**Question:** Compare methanol and ethane as acids by naming their conjugate bases and where the negative charge is more stable.
+
+**Chemistry answer key:** Methoxide places charge on electronegative oxygen and is more stable than an ethyl carbanion, so methanol is stronger.
+
+**Semantic evidence required:** `methoxide`; `ethyl` or `ch3ch2-`; `oxygen`; `more stable`; `methanol`; `stronger acid`.
+
+### D5-I-ATOM — independent
+
+**Question:** Compare methanol and ammonia as acids. Which conjugate base is more stable and which acid is stronger?
+
+**Chemistry answer key:** Methoxide is more stable because oxygen is more electronegative than nitrogen; methanol is the stronger acid.
+
+**Semantic evidence required:** `methoxide`; `amide` or `nh2-`; `oxygen`; `electronegative`; `more stable`; `methanol`; `stronger`.
+
+### D5-F-ATOM — independent fallback
+
+**Question:** Fresh equivalent: compare water and ammonia as acids using OH− and NH2−.
+
+**Chemistry answer key:** OH− is more stable on oxygen, so water is the stronger acid.
+
+**Semantic evidence required:** `oh-` or `hydroxide`; `more stable`; `oxygen`; `electronegative`; `water`; `stronger`.
+
+### D5-I-RESONANCE — independent
+
+**Question:** Why is acetic acid more acidic than ethanol? Compare acetate and ethoxide explicitly.
+
+**Chemistry answer key:** Acetate delocalizes charge over two oxygens by resonance while ethoxide localizes it on one; acetate is more stable, so acetic acid is stronger.
+
+**Semantic evidence required:** `acetate`; `resonance` or `delocal`; `two oxygen`; `ethoxide`; `localized` or `one oxygen`; `more stable`; `acetic`; `stronger`.
+
+### D5-F-RESONANCE — independent fallback
+
+**Question:** Fresh equivalent: explain why benzoic acid is stronger than benzyl alcohol by comparing conjugate bases.
+
+**Chemistry answer key:** Benzoate delocalizes charge over two oxygens; the benzyl alkoxide does not, so benzoic acid is stronger.
+
+**Semantic evidence required:** `benzoate`; `resonance` or `delocal`; `two oxygen`; `benzyl` or `alkoxide`; `more stable`; `benzoic`; `stronger`.
+
+### D5-I-INDUCTION — independent
+
+**Question:** Which is stronger: chloroacetic acid or acetic acid? Explain the inductive effect and distance.
+
+**Chemistry answer key:** Chloroacetic acid is stronger because chlorine withdraws electron density inductively and stabilizes its conjugate base.
+
+**Semantic evidence required:** `chloroacetic`; `stronger`; `chlorine`; `electron withdrawing` or `induct`; `stabil`; `negative charge` or `conjugate base`.
+
+### D5-F-INDUCTION — independent fallback
+
+**Question:** Fresh equivalent: compare 2-chlorobutanoic acid and 4-chlorobutanoic acid.
+
+**Chemistry answer key:** 2-Chlorobutanoic acid is stronger because the closer chlorine has a stronger stabilizing inductive effect.
+
+**Semantic evidence required:** `2-chloro`; `stronger`; `closer` or `distance`; `induct`; `stabil`.
+
+### D5-T-PHENOL — transfer
+
+**Question:** Without using labels alone, explain why phenol is more acidic than cyclohexanol.
+
+**Chemistry answer key:** Phenoxide delocalizes negative charge into the aromatic ring; cyclohexoxide localizes it on oxygen. Thus phenoxide is more stable and phenol stronger.
+
+**Semantic evidence required:** `phenoxide`; `resonance` or `delocal`; `cyclohexoxide`; `localized`; `more stable`; `phenol`; `stronger`.
+
+### D5-T-PHENOL-FALLBACK — transfer fallback
+
+**Question:** Fresh transfer: explain why a para-nitrophenol is more acidic than phenol.
+
+**Chemistry answer key:** The nitro group withdraws electron density and stabilizes the conjugate base, making para-nitrophenol more acidic.
+
+**Semantic evidence required:** `nitro`; `electron withdrawing` or `resonance` or `induct`; `stabil`; `conjugate base`; `more acidic` or `stronger`.
+
+## 15. Support, retrieval, and routing behavior
+
+The cold prompt shows no definition, choices, word bank, or support visual. Hint identifies the feature to inspect; First step asks for the species/result before its reason; Walkthrough and IDK reveal the complete keyed reasoning and contaminate that encounter. Wrong answers remain on the same problem for bounded repair. A correct contaminated response routes to the named fresh equivalent. Only a first-attempt, unsupported response to an Independent item counts. After supported teach-back, the later fallback is a fresh no-clue retrieval with a reset attempt budget. Notebook records clean versus supported encounters; Review records the misconception code; Summary reports clean evidence and transfer. Missing prerequisite evidence routes to that day’s Review without resetting completed days.

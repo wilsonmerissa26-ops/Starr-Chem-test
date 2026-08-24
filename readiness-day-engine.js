@@ -26,7 +26,7 @@
   class Session {
     constructor(config, saved) {
       this.config = config;
-      this.state = Object.assign({ version: 1, phase: "lesson", attempts: 0, supported: false, contaminated: false, independent: [], transfer: false, status: LEVELS.SEEN, notebook: [] }, saved || {});
+      this.state = Object.assign({ version: 1, phase: "lesson", attempts: 0, supported: false, contaminated: false, independent: [], transfer: false, status: LEVELS.SEEN, notebook: [], currentItemId: null, review: [] }, saved || {});
     }
     requestHelp(kind) {
       if (!HELP[kind]) throw new Error("Unknown help kind");
@@ -34,10 +34,14 @@
       return this.config.support[kind];
     }
     submit(answer, item) {
-      const result = evaluate(answer, item.rubric);
+      // The authored key is the canonical complete response. Semantic groups
+      // accept natural-language equivalents; this exact-key path also prevents
+      // a misconception phrase quoted in a correct negation from being rejected.
+      const result = item.answerKey && normalize(answer) === normalize(item.answerKey) ? { correct: true } : evaluate(answer, item.rubric);
       if (result.idk) return this.teach(item, "You asked to be taught.");
       if (!result.correct) {
         this.state.attempts += 1; this.state.contaminated = true;
+        if (result.code && !this.state.review.includes(result.code)) this.state.review.push(result.code);
         if (this.state.attempts >= 3) return this.teach(item, "Three unsuccessful explanations reached.");
         return Object.assign(result, { feedback: item.repairs[result.code] || item.repairs.INCOMPLETE, preservedAnswer: answer, changeRepresentation: this.state.attempts > 1 });
       }
@@ -47,13 +51,13 @@
       this.state.status = item.stage === "guided" ? LEVELS.GUIDED : clean ? LEVELS.INDEPENDENT : this.state.transfer ? LEVELS.TRANSFER : LEVELS.DEVELOPING;
       this.state.notebook.push({ item: item.id, clean, stage: item.stage });
       this.state.attempts = 0;
-      return { correct: true, clean, status: this.state.status };
+      return { correct: true, clean, contaminated: this.state.contaminated, status: this.state.status };
     }
     teach(item, reason) {
       this.state.attempts = 0; this.state.supported = true; this.state.contaminated = true;
       return { correct: false, taught: true, reason, teaching: item.teaching, freshEncounterRequired: true };
     }
-    fresh(item) { this.state.attempts = 0; this.state.supported = false; this.state.contaminated = false; this.state.phase = item.stage; }
+    fresh(item) { this.state.attempts = 0; this.state.supported = false; this.state.contaminated = false; this.state.phase = item.stage; this.state.currentItemId = item.id; }
     finish() {
       if (this.state.independent.length >= this.config.stopRule && this.state.transfer) this.state.status = LEVELS.TRANSFER;
       else this.state.status = LEVELS.REVIEW;

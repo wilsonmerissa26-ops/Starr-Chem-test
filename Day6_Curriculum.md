@@ -50,3 +50,84 @@ Independent items plus clean transfer earn Transfer and unlock Day 7. Otherwise 
 
 ## 13. Contract acceptance
 Tests must cover syntax, these chemical anchors, state transitions, natural-language variants, adversarial misconceptions, support/mastery separation, storage migration, and mobile/reduced-motion markup.
+
+
+## 14. Auditable runtime question and answer-key bank
+
+The wording below is the learner-visible production task. Fallbacks are fresh equivalents and never repair the contaminated original.
+
+### D6-G-PAIRS — guided
+
+**Question:** For CH3CO2H + OH− ⇌ CH3CO2− + H2O, identify both conjugate pairs.
+
+**Chemistry answer key:** Acetic acid/acetate and water/hydroxide are conjugate pairs.
+
+**Semantic evidence required:** `ch3co2h` or `acetic`; `ch3co2-` or `acetate`; `oh-` or `hydroxide`; `h2o` or `water`; `conjugate`.
+
+### D6-I-PAIRS — independent
+
+**Question:** For NH4+ + CN− ⇌ NH3 + HCN, identify acid, base, conjugate acid, and conjugate base.
+
+**Chemistry answer key:** NH4+ is acid, CN− base, HCN conjugate acid, and NH3 conjugate base.
+
+**Semantic evidence required:** `nh4+` or `ammonium`; `acid`; `cn-` or `cyanide`; `base`; `hcn`; `conjugate acid`; `nh3` or `ammonia`; `conjugate base`.
+
+### D6-F-PAIRS — independent fallback
+
+**Question:** Fresh equivalent: label roles in H2O + NH2− ⇌ OH− + NH3.
+
+**Chemistry answer key:** Water is acid, NH2− base, NH3 conjugate acid, OH− conjugate base.
+
+**Semantic evidence required:** `h2o` or `water`; `acid`; `nh2-` or `amide`; `base`; `nh3` or `ammonia`; `conjugate acid`; `oh-` or `hydroxide`; `conjugate base`.
+
+### D6-I-DIRECTION — independent
+
+**Question:** For acetate + HCN ⇌ acetic acid + CN−, pKa values are 9.2 (HCN) and 4.8 (acetic acid). Which side is favored?
+
+**Chemistry answer key:** The left is favored: HCN is the higher-pKa weaker acid and acetate is the weaker base.
+
+**Semantic evidence required:** `left` or `reactant`; `hcn`; `higher pka` or `9.2`; `weaker acid`; `weaker base`.
+
+### D6-F-DIRECTION — independent fallback
+
+**Question:** Fresh equivalent: NH2− + H2O ⇌ NH3 + OH−; pKa H2O 15.7, NH3 38. Choose favored side.
+
+**Chemistry answer key:** Products are favored because NH3 is the higher-pKa weaker acid.
+
+**Semantic evidence required:** `right` or `product`; `nh3`; `higher pka` or `38`; `weaker acid`.
+
+### D6-I-EXPLAIN — independent
+
+**Question:** A proton transfer favors products containing an acid of pKa 12 rather than reactants containing an acid of pKa 3. Explain favorability and whether this predicts speed.
+
+**Chemistry answer key:** Products are favored because pKa 12 is the weaker acid; pKa predicts equilibrium direction, not reaction speed.
+
+**Semantic evidence required:** `product`; `higher pka` or `12`; `weaker acid`; `equilibrium` or `favor`; `not` or `speed` or `rate`.
+
+### D6-F-EXPLAIN — independent fallback
+
+**Question:** Fresh equivalent: explain a preference for a pKa 20 acid over a pKa 5 acid and separate equilibrium from rate.
+
+**Chemistry answer key:** The pKa 20 side contains the weaker acid and is favored; no rate follows from that fact.
+
+**Semantic evidence required:** `pka 20` or `20`; `weaker acid`; `favor`; `not` or `rate` or `speed`.
+
+### D6-T-AMMONIUM — transfer
+
+**Question:** NH3 + H2O ⇌ NH4+ + OH−; pKa H2O 15.7 and NH4+ 9.25. Choose the favored side and explain.
+
+**Chemistry answer key:** Reactants are favored because water is the higher-pKa weaker acid and NH3 is the weaker base.
+
+**Semantic evidence required:** `left` or `reactant`; `h2o` or `water`; `higher pka` or `15.7`; `weaker acid`; `nh3`; `weaker base`.
+
+### D6-T-AMMONIUM-FALLBACK — transfer fallback
+
+**Question:** Fresh transfer: CH3OH + NH2− ⇌ CH3O− + NH3; pKa 16 and 38. Choose the favored side.
+
+**Chemistry answer key:** Products are favored because NH3 is the higher-pKa weaker acid.
+
+**Semantic evidence required:** `right` or `product`; `nh3`; `higher pka` or `38`; `weaker acid`.
+
+## 15. Support, retrieval, and routing behavior
+
+The cold prompt shows no definition, choices, word bank, or support visual. Hint identifies the feature to inspect; First step asks for the species/result before its reason; Walkthrough and IDK reveal the complete keyed reasoning and contaminate that encounter. Wrong answers remain on the same problem for bounded repair. A correct contaminated response routes to the named fresh equivalent. Only a first-attempt, unsupported response to an Independent item counts. After supported teach-back, the later fallback is a fresh no-clue retrieval with a reset attempt budget. Notebook records clean versus supported encounters; Review records the misconception code; Summary reports clean evidence and transfer. Missing prerequisite evidence routes to that day’s Review without resetting completed days.
