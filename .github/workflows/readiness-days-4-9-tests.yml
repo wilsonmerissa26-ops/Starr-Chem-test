@@ -13,3 +13,4 @@ jobs:
           node-version: 20
       - run: node test-readiness-days-4-9.js
       - run: node test-readiness-days-4-9-adversarial.js
+      - run: node test-readiness-days-4-9-round-two.js

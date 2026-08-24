@@ -12,7 +12,7 @@ Brønsted acids and bases, conjugate pairs, Ka/pKa direction, acid and conjugate
 Lewis acid theory, buffer calculations, and equilibrium-constant derivations.
 
 ## 3. Prior-day handoff and repair
-The gate reads Day 1 logarithm evidence and Day 3 structure evidence. Missing evidence opens a short prerequisite retrieval. A miss routes only that subskill to Review/Needs review and never resets earlier days.
+The gate reads the frozen runtimes through read-only compatibility adapters: Day 1 logarithm evidence at `dr-merissa-math-evidence-v23` requires at least one independent log response, and Day 3 structure evidence at `dr-merissa-day3-resonance-v1` requires `status: Independent` with `screen: mastered`. It never invents replacement `astarryia.day1/day3` records. Missing evidence routes only that subskill to Review/Needs review and never resets earlier days.
 
 ## 4. Teaching examples (contaminated)
 Teacher demonstration TCH-A and visual TCH-V expose the complete reasoning. They may create Seen/Guided evidence only and can never appear in the independent or transfer banks.

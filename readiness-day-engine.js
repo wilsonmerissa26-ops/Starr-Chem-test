@@ -11,12 +11,36 @@
   const has = (text, terms) => terms.some(term => normalize(text).includes(normalize(term)));
   const all = (text, groups) => groups.every(group => has(text, group));
 
+  // A relation is satisfied only when the named entity and its assigned role
+  // occur in the same clause.  This prevents a bag of otherwise-correct words
+  // from passing after the learner swaps two chemical roles.
+  function relationsHold(text, relations) {
+    const clauses = normalize(text).split(/\s*(?:,|;|\.|\bwhile\b|\bwhereas\b|\band\s+(?=(?:the\s+)?[a-z0-9]))\s*/).filter(Boolean);
+    return (relations || []).every(relation => clauses.some(clause => has(clause, relation.entity) && has(clause, relation.role)));
+  }
+
   function evaluate(answer, rubric) {
     const text = normalize(answer);
     if (!text || /^(idk|i don t know|i do not know yet|teach me)$/.test(text)) return { correct: false, idk: true, code: "IDK" };
     if ((rubric.reject || []).some(rule => has(text, rule.terms))) return { correct: false, code: ruleCode(rubric, text) };
     const missing = (rubric.require || []).filter(group => !has(text, group));
+    if (!missing.length && !relationsHold(text, rubric.relations)) return { correct: false, code: rubric.relationError || "ROLE_RELATION_REVERSED" };
     return missing.length ? { correct: false, code: rubric.error || "INCOMPLETE", missing: missing.length } : { correct: true };
+  }
+  const PREREQUISITES = Object.freeze({
+    1: { key: "dr-merissa-math-evidence-v23", complete: state => !!(state && state.areas && state.areas.logs && state.areas.logs.independentCorrect > 0) },
+    3: { key: "dr-merissa-day3-resonance-v1", complete: state => !!(state && state.status === "Independent" && state.screen === "mastered") }
+  });
+  function prerequisiteEvidence(day, store) {
+    const adapter = PREREQUISITES[day] || { key: `astarryia.day${day}.v1`, complete: state => !!(state && (state.status === LEVELS.TRANSFER || state.status === LEVELS.INDEPENDENT)) };
+    let state = null;
+    try { state = JSON.parse(store.getItem(adapter.key) || "null"); } catch (_) {}
+    return { day, key: adapter.key, state, complete: adapter.complete(state) };
+  }
+  function nextItem(current, normalItems, byId) {
+    if ((current.tags || []).includes("fallback")) return current.nextItemId ? byId[current.nextItemId] : null;
+    const index = normalItems.findIndex(candidate => candidate.id === current.id);
+    return normalItems[index + 1] || null;
   }
   function ruleCode(rubric, text) {
     const rule = (rubric.reject || []).find(item => has(text, item.terms));
@@ -69,5 +93,5 @@
       catch (_) { return new Session(config); }
     }
   }
-  return { LEVELS, Session, evaluate, normalize };
+  return { LEVELS, Session, evaluate, normalize, relationsHold, PREREQUISITES, prerequisiteEvidence, nextItem };
 });
