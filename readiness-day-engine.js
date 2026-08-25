@@ -23,36 +23,48 @@
     return (relations || []).every(relation => clauses.some(clause => has(clause, relation.entity) && has(clause, relation.role)));
   }
 
-  const VISUALS = Object.freeze({
-    4: ["Proton and charge", "NH₄⁺", "H⁺", "NH₃", "pKa: strong acid ← low ─ high → weak acid"],
-    5: ["Stability representations", "O⁻—C=O", "O=C—O⁻", "resonance delocalizes charge; induction fades with distance"],
-    6: ["Equilibrium comparison", "lower-pKa acid", "⇌", "higher-pKa weaker acid", "equilibrium favors the weaker pair"],
-    7: ["Electron-flow map", ":Nu⁻", "curved arrow → electrophilic C", "C—X bond arrow → X⁻", "source → destination; bond breaks"],
-    8: ["Reaction-coordinate diagram", "reactants", "transition-state peak (ΔG‡)", "products (ΔG)", "vertical differences are not the same quantity"],
-    9: ["Integrated representation", "stability → acid/base", "electron source → destination", "ΔG: favorability", "ΔG‡: rate"]
-  });
+  // The model is intentionally public: tests and assistive renderers can inspect
+  // chemical relationships instead of trusting captions or label strings.
+  function supportVisualModel(day, changed) {
+    const models = {
+      4: { kind: "proton-transfer-pka", species: [{ id: "nh4", charge: 1 }, { id: "nh3", charge: 0 }], transfers: [{ particle: "H+", from: "nh4", to: "nh3" }], scale: { property: "pKa", lowMeans: "stronger-acid", highMeans: "weaker-acid" } },
+      5: { kind: "resonance-induction", contributors: [{ negativeOn: "left-O" }, { negativeOn: "right-O" }], resonance: { moves: "electrons", fixed: "atoms" }, induction: { through: "sigma-bonds", strength: [3, 2, 1] } },
+      6: { kind: "acid-base-equilibrium", sides: [{ id: "reactants", acidPka: 4 }, { id: "products", acidPka: 10 }], equilibrium: { favors: "products", criterion: "higher-acid-pKa" } },
+      7: { kind: "substitution-electron-flow", species: [{ id: "nh3", role: "nucleophile", lonePair: true }, { id: "methyl-carbon", role: "electrophile", bondedTo: "chloride" }, { id: "chloride", role: "leaving-group" }], arrows: [{ from: "nh3-lone-pair", to: "methyl-carbon", action: "bond-formation" }, { from: "carbon-chloride-bond", to: "chloride", action: "bond-breaking" }] },
+      8: { kind: "reaction-coordinate", points: { reactants: { x: 55, y: 150 }, transitionState: { x: 210, y: 35 }, products: { x: 370, y: 185 } }, measures: [{ id: "delta-g-dagger", from: "reactants", to: "transitionState", meaning: "activation-barrier" }, { id: "delta-g", from: "reactants", to: "products", meaning: "free-energy-change" }] },
+      9: { kind: "integrated-map", links: [{ from: "resonance-stability", to: "acid-base" }, { from: "electron-source", to: "bond-change" }, { from: "delta-g", to: "favorability" }, { from: "delta-g-dagger", to: "rate" }] }
+    };
+    const model = JSON.parse(JSON.stringify(models[day] || models[9]));
+    model.representation = changed ? "alternate" : "initial";
+    return model;
+  }
   function supportVisual(day, changed) {
-    const labels = VISUALS[day] || VISUALS[9];
-    const points = changed ? labels.slice().reverse() : labels;
-    const nodes = points.map((label, index) => `<g transform="translate(${25 + index * 135} 55)"><circle r="18" class="visual-node"/><text y="35">${label}</text></g>`).join("");
-    const lines = points.slice(1).map((_, index) => `<path d="M ${43 + index * 135} 55 H ${142 + index * 135}" marker-end="url(#arrow)"/>`).join("");
-    return `<figure class="topic-visual" data-day="${day}" data-representation="${changed ? "changed" : "initial"}"><svg viewBox="0 0 700 130" role="img" aria-labelledby="visual-title-${day}"><title id="visual-title-${day}">${labels[0]} support representation</title><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z"/></marker></defs>${lines}${nodes}</svg><figcaption>${changed ? "Changed representation: read the relationship from outcome back to source." : labels[0] + ": follow each arrow from source to destination."}</figcaption></figure>`;
+    const m = supportVisualModel(day, changed), marker = `<defs><marker id="chem-arrow" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z"/></marker></defs>`;
+    let body;
+    if (day === 4) body = `<text x="35" y="65">NH₄⁺</text><path data-particle="H+" data-from="nh4" data-to="nh3" d="M80 55 Q135 10 190 55" marker-end="url(#chem-arrow)"/><text x="205" y="65">NH₃</text><line x1="35" y1="120" x2="360" y2="120"/><text x="35" y="145">low pKa: stronger acid</text><text x="245" y="145">high pKa: weaker acid</text>`;
+    else if (day === 5) body = `<text x="25" y="60">⁻O—C=O</text><path data-action="electron-delocalization" d="M125 45 Q180 5 235 45" marker-end="url(#chem-arrow)"/><text x="250" y="60">O=C—O⁻</text><g data-through="sigma-bonds"><line x1="40" y1="120" x2="280" y2="120"/><circle cx="80" cy="120" r="14"/><circle cx="160" cy="120" r="9"/><circle cx="235" cy="120" r="5"/></g>`;
+    else if (day === 6) body = `<g data-side="reactants"><text x="25" y="65">acid pKa 4 + base</text></g><path data-equilibrium-favors="products" d="M170 55 H310" marker-end="url(#chem-arrow)"/><g data-side="products"><text x="330" y="65">acid pKa 10 + base</text><rect x="320" y="85" width="190" height="18"/></g>`;
+    else if (day === 7) body = `<g data-species="nh3" data-role="nucleophile"><text x="25" y="80">H₃N:</text><circle data-electron-source="lone-pair" cx="88" cy="68" r="4"/></g><g data-species="methyl-carbon" data-role="electrophile"><text x="250" y="80">CH₃—Cl</text><line data-bond="carbon-chloride" x1="294" y1="72" x2="330" y2="72"/></g><path data-from="nh3-lone-pair" data-to="methyl-carbon" data-action="bond-formation" d="M92 65 Q165 5 250 62" marker-end="url(#chem-arrow)"/><path data-from="carbon-chloride-bond" data-to="chloride" data-action="bond-breaking" d="M310 68 Q365 15 405 62" marker-end="url(#chem-arrow)"/><text x="420" y="80">Cl⁻</text>`;
+    else if (day === 8) body = `<path data-curve="reaction-coordinate" d="M55 150 C120 150 135 35 210 35 S300 185 370 185"/><line data-level="reactants" x1="35" y1="150" x2="90" y2="150"/><line data-level="transition-state" x1="185" y1="35" x2="235" y2="35"/><line data-level="products" x1="345" y1="185" x2="400" y2="185"/><path data-measure="delta-g-dagger" data-from="reactants" data-to="transition-state" d="M105 150 V35" marker-end="url(#chem-arrow)"/><path data-measure="delta-g" data-from="reactants" data-to="products" d="M420 150 V185" marker-end="url(#chem-arrow)"/><text x="110" y="90">ΔG‡</text><text x="425" y="172">ΔG</text>`;
+    else body = m.links.map((link, i) => `<path data-from="${link.from}" data-to="${link.to}" d="M${30+i*105} 110 Q${65+i*105} 35 ${100+i*105} 110" marker-end="url(#chem-arrow)"/>`).join("");
+    return `<figure class="topic-visual" data-day="${day}" data-kind="${m.kind}" data-representation="${m.representation}"><svg viewBox="0 0 540 210" role="img" aria-label="Topic-specific chemistry support">${marker}${body}</svg><figcaption>${changed ? "Alternate representation for the same chemical relationships." : "Trace the encoded chemical relationships."}</figcaption></figure>`;
   }
 
   class VocabularySession {
-    constructor(entry) { this.entry = entry; this.state = { attempts: 0, mode: "production", supported: false, retrievalPending: false, complete: false }; }
-    submit(definition, application) {
+    constructor(entry, saved) { this.entry = entry; this.state = Object.assign({ attempts: 0, mode: "production", supported: false, retrievalPending: false, retrievalEligibleAfter: null, complete: false }, saved || {}); }
+    submit(definition, application, context) {
       const idk = /^(idk|i don t know|i do not know|teach me)$/i.test(normalize(definition));
       const definitionResult = evaluate(definition, this.entry.definitionRubric);
       const applicationResult = evaluate(application, this.entry.applicationRubric);
-      if (idk || !definitionResult.correct || !applicationResult.correct) {
+      const contextResult = context && context.applicationRubric ? evaluate(application, context.applicationRubric) : { correct: false };
+      if (idk || !definitionResult.correct || !applicationResult.correct || !contextResult.correct) {
         this.state.attempts += 1;
         if (idk || this.state.attempts >= 3) return this.teach(definition, application);
         return { correct: false, preservedDefinition: definition, preservedApplication: application, feedback: !definitionResult.correct ? this.entry.definitionFeedback : this.entry.applicationFeedback };
       }
       this.state.attempts = 0;
       if (this.state.mode === "retrieval" && !this.state.supported) this.state.complete = true;
-      else this.state.retrievalPending = true;
+      else { this.state.retrievalPending = true; this.state.retrievalEligibleAfter = (context.encounter || 0) + 1; }
       return { correct: true, complete: this.state.complete, retrievalPending: this.state.retrievalPending, masteryAwarded: false };
     }
     teach(definition, application) {
@@ -60,7 +72,7 @@
       return { correct: false, taught: true, teaching: this.entry.teaching, preservedDefinition: definition, preservedApplication: application };
     }
     beginTeachBack() { this.state.mode = "teachback"; this.state.supported = true; }
-    beginRetrieval() { this.state.mode = "retrieval"; this.state.supported = false; this.state.retrievalPending = false; }
+    beginRetrieval(encounter) { if (!this.state.retrievalPending || encounter < this.state.retrievalEligibleAfter) return false; this.state.mode = "retrieval"; this.state.supported = false; this.state.retrievalPending = false; return true; }
   }
 
   function evaluate(answer, rubric) {
@@ -94,7 +106,7 @@
   class Session {
     constructor(config, saved) {
       this.config = config;
-      this.state = Object.assign({ version: 1, phase: "lesson", attempts: 0, supported: false, contaminated: false, independent: [], transfer: false, status: LEVELS.SEEN, notebook: [], currentItemId: null, review: [] }, saved || {});
+      this.state = Object.assign({ version: 1, phase: "lesson", attempts: 0, supported: false, contaminated: false, independent: [], transfer: false, status: LEVELS.SEEN, notebook: [], currentItemId: null, review: [], vocabulary: {} }, saved || {});
     }
     requestHelp(kind) {
       if (!HELP[kind]) throw new Error("Unknown help kind");
@@ -137,5 +149,5 @@
       catch (_) { return new Session(config); }
     }
   }
-  return { LEVELS, Session, VocabularySession, evaluate, normalize, relationsHold, supportVisual, PREREQUISITES, prerequisiteEvidence, nextItem };
+  return { LEVELS, Session, VocabularySession, evaluate, normalize, relationsHold, supportVisualModel, supportVisual, PREREQUISITES, prerequisiteEvidence, nextItem };
 });

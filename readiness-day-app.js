@@ -30,6 +30,12 @@
   }
 
   function save() { localStorage.setItem(config.storageKey, session.serialize()); }
+  function vocabularyContext() {
+    // Reuse the authored first problem-specific requirement (normally the named
+    // species or numerical relationship), rather than accepting a generic
+    // restatement of the term's definition as an application.
+    return { itemId: current.id, encounter: session.state.notebook.length, applicationRubric: { require: current.rubric.require.slice(0, 2), error: "VOCABULARY_NOT_APPLIED_TO_CURRENT_PROBLEM" } };
+  }
   function render() {
     prompt.textContent = current.prompt;
     meta.textContent = `${current.stage === "guided" ? "Guided practice" : current.stage === "transfer" ? "Cold transfer" : "Cold independent proof"} · ${current.id}`;
@@ -58,7 +64,9 @@
     else current = ReadinessDayEngine.nextItem(current, normalItems, byId);
     answer.value = "";
     if (!current) { show(`Day status: ${session.finish()}. Practice has stopped.`); practice.querySelectorAll("button,textarea").forEach(el => el.disabled = true); return; }
-    changedRepresentation = false; session.fresh(current); render(); answer.focus();
+    changedRepresentation = false; session.fresh(current); render();
+    if (vocabSession) updateRetrievalControl();
+    answer.focus();
   }
   document.querySelectorAll("[data-area-button]").forEach(button => button.addEventListener("click", () => document.getElementById(button.dataset.areaButton).scrollIntoView()));
   document.querySelector("[data-check]").addEventListener("click", () => { const result = session.submit(answer.value, current); if (result.changeRepresentation) { session.state.supported = true; changedRepresentation = true; } result.taught ? teach(result) : show(result); if (result.correct) advance(result); });
@@ -72,20 +80,32 @@
   const vocabTeaching = vocabBox.querySelector("[data-vocab-teaching]");
   const vocabRetrieval = vocabBox.querySelector("[data-vocab-retrieval]");
   let vocabSession;
-  function chooseVocabulary() { vocabSession = new ReadinessDayEngine.VocabularySession(config.vocabularyEntries.find(entry => entry.term === vocabBox.querySelector("[data-vocab-term]").value)); vocabFeedback.textContent = "Cold production: definition and application are both required."; vocabTeaching.hidden = true; vocabRetrieval.hidden = true; }
+  function persistVocabulary() { session.state.vocabulary[vocabSession.entry.term] = Object.assign({}, vocabSession.state); save(); }
+  function updateRetrievalControl() {
+    const eligible = vocabSession.state.retrievalPending && session.state.notebook.length >= vocabSession.state.retrievalEligibleAfter;
+    vocabRetrieval.hidden = !eligible;
+    if (vocabSession.state.retrievalPending && !eligible) vocabFeedback.textContent = "Fresh retrieval is pending. Complete a later chemistry encounter before it becomes available.";
+  }
+  function chooseVocabulary() {
+    const entry = config.vocabularyEntries.find(candidate => candidate.term === vocabBox.querySelector("[data-vocab-term]").value);
+    vocabSession = new ReadinessDayEngine.VocabularySession(entry, session.state.vocabulary[entry.term]);
+    vocabFeedback.textContent = "Cold production: definition and an application to the current named species are both required.";
+    vocabTeaching.hidden = true; updateRetrievalControl();
+  }
   function checkVocabulary(forceIdk) {
-    const result = vocabSession.submit(forceIdk ? "I do not know" : vocabDefinition.value, vocabApplication.value);
+    const result = vocabSession.submit(forceIdk ? "I do not know" : vocabDefinition.value, vocabApplication.value, vocabularyContext());
     if (result.taught) {
       vocabTeaching.hidden = false; vocabTeaching.innerHTML = `<p>${result.teaching}</p><button type="button" data-vocab-teachback>Hide teaching and begin supported teach-back</button>`;
       vocabFeedback.textContent = "Study the relationship, then hide it before teach-back. A later fresh retrieval is still required.";
-      vocabTeaching.querySelector("[data-vocab-teachback]").addEventListener("click", () => { vocabSession.beginTeachBack(); vocabTeaching.hidden = true; vocabDefinition.value = ""; vocabApplication.value = ""; vocabFeedback.textContent = "Teaching hidden. Supported teach-back: produce both parts from memory."; });
+      vocabTeaching.querySelector("[data-vocab-teachback]").addEventListener("click", () => { vocabSession.beginTeachBack(); persistVocabulary(); vocabTeaching.hidden = true; vocabDefinition.value = ""; vocabApplication.value = ""; vocabFeedback.textContent = "Teaching hidden. Supported teach-back: produce both parts from memory."; });
     } else if (!result.correct) vocabFeedback.textContent = result.feedback;
-    else { vocabFeedback.textContent = result.complete ? "Fresh no-clue vocabulary retrieval complete; no day mastery was awarded." : "Relationship produced, but later fresh no-clue retrieval is required; vocabulary alone is not mastery."; vocabRetrieval.hidden = !result.retrievalPending; }
+    else { vocabFeedback.textContent = result.complete ? "Fresh no-clue vocabulary retrieval complete; no day mastery was awarded." : "Relationship produced; retrieval stays locked until a later chemistry encounter. Vocabulary alone is not mastery."; }
+    persistVocabulary(); updateRetrievalControl();
   }
   vocabBox.querySelector("[data-vocab-term]").addEventListener("change", chooseVocabulary);
   vocabBox.querySelector("[data-vocab-check]").addEventListener("click", () => checkVocabulary(false));
   vocabBox.querySelector("[data-vocab-idk]").addEventListener("click", () => checkVocabulary(true));
-  vocabRetrieval.addEventListener("click", () => { vocabSession.beginRetrieval(); vocabDefinition.value = ""; vocabApplication.value = ""; vocabTeaching.hidden = true; vocabRetrieval.hidden = true; vocabFeedback.textContent = "Later no-clue retrieval: produce definition and application again without support."; });
+  vocabRetrieval.addEventListener("click", () => { if (!vocabSession.beginRetrieval(session.state.notebook.length)) return; persistVocabulary(); vocabDefinition.value = ""; vocabApplication.value = ""; vocabTeaching.hidden = true; vocabRetrieval.hidden = true; vocabFeedback.textContent = "Later no-clue retrieval: produce definition and apply it to the current problem without support."; });
   chooseVocabulary();
   if (!session.state.currentItemId) session.fresh(current);
   render();
