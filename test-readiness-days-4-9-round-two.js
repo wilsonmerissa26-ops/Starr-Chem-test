@@ -53,6 +53,6 @@ assert.equal(E.evaluate("NH3 is the nucleophile with a lone pair; carbon is elec
 const app = fs.readFileSync("readiness-day-app.js", "utf8");
 assert(app.includes("data-vocabulary-practice") && app.includes("data-vocab-definition") && app.includes("data-vocab-application"));
 assert(app.includes("Start teach-back (hide answer)") && app.includes("Worked answer hidden"));
-assert(app.includes("config.facts.map") && app.includes("support model"));
+assert(app.includes("ReadinessDayEngine.supportVisual(config.day, changedRepresentation)"));
 assert(!app.includes("normalItems[index + 1]"));
 console.log("Days 4-9 round-two prerequisite, resume, relation, vocabulary, visual, and teach-back regressions passed");
