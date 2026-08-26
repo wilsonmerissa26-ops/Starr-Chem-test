@@ -28,7 +28,7 @@ result = vocabulary.submit("It donates H+ to a base", "NH4+ donates its proton, 
 assert(result.correct && result.complete && !result.masteryAwarded);
 vocabulary = new E.VocabularySession(acid);
 result = vocabulary.submit("I do not know", "", acidContext);
-assert(result.taught && vocabulary.state.supported && vocabulary.state.retrievalPending);
+assert(result.taught && vocabulary.state.supported && vocabulary.state.teachbackRequired && !vocabulary.state.retrievalPending);
 vocabulary.beginTeachBack();
 result = vocabulary.submit("It donates a proton", "NH4+ is an acid because it donates H+.", acidContext);
 assert(result.correct && !result.complete);
