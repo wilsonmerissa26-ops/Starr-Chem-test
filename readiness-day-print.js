@@ -68,10 +68,10 @@
   .print-cover p{margin:.06in 0}
   .print-name-row{display:flex;justify-content:space-between;gap:.25in;margin:.1in 0;font:9.5pt Arial,sans-serif}
   .print-section{margin-top:.11in}
-  .print-section h2{font:700 13pt/1.15 Arial,sans-serif;margin:0 0 .06in;border-bottom:1px solid #777;padding-bottom:.035in}
+  .print-section h2{font:700 13pt/1.15 Arial,sans-serif;margin:0 0 .06in;border-bottom:1px solid #777;padding-bottom:.035in;break-after:avoid}
   .print-section ul{margin:.05in 0 .08in;padding-left:.22in}
   .print-section li{margin-bottom:.035in}
-  .print-note{font-style:italic;margin:.03in 0 .08in}
+  .print-note{font-style:italic;margin:.03in 0 .08in;break-after:avoid}
   .print-rule-box{border:1px solid #777;padding:.08in;margin-top:.08in;break-inside:avoid}
   .print-rule-box p{margin:.035in 0 0}
   .print-vocab{display:grid;grid-template-columns:1fr 1fr;gap:.06in .1in}
