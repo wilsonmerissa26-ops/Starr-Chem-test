@@ -16,3 +16,4 @@ jobs:
       - run: node test-readiness-days-4-9-round-two.js
       - run: node test-readiness-days-4-9-final-compliance.js
       - run: node test-readiness-days-4-9-contract-gaps.js
+      - run: node test-readiness-days-4-9-relationship-integrity.js

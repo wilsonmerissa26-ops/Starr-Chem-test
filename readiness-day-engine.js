@@ -20,7 +20,15 @@
     // four role assignments with them, and those assignments must not collapse
     // into one bag of words.
     const clauses = String(text || "").split(/\s*(?:[,;.]|\bwhile\b|\bwhereas\b|\band\s+(?=(?:the\s+)?[a-z0-9]))\s*/i).map(normalize).filter(Boolean);
-    return (relations || []).every(relation => clauses.some(clause => has(clause, relation.entity) && has(clause, relation.role)));
+    return (relations || []).every(relation => clauses.some(clause => {
+      if (!has(clause, relation.entity) || !has(clause, relation.role)) return false;
+      // A role word inside an explicit denial is not evidence for that role.
+      // Keep this local to relational clauses so legitimate explanations such
+      // as "pKa predicts equilibrium, not rate" remain available elsewhere.
+      const words = clause.split(/\s+/);
+      const denied = words.some(word => ["not", "isnt", "isn't", "doesnt", "doesn't", "cannot", "never"].includes(word));
+      return !denied;
+    }));
   }
 
   // The model is intentionally public: tests and assistive renderers can inspect
