@@ -1,0 +1,1 @@
+(function(root,factory){const c=factory();if(typeof module==='object'&&module.exports)module.exports=c;else root.Day4Config=c;})(typeof globalThis!=='undefined'?globalThis:this,function(){'use strict';const all=typeof require==='function'?require('../readiness-day-curricula'):globalThis.ReadinessCurricula;return all[4];});
