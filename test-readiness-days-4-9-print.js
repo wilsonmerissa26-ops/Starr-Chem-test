@@ -47,6 +47,8 @@ for (let day = 4; day <= 9; day += 1) {
 
   const itemMarkers = (student.match(/data-print-item=/g) || []).length;
   eq(itemMarkers, config.items.length, `Day ${day} packet contains every authored practice item exactly once`);
+  const forcedPageStarts = (student.match(/print-page-start/g) || []).length;
+  ok(forcedPageStarts <= 2, `Day ${day} avoids wasteful forced page breaks`);
 
   const html = fs.readFileSync(`day${day}/index.html`, "utf8");
   const printPos = html.indexOf("../readiness-day-print.js");
