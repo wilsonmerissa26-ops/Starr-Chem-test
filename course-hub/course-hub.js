@@ -16,10 +16,11 @@
     { day: 4, title: "Acid/Base Language, Conjugates, Ka and pKa", href: "../day4/", why: "Acid/base roles, conjugates, and pKa relationships." },
     { day: 5, title: "Why One Acid Is Stronger: Conjugate-Base Stability", href: "../day5/", why: "Resonance, induction, and stability reasoning." },
     { day: 6, title: "Acid/Base Equilibrium Direction", href: "../day6/", why: "Predict which side an acid/base equilibrium favors." },
-    { day: 7, title: "Nucleophiles, Electrophiles, and Electron Flow", href: "../day7/", why: "Identify electron sources, sinks, and curved-arrow direction." },
-    { day: 8, title: "Thermodynamics vs. Kinetics", href: "../day8/", why: "Separate favorability, rate, ΔG, and activation barriers." },
-    { day: 9, title: "Integrated Organic Chemistry Readiness", href: "../day9/", why: "Combine foundation skills in fresh transfer problems." }
+    { day: 7, title: "Nucleophile, Electrophile, Polarity, and Electron Flow", href: "../day7/", why: "Identify electron sources, sinks, polarity, and curved-arrow direction." },
+    { day: 8, title: "Thermodynamics vs Kinetics and Energy Diagrams", href: "../day8/", why: "Separate favorability, rate, ΔG, and activation barriers." },
+    { day: 9, title: "Integrated Readiness Transfer / Capstone", href: "../day9/", why: "Combine foundation skills in fresh transfer problems." }
   ]);
+  const DAY1_MATH_AREAS = Object.freeze(["fractions_percent", "algebra", "exponents", "scientific_notation", "logs", "unit_conversions"]);
 
   // Syllabus plan. It is deliberately data, not mastery logic. The professor may update it.
   const COURSE_WEEKS = Object.freeze([
@@ -50,6 +51,10 @@
     { date: "2026-12-10", label: "Test 5 + Final Exam", detail: "Mandatory cumulative final at 7:00 PM" }
   ]);
 
+  const COURSE_ALERTS = Object.freeze([
+    { start: "2026-08-17", end: "2026-08-28", label: "Bonus point deadline", detail: "Tell Dr. Meadows you found the syllabus note by Aug 28 to receive one bonus point on Test 1." }
+  ]);
+
   const safeParse = raw => {
     if (!raw) return null;
     try { return JSON.parse(raw); } catch (_) { return null; }
@@ -58,11 +63,20 @@
   function dayStatus(day, storage, curricula) {
     const get = key => safeParse(storage && storage.getItem ? storage.getItem(key) : null);
     if (day === 1) {
+      // Day 1 currently stores its visible math sessions and chemistry mastery
+      // separately. Read the live keys rather than inventing a parallel record.
       const state = get("dr-merissa-day1-state-v1");
-      if (!state) return STATUS.START;
-      if (state.chemistry && state.chemistry.masteryMet === true) return STATUS.OPEN;
-      const math = state.math && state.math.statuses ? Object.values(state.math.statuses) : [];
-      if ((state.nextSessionQueue || []).length || math.includes("Developing")) return STATUS.NEEDS_REVIEW;
+      const ui = get("dr-merissa-day1-ui-v5");
+      const chemistryMastery = get("astarryia-chemistry-mastery-v1");
+      const mathEvidence = get("dr-merissa-math-evidence-v23");
+      const sessions = ui && ui.mathSessions ? ui.mathSessions : {};
+      const allMathSetsComplete = DAY1_MATH_AREAS.every(id => sessions[id] && sessions[id].status === "Practice set complete");
+      const hasActivity = !!(state || ui || chemistryMastery || mathEvidence);
+      if (!hasActivity) return STATUS.START;
+      if (chemistryMastery && allMathSetsComplete) return STATUS.OPEN;
+      const queued = state && Array.isArray(state.nextSessionQueue) ? state.nextSessionQueue : [];
+      const hasActiveIdk = Object.values(sessions).some(session => session && session.idk);
+      if (queued.length || hasActiveIdk) return STATUS.NEEDS_REVIEW;
       return STATUS.IN_PROGRESS;
     }
     if (day === 2) {
@@ -89,7 +103,10 @@
   }
 
   function allDayStatuses(storage, curricula) {
-    return DAY_META.map(meta => Object.assign({}, meta, { status: dayStatus(meta.day, storage, curricula) }));
+    return DAY_META.map(meta => {
+      const authored = curricula && curricula[meta.day];
+      return Object.assign({}, meta, authored && authored.title ? { title: authored.title } : {}, { status: dayStatus(meta.day, storage, curricula) });
+    });
   }
 
   function dateParts(value) {
@@ -115,6 +132,10 @@
   }
   function nextTarget(date) {
     return MAJOR_TARGETS.find(target => daysUntil(date, target.date) >= 0) || MAJOR_TARGETS[MAJOR_TARGETS.length - 1];
+  }
+  function activeCourseAlerts(date) {
+    const stamp = dateOnlyUtc(date);
+    return COURSE_ALERTS.filter(alert => stamp >= dateOnlyUtc(parseLocalDate(alert.start)) && stamp <= dateOnlyUtc(parseLocalDate(alert.end)));
   }
   function dayName(date) { return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][date.getDay()]; }
   function lectureForToday(date, week) {
@@ -151,6 +172,20 @@
     return `<article class="foundation-card" data-day="${meta.day}" data-status="${esc(meta.status)}"><div class="foundation-top"><span class="day-number">Day ${meta.day}</span><span class="status ${statusClass(meta.status)}">${esc(meta.status)}</span></div><h3>${esc(meta.title)}</h3><p>${esc(meta.why)}</p><a class="button secondary" href="${esc(meta.href)}">${action} Day ${meta.day}</a>${meta.status === STATUS.OPEN ? '<p class="completion-note">Completed evidence stays saved. Opening this day never resets it.</p>' : ""}</article>`;
   }
 
+  function renderAlerts(doc, date) {
+    const existing = doc.querySelector("[data-course-alerts]");
+    if (existing) existing.remove();
+    const alerts = activeCourseAlerts(date);
+    if (!alerts.length) return [];
+    const host = doc.createElement("section");
+    host.className = "card";
+    host.setAttribute("data-course-alerts", "");
+    host.innerHTML = `<div class="label">Course alert</div>${alerts.map(alert => `<div class="notice"><b>${esc(alert.label)}</b><br>${esc(alert.detail)}</div>`).join("")}`;
+    const hero = doc.querySelector(".hero");
+    if (hero) hero.insertAdjacentElement("afterend", host);
+    return alerts;
+  }
+
   function render(root, date) {
     const doc = root.document;
     const curricula = root.ReadinessCurricula || {};
@@ -161,6 +196,7 @@
     const recommendation = recommendedFoundation(statuses);
     const lecture = lectureForToday(date, week);
     const plan = studyPlan(date, week);
+    const alerts = renderAlerts(doc, date);
 
     doc.querySelector("[data-current-week]").textContent = week.label;
     doc.querySelector("[data-current-focus]").textContent = lecture || `${week.tuesday} / ${week.thursday}`;
@@ -179,7 +215,7 @@
       rec.innerHTML = `<strong>Foundation refresh: Day ${recommendation.day}</strong><p>${esc(recommendation.title)} · ${esc(recommendation.status)}</p><a class="button small" href="${esc(recommendation.href)}">Open Day ${recommendation.day}</a>`;
     }
     doc.querySelector("[data-foundation-grid]").innerHTML = statuses.map(renderDay).join("");
-    return { statuses, week, target, recommendation };
+    return { statuses, week, target, recommendation, alerts };
   }
 
   function mount(root) {
@@ -187,5 +223,5 @@
     return render(root, now);
   }
 
-  return { STATUS, DAY_META, COURSE_WEEKS, MAJOR_TARGETS, safeParse, dayStatus, allDayStatuses, daysUntil, currentWeek, nextTarget, studyPlan, recommendedFoundation, render, mount };
+  return { STATUS, DAY_META, DAY1_MATH_AREAS, COURSE_WEEKS, MAJOR_TARGETS, COURSE_ALERTS, safeParse, dayStatus, allDayStatuses, daysUntil, currentWeek, nextTarget, activeCourseAlerts, studyPlan, recommendedFoundation, render, mount };
 });
