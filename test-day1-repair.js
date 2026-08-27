@@ -2,8 +2,9 @@ const assert=require('assert'),fs=require('fs');
 const D=require('./day1-session.js'),SM=require('./student-model-idk-router.js');
 const html=fs.readFileSync('astarryia-day1-foundation-reset.html','utf8');
 const index=fs.readFileSync('index.html','utf8');
+const courseHub=fs.readFileSync('course-hub/course-hub.js','utf8');
 let passed=0;function test(n,f){f();passed++;console.log('PASS ',n)}
-test('GitHub Pages root launches current Day 1 classroom',()=>{assert(index.includes('day1/'));assert(!index.includes('astarryia-day1-foundation-reset.html'))});
+test('GitHub Pages root launches course hub and Day 1 remains reachable',()=>{assert(index.includes('course-hub/'));assert(courseHub.includes('../day1/'));assert(!index.includes('astarryia-day1-foundation-reset.html'))});
 test('Math Gym first wrong does not reveal answer',()=>assert(!html.includes('Correct answer:')));
 test('Math Gym wrong routes through classification and Student Model',()=>{assert(html.includes('function submitGymAnswer'));assert(html.includes('handleWrongAttempt'))});
 test('Math Gym IDK uses existing router',()=>assert(html.includes("routeGymIdk")));
