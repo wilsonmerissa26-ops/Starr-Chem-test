@@ -6,14 +6,20 @@ const items = Object.values(curricula).flatMap(config => config.items || []);
 const byId = Object.fromEntries(items.map(item => [item.id, item]));
 
 // The complete bank is explicitly audited. Relationship-dependent prompts may
-// not silently fall back to an unordered bag of words.
+// not silently fall back to an unordered bag of words, and every audited
+// association must be present in the rubric actually used by Session.submit().
 assert.equal(items.length, 56);
 for (const item of items) {
   assert(item.relationshipAudit, `${item.id} has an audit classification`);
   assert(["relations", "simple"].includes(item.relationshipAudit.classification));
   if (item.relationshipAudit.classification === "relations") {
-    assert(item.rubric.relations.length, `${item.id} has an enforced guard`);
+    assert(item.rubric.relations.length, `${item.id} has an authored relation guard`);
     assert(item.relationshipAudit.relationships.length, `${item.id} records all audited associations`);
+    assert.equal(
+      E.rubricForItem(item).relations.length,
+      item.relationshipAudit.relationships.length,
+      `${item.id} enforces every audited association at grading time`
+    );
   } else assert(item.relationshipAudit.reason, `${item.id} explains its exception`);
 }
 
@@ -43,6 +49,35 @@ assert(submit("D6-I-PAIRS", "Ammonium acts as acid, cyanide as base. HCN is thei
 assert.equal(submit("D7-I-ROLES", "NH3 is electrophilic because it has a lone pair; carbon is the nucleophile because C-Cl is polar.").correct, false);
 assert(submit("D7-I-ROLES", "Ammonia is the nucleophile because its lone pair donates; the polarized C-Cl carbon is electrophilic.").correct);
 
+// Regression for the final multi-relation gap. These answers keep the first
+// audited relationship correct and move a later relationship onto the wrong
+// entity/conclusion. They passed when only audit[1][0] was enforced.
+const secondaryRelationAttacks = {
+  "D4-G-DONOR": "NH4+ is the acid and donates H+. H2O accepts H+ as an acid; NH4+ is the base.",
+  "D6-I-PAIRS": "NH4+ is acid; CN- is base; HCN is conjugate base; NH3 is conjugate acid.",
+  "D7-I-SOURCE": "The oxygen lone pair is the source at the arrow tail; oxygen is the destination and arrow head; carbon is involved as the C-O bond forms.",
+  "D9-I-EQUILIBRIUM-FLOW": "Reactants are favored. Methanol is the higher-pKa weaker acid. Carbon is the nucleophile; CN- is electrophilic. The C-C bond forms. The C-Br bond breaks to bromine.",
+  "D8-I-CONTRAST": "Negative delta G -40 means products are favored and the reaction is slow. The 150 activation barrier is low and makes it fast."
+};
+for (const [id, answer] of Object.entries(secondaryRelationAttacks)) {
+  const result = submit(id, answer);
+  assert.equal(result.correct, false, `${id} rejects a later-association reversal while the first relation stays correct`);
+  assert.equal(result.code, "ROLE_RELATION_REVERSED", `${id} reports the relationship failure`);
+}
+
+// Natural-language controls for those same multi-relation items. These are not
+// exact answer keys and prove the stronger guard still accepts clear chemistry.
+const secondaryRelationControls = {
+  "D4-G-DONOR": "NH4+ is the acid and donates H+. H2O is the base and accepts H+.",
+  "D6-I-PAIRS": "Ammonium is the acid; cyanide is the base; HCN is the conjugate acid; ammonia is the conjugate base.",
+  "D7-I-SOURCE": "The oxygen lone pair is the source at the arrow tail. Carbon is the destination at the arrow head. This forms the C-O bond.",
+  "D9-I-EQUILIBRIUM-FLOW": "Reactants are favored. Methanol is the higher-pKa weaker acid. CN- is the nucleophile. Carbon is electrophilic. The C-C bond forms. The C-Br bond breaks and its electrons go to bromine.",
+  "D8-I-CONTRAST": "Negative delta G -40 favors products. The 150 activation barrier is high and makes the reaction slow kinetically."
+};
+for (const [id, answer] of Object.entries(secondaryRelationControls)) {
+  assert(submit(id, answer).correct, `${id} accepts a clear natural-language multi-relation answer`);
+}
+
 // Required attack categories are represented by real bank items. Each response
 // contains the expected vocabulary but assigns the conclusion incorrectly.
 const categoryAttacks = [
@@ -62,4 +97,4 @@ const categoryAttacks = [
 ];
 for (const [id, answer] of categoryAttacks) assert.equal(submit(id, answer).correct, false, `${id} rejects adversarial assignment`);
 
-console.log(`Days 4-9 relationship integrity: ${items.length} items audited; adversarial assignments rejected`);
+console.log(`Days 4-9 relationship integrity: ${items.length} items audited; every audited association enforced; adversarial assignments rejected`);
