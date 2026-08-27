@@ -19,11 +19,39 @@ function settleReset(){
   setTimeout(resetViewport,80);
   setTimeout(resetViewport,220);
 }
+function polishFoundationHome(){
+  var root=document.getElementById('view');
+  if(!root)return;
+  var active=tabs.querySelector('button.on[data-view]');
+  if(!active||active.getAttribute('data-view')!=='home')return;
+  var hero=root.querySelector('.hero');
+  if(!hero)return;
+  var phase=hero.querySelector('.phase'),heading=hero.querySelector('h1'),copy=hero.querySelector('p');
+  if(phase)phase.textContent='FOUNDATION LIBRARY • DAY 1';
+  if(heading)heading.textContent='Day 1 Foundation Review';
+  if(copy)copy.textContent='Refresh the math and Lewis-structure skills that support your Organic Chemistry work. Your saved progress stays here when you return.';
+  if(!hero.querySelector('[data-course-hub-link]')){
+    var link=document.createElement('a');
+    link.href='../course-hub/';
+    link.className='btn ghost';
+    link.setAttribute('data-course-hub-link','1');
+    link.textContent='← Back to CHM 221 Hub';
+    link.style.display='inline-flex';
+    link.style.alignItems='center';
+    link.style.justifyContent='center';
+    link.style.textDecoration='none';
+    link.style.marginTop='10px';
+    hero.appendChild(link);
+  }
+  var subtitle=document.querySelector('.brandIdentity .muted');
+  if(subtitle)subtitle.textContent='AStarryia • Foundation Library • Day 1';
+}
 tabs.addEventListener('click',function(e){
   var b=e.target.closest('button[data-view]');
   if(!b)return;
   var next=b.getAttribute('data-view');
   if(next!==lastView){lastView=next;settleReset();}
+  setTimeout(polishFoundationHome,0);
 },true);
 /* Also protect programmatic/history view changes by watching the active tab. */
 new MutationObserver(function(){
@@ -31,7 +59,11 @@ new MutationObserver(function(){
   if(!active)return;
   var next=active.getAttribute('data-view');
   if(next!==lastView){lastView=next;settleReset();}
+  polishFoundationHome();
 }).observe(tabs,{subtree:true,attributes:true,attributeFilter:['class']});
+var root=document.getElementById('view');
+if(root)new MutationObserver(function(){polishFoundationHome();}).observe(root,{childList:true,subtree:true});
 var initial=tabs.querySelector('button.on[data-view]');
 if(initial)lastView=initial.getAttribute('data-view');
+polishFoundationHome();
 })();
