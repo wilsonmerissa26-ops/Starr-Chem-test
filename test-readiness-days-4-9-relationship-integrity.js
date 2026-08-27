@@ -56,7 +56,7 @@ const secondaryRelationAttacks = {
   "D4-G-DONOR": "NH4+ is the acid and donates H+. H2O accepts H+ as an acid; NH4+ is the base.",
   "D6-I-PAIRS": "NH4+ is acid; CN- is base; HCN is conjugate base; NH3 is conjugate acid.",
   "D7-I-SOURCE": "The oxygen lone pair is the source at the arrow tail; oxygen is the destination and arrow head; carbon is involved as the C-O bond forms.",
-  "D9-I-EQUILIBRIUM-FLOW": "Reactants are favored. Methanol is the higher-pKa weaker acid. Carbon is the nucleophile; CN- is electrophilic. The C-C bond forms. The C-Br bond breaks to bromine.",
+  "D9-I-EQUILIBRIUM-FLOW": "Reactants are favored. Methanol is the higher pKa weaker acid. Carbon is the nucleophile; CN- is electrophilic. The C-C bond forms. The C-Br bond breaks to bromine.",
   "D8-I-CONTRAST": "Negative delta G -40 means products are favored and the reaction is slow. The 150 activation barrier is low and makes it fast."
 };
 for (const [id, answer] of Object.entries(secondaryRelationAttacks)) {
@@ -71,7 +71,7 @@ const secondaryRelationControls = {
   "D4-G-DONOR": "NH4+ is the acid and donates H+. H2O is the base and accepts H+.",
   "D6-I-PAIRS": "Ammonium is the acid; cyanide is the base; HCN is the conjugate acid; ammonia is the conjugate base.",
   "D7-I-SOURCE": "The oxygen lone pair is the source at the arrow tail. Carbon is the destination at the arrow head. This forms the C-O bond.",
-  "D9-I-EQUILIBRIUM-FLOW": "Reactants are favored. Methanol is the higher-pKa weaker acid. CN- is the nucleophile. Carbon is electrophilic. The C-C bond forms. The C-Br bond breaks and its electrons go to bromine.",
+  "D9-I-EQUILIBRIUM-FLOW": "Reactants are favored. Methanol is the higher pKa weaker acid. CN- is the nucleophile. Carbon is electrophilic. The C-C bond forms. The C-Br bond breaks and its electrons go to bromine.",
   "D8-I-CONTRAST": "Negative delta G -40 favors products. The 150 activation barrier is high and makes the reaction slow kinetically."
 };
 for (const [id, answer] of Object.entries(secondaryRelationControls)) {
