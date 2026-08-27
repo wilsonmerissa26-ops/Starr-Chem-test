@@ -95,6 +95,12 @@
       const alt=Data.alternate(skill.id,item.id);
       state.queue.splice(state.index+1,0,{skill:skill.id,item:alt.id});
     }
+    function scoreFirstPass(item,result){
+      if(state.mode!=='test'||state.current===item.id)return;
+      state.current=item.id;
+      state.mix.attempted+=1;
+      if(result.correct&&!state.supportUsed)state.mix.correct+=1;
+    }
 
     function renderPractice(){
       const pair=currentPair();
@@ -111,12 +117,12 @@
       const input=practice.querySelector('[data-answer]'),feedback=practice.querySelector('[data-feedback]');
       function teach(reason){state.supportUsed=true;ss.status='REVIEW';persist();feedback.innerHTML=`<div class="teach"><b>${esc(reason)}</b><p>${esc(skill.teaching)}</p><p><b>Fresh-item rule:</b> this explanation helps you learn, but this same question cannot count as independent proof. You will get a different question from this skill next.</p><button data-fresh>Try a fresh question</button></div>`;feedback.querySelector('[data-fresh]').onclick=()=>{requireFresh(skill,item);advance();};}
       practice.querySelector('[data-hint]').onclick=()=>{state.supportUsed=true;ss.status='REVIEW';persist();feedback.innerHTML=`<div class="hint"><b>Hint</b><p>${esc(skill.hint)}</p><p>This attempt is now supported. A fresh item will be required for independent evidence.</p></div>`;input.focus();};
-      practice.querySelector('[data-idk]').onclick=()=>{record(state,skill,item,{correct:false,idk:true,code:'IDK'});teach('Let’s repair the idea first.');};
+      practice.querySelector('[data-idk]').onclick=()=>{const result={correct:false,idk:true,code:'IDK'};scoreFirstPass(item,result);record(state,skill,item,result);teach('Let’s repair the idea first.');};
       practice.querySelector('[data-check]').onclick=()=>{
         const result=checkAnswer(item,input.value);
-        if(result.idk){record(state,skill,item,result);teach('Let’s repair the idea first.');return;}
+        if(result.idk){scoreFirstPass(item,result);record(state,skill,item,result);teach('Let’s repair the idea first.');return;}
+        scoreFirstPass(item,result);
         const recorded=record(state,skill,item,result);
-        if(state.mode==='test'){state.mix.attempted+=1;if(recorded.clean)state.mix.correct+=1;}
         persist();
         if(result.correct&&recorded.clean){feedback.innerHTML=`<div class="good"><b>Correct without support.</b><p>That counts as independent evidence for this skill.</p><button data-next>Continue</button></div>`;feedback.querySelector('[data-next]').onclick=advance;}
         else if(result.correct){feedback.innerHTML=`<div class="good supported"><b>Correct with support.</b><p>You learned it, but it does not count as independent evidence. A fresh item comes next.</p><button data-next>Fresh question</button></div>`;requireFresh(skill,item);feedback.querySelector('[data-next]').onclick=advance;}
