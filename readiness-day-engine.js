@@ -15,12 +15,29 @@
   // occur in the same clause.  This prevents a bag of otherwise-correct words
   // from passing after the learner swaps two chemical roles.
   function relationsHold(text, relations) {
-    // Preserve relation boundaries before normalize() removes punctuation.
-    // Commas and semicolons are especially important: learners commonly list
-    // four role assignments with them, and those assignments must not collapse
-    // into one bag of words.
-    const clauses = String(text || "").split(/\s*(?:[,;.]|\bwhile\b|\bwhereas\b|\band\s+(?=(?:the\s+)?[a-z0-9]))\s*/i).map(normalize).filter(Boolean);
-    return (relations || []).every(relation => clauses.some(clause => {
+    const rels = relations || [];
+    // First preserve hard clause boundaries. Then split "and" only when it
+    // actually introduces another audited entity. This keeps separate role
+    // assignments apart without breaking a valid predicate such as
+    // "the barrier is high and makes the reaction slow."
+    const entityTerms = rels.flatMap(relation => relation.entity || []).map(normalize).filter(term => term.length > 1);
+    const beginsWithEntity = value => {
+      const clause = normalize(value).replace(/^the\s+/, "");
+      return entityTerms.some(term => clause === term || clause.startsWith(`${term} `) || clause.startsWith(`${term}s `));
+    };
+    const clauses = [];
+    String(text || "").split(/\s*(?:[,;.]|\bwhile\b|\bwhereas\b)\s*/i).forEach(segment => {
+      const chunks = segment.split(/\s+\band\b\s+/i);
+      let current = chunks.shift() || "";
+      chunks.forEach(chunk => {
+        if (beginsWithEntity(chunk)) {
+          if (normalize(current)) clauses.push(normalize(current));
+          current = chunk;
+        } else current += ` and ${chunk}`;
+      });
+      if (normalize(current)) clauses.push(normalize(current));
+    });
+    return rels.every(relation => clauses.some(clause => {
       if (!has(clause, relation.entity) || !has(clause, relation.role)) return false;
       // A role word inside an explicit denial is not evidence for that role.
       // Keep this local to relational clauses so legitimate explanations such
