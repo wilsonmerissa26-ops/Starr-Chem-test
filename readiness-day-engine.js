@@ -121,6 +121,12 @@
     const rule = (rubric.reject || []).find(item => has(text, item.terms));
     return rule ? rule.code : "CHEMISTRY_CONTRADICTION";
   }
+  function rubricForItem(item) {
+    const audited = item && item.relationshipAudit && item.relationshipAudit.classification === "relations" && Array.isArray(item.relationshipAudit.relationships) && item.relationshipAudit.relationships.length
+      ? item.relationshipAudit.relationships
+      : null;
+    return audited ? Object.assign({}, item.rubric, { relations: audited }) : item.rubric;
+  }
 
   class Session {
     constructor(config, saved) {
@@ -136,7 +142,8 @@
       // The authored key is the canonical complete response. Semantic groups
       // accept natural-language equivalents; this exact-key path also prevents
       // a misconception phrase quoted in a correct negation from being rejected.
-      const result = item.answerKey && normalize(answer) === normalize(item.answerKey) ? { correct: true } : evaluate(answer, item.rubric);
+      const rubric = rubricForItem(item);
+      const result = item.answerKey && normalize(answer) === normalize(item.answerKey) ? { correct: true } : evaluate(answer, rubric);
       if (result.idk) return this.teach(item, "You asked to be taught.");
       if (!result.correct) {
         this.state.attempts += 1; this.state.contaminated = true;
@@ -168,5 +175,5 @@
       catch (_) { return new Session(config); }
     }
   }
-  return { LEVELS, Session, VocabularySession, evaluate, normalize, relationsHold, supportVisualModel, supportVisual, PREREQUISITES, prerequisiteEvidence, nextItem };
+  return { LEVELS, Session, VocabularySession, evaluate, normalize, relationsHold, rubricForItem, supportVisualModel, supportVisual, PREREQUISITES, prerequisiteEvidence, nextItem };
 });
