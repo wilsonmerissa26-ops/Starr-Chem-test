@@ -23,3 +23,7 @@ jobs:
         run: node test-course-hub.js
       - name: Verify root opens course hub
         run: node test-root-day1-redirect.js
+      - name: Syntax-check Day 1 foundation-library shell
+        run: node --check day1/mobile-navigation-fix-v14.js
+      - name: Verify Day 1 foundation-library wording and hub route
+        run: node test-day1-foundation-library-shell.js
