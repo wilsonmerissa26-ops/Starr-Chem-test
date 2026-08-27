@@ -79,6 +79,7 @@ eq(Hub.studyPlan(aug27, Hub.currentWeek(aug27)).length, 3, "Thursday has a bound
 eq(Hub.activeCourseAlerts(aug27).length, 1, "Aug 27 surfaces the syllabus bonus-point deadline");
 eq(Hub.activeCourseAlerts(new Date(2026, 7, 29, 12, 0, 0)).length, 0, "expired syllabus alert disappears after Aug 28");
 ok(Hub.activeCourseAlerts(aug27)[0].detail.includes("bonus point on Test 1"), "course alert explains the Test 1 bonus point");
+eq(Hub.nextTarget(new Date(2026, 11, 11, 12, 0, 0)), null, "after the final there is no fake past next target");
 
 // Recommendation prioritizes an actual weak/in-progress skill instead of hiding other days.
 const recommendation = Hub.recommendedFoundation([
@@ -102,6 +103,7 @@ ok(html.includes("Check Canvas and Mercer email"), "UI does not pretend to know 
 ok(html.includes("Generative AI should not be used to complete assignments"), "UI includes course academic-integrity boundary");
 ok(html.includes("../readiness-day-curricula.js"), "hub loads existing Days 4-9 curriculum metadata");
 ok(js.includes("Bonus point deadline"), "hub contains the current syllabus bonus-point alert");
+ok(js.includes("Semester complete"), "hub renders a course-complete state after the final");
 ok(!js.includes("setItem("), "hub is read-only with respect to learning evidence");
 ok(!js.includes("removeItem("), "hub never deletes learning evidence");
 
