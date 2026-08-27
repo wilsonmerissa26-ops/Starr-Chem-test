@@ -1,0 +1,25 @@
+name: CHM 221 Unit 1 Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  unit1:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check Unit 1 data
+        run: node --check course-units/unit1/unit1-data.js
+      - name: Syntax-check Unit 1 runtime
+        run: node --check course-units/unit1/unit1-app.js
+      - name: Run CHM 221 Unit 1 behavioral regressions
+        run: node test-chm221-unit1.js
