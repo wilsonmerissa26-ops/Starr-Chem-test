@@ -131,7 +131,7 @@
     return found;
   }
   function nextTarget(date) {
-    return MAJOR_TARGETS.find(target => daysUntil(date, target.date) >= 0) || MAJOR_TARGETS[MAJOR_TARGETS.length - 1];
+    return MAJOR_TARGETS.find(target => daysUntil(date, target.date) >= 0) || null;
   }
   function activeCourseAlerts(date) {
     const stamp = dateOnlyUtc(date);
@@ -192,7 +192,7 @@
     const statuses = allDayStatuses(root.localStorage, curricula);
     const week = currentWeek(date);
     const target = nextTarget(date);
-    const remaining = daysUntil(date, target.date);
+    const remaining = target ? daysUntil(date, target.date) : null;
     const recommendation = recommendedFoundation(statuses);
     const lecture = lectureForToday(date, week);
     const plan = studyPlan(date, week);
@@ -203,10 +203,17 @@
     doc.querySelector("[data-current-lab]").textContent = week.lab;
     doc.querySelector("[data-day-name]").textContent = dayName(date);
     doc.querySelector("[data-today-plan]").innerHTML = plan.map(item => `<li>${esc(item)}</li>`).join("");
-    doc.querySelector("[data-target-name]").textContent = target.label;
-    doc.querySelector("[data-target-date]").textContent = parseLocalDate(target.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    doc.querySelector("[data-target-countdown]").textContent = remaining === 0 ? "Today" : `${remaining} day${remaining === 1 ? "" : "s"} away`;
-    doc.querySelector("[data-target-detail]").textContent = target.detail;
+    if (target) {
+      doc.querySelector("[data-target-name]").textContent = target.label;
+      doc.querySelector("[data-target-date]").textContent = parseLocalDate(target.date).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      doc.querySelector("[data-target-countdown]").textContent = remaining === 0 ? "Today" : `${remaining} day${remaining === 1 ? "" : "s"} away`;
+      doc.querySelector("[data-target-detail]").textContent = target.detail;
+    } else {
+      doc.querySelector("[data-target-name]").textContent = "Semester complete";
+      doc.querySelector("[data-target-date]").textContent = "";
+      doc.querySelector("[data-target-countdown]").textContent = "No upcoming CHM 221 test";
+      doc.querySelector("[data-target-detail]").textContent = "The course calendar has ended. The foundation library stays open for refresh and future chemistry work.";
+    }
 
     const rec = doc.querySelector("[data-foundation-recommendation]");
     if (statuses.every(item => item.status === STATUS.OPEN)) {
