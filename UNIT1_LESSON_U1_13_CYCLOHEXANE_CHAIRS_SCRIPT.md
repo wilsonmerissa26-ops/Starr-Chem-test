@@ -671,7 +671,7 @@ Learner treats stability as a blind count even when groups differ in size.
 
 ### Representation switch
 
-Use a simple held-out example with one ethyl and one methyl group where each chair has one axial and one equatorial substituent.
+Use a supported-only example with one ethyl and one methyl group where each chair has one axial and one equatorial substituent. Exclude that exact molecule/drawing from the cold bank.
 
 Dr. Merissa:
 
@@ -754,6 +754,8 @@ Immediately map back to the chemistry.
 
 Cold evidence gets no preprinted axial/equatorial guide labels, no chair-flip animation, no carbon tracker, no 1,3-diaxial overlay, no hints, and no stability badges.
 
+Every concrete cold molecule/drawing must be held out from Teach, Watch, Build Together, Guided, misconception repairs, and IDK worked examples. A cold item may test a previously taught **relationship pattern**, but it must not reuse the same molecule-plus-assignment or the same completed visual.
+
 If help is requested, the item converts to supported practice and cannot count as clean independent evidence.
 
 ## CC-I1 — Axial/equatorial + up/down at one carbon
@@ -783,7 +785,7 @@ Why it fails: all expected labels appear, but each role is attached to the wrong
 
 ## CC-I2 — Chair flip of a single substituent
 
-Show a fresh monosubstituted chair, for example C2-DOWN ethyl in a held-out chair orientation.
+Show a fresh monosubstituted chair, for example a C2-DOWN ethyl group that is axial-down in the shown held-out starting chair.
 
 Prompt:
 
@@ -866,7 +868,7 @@ Why it fails: it uses the correct term but reverses the energetic effect.
 
 ## CC-I5 — Fresh diequatorial/diaxial comparison
 
-Use **a held-out disubstituted pattern not used in Watch, Build Together, or Guided**, such as a fresh cis-1,3 or trans-1,2 structure with a new drawing orientation.
+Use a held-out molecule and face assignment, not an exact teaching example. One allowed cold-bank pattern is **trans-1,2-diethylcyclohexane with C1-DOWN and C2-UP**, drawn in an orientation not shown during Guided.
 
 Prompt:
 
@@ -882,48 +884,50 @@ Required propositions:
 5. explanation must connect the ranking to reduced axial crowding/1,3-diaxial interactions rather than to page orientation.
 
 Accept example:
-> "Both methyl groups stay on the same carbons and keep their up/down directions. In the second chair both become equatorial, so that chair is lower because it avoids the two axial methyl penalties."
+> "Both ethyl groups stay on the same carbons and keep their up/down directions. In the diequatorial chair both are equatorial, so that chair is lower because it avoids the two axial ethyl penalties."
 
 Wrong-but-keyword-complete example that must fail:
-> "The diequatorial chair is higher because two equatorial methyl groups create more 1,3-diaxial strain than the diaxial chair."
+> "The diequatorial chair is higher because two equatorial ethyl groups create more 1,3-diaxial strain than the diaxial chair."
 
 Why it fails: it names the correct conformer categories but reverses the source and direction of the strain.
 
 ---
 
-## CC-I6 — Equal-energy symmetric case: cis-1,4-dimethylcyclohexane
+## CC-I6 — Equal-energy symmetric case: cis-1,4-diethylcyclohexane
+
+This cold item deliberately uses **diethyl**, not the cis-1,4-dimethyl teaching example from Watch.
 
 Prompt:
 
-**Draw both chairs for cis-1,4-dimethylcyclohexane with both methyl groups on the same face. Compare their energies.**
+**Draw both chairs for cis-1,4-diethylcyclohexane with both ethyl groups on the same face. Compare their energies.**
 
 ### Scoring contract
 
 Required propositions:
-1. cis relationship is represented by both methyl groups having the same up/down identity,
-2. in each chair, one methyl is axial and the other equatorial,
-3. the flip exchanges which methyl is axial/equatorial while preserving their face identity,
+1. cis relationship is represented by both ethyl groups having the same up/down identity,
+2. in each chair, one ethyl is axial and the other equatorial,
+3. the flip exchanges which ethyl is axial/equatorial while preserving their face identity,
 4. because the substituents are identical and the two chairs are symmetry-related, the conformers are equal in energy,
 5. a blanket rule that one chair must be lower is rejected.
 
 Accept example:
-> "They are equal. Both chairs have one axial methyl and one equatorial methyl; the flip only switches which methyl occupies which type of position."
+> "They are equal. Both chairs have one axial ethyl and one equatorial ethyl; the flip only switches which ethyl occupies which type of position."
 
 Wrong-but-keyword-complete example that must fail:
-> "Chair A is lower because it has one axial and one equatorial methyl, while Chair B is higher because it also has one axial and one equatorial methyl."
+> "Chair A is lower because it has one axial and one equatorial ethyl, while Chair B is higher because it also has one axial and one equatorial ethyl."
 
 Why it fails: it lists the same energetic inventory for both chairs but claims a difference without a distinguishing cause.
 
 Another failure:
-> "They are equal because chair flipping makes both methyl groups equatorial half the time."
+> "They are equal because chair flipping makes both ethyl groups equatorial half the time."
 
-Why it fails: neither cis-1,4 chair is diequatorial; equality comes from one axial + one equatorial identical methyl in each symmetry-related conformer.
+Why it fails: neither cis-1,4 chair is diequatorial; equality comes from one axial + one equatorial identical ethyl in each symmetry-related conformer.
 
 ---
 
 ## CC-I7 — Same axial count, different substituent size
 
-Show a fresh disubstituted cyclohexane where each chair has one axial and one equatorial substituent, but the groups differ, for example ethyl and methyl, with a valid up/down pattern that forces one axial/one equatorial in each conformer.
+Show a fresh disubstituted cyclohexane where each chair has one axial and one equatorial substituent, but the groups differ, for example ethyl and methyl, using a molecule-plus-assignment that did not appear in M8.
 
 Prompt:
 
@@ -1224,7 +1228,7 @@ Suggested misconception codes:
 - `STABILITY_FROM_UP_DOWN`
 - `FORCED_WINNER_EQUAL_CASE`
 - `AXIAL_COUNT_IGNORES_GROUP_SIZE`
-- `DIAxIAL_STRAIN_REVERSED`
+- `DIAXIAL_STRAIN_REVERSED`
 
 The content layer reports outcomes. It does not declare mastery.
 
