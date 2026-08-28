@@ -57,7 +57,7 @@ ok(App.checkAnswer(Data.item("cycloalkanes","Y3"),"diequatorial").correct,"chair
 ok(App.checkAnswer(Data.item("isomers","I1"),"propanamide; 3-aminopropanal").correct,"formula-to-isomer production verification passes");
 ok(App.checkAnswer(Data.item("conformations","C5"),"The gauche conformation has steric crowding, while anti keeps the large groups farther apart at 180 degrees.").correct,"conformational energy explanation passes semantic rubric");
 
-// P1 review repair: once a hint is revealed, the same-item retry cannot become clean evidence.
+// PR71 P1 repair: once a hint is revealed, the same-item retry cannot become clean evidence.
 const s=App.newState();
 const fc=Data.skill("formal_charge"),f1=Data.item("formal_charge","F1");
 App.record(s,fc,f1,{correct:false,code:"INCORRECT"});
@@ -94,19 +94,34 @@ ok([...keys2].every(k=>!keys1.has(k)),"immediate next full form reuses none of t
 eq(p2.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),p1.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),"fresh form preserves section, task family, and point blueprint");
 ok(p1.queue.some(x=>x.paper),"full form includes paper-required production tasks");
 
-// Test scoring separates raw practice points from secure no-guess evidence.
-const q=p1.queue[0],qs=Data.skill(q.skill),qi=Data.item(q.skill,q.item);
+// PR72 review repair: test scoring is buffered. During the active form, neither
+// errors nor readiness may reveal whether a locked answer was right or wrong.
+const correctQ=p1.queue[0],correctSkill=Data.skill(correctQ.skill),correctItem=Data.item(correctQ.skill,correctQ.item);
 t.guessed=true;
-App.scoreTestResponse(t,qs,q,qi,{correct:true});
-eq(t.mix.pointsEarned,q.points,"guessed correct still earns raw practice points");
+App.scoreTestResponse(t,correctSkill,correctQ,correctItem,{correct:true});
+eq(t.mix.pointsEarned,correctQ.points,"guessed correct still earns raw practice points");
 eq(t.mix.secureCorrect,0,"guessed correct does not count as secure");
 eq(t.mix.guessed,1,"guess is tracked");
-App.record(t,qs,qi,{correct:true});
-eq(App.skillState(t,qs.id).independentCorrect,0,"guessed test answer does not create independent mastery evidence");
+eq(App.skillState(t,correctSkill.id).independentCorrect,0,"test evidence is not applied mid-form");
+eq(t.errors.length,0,"correct test response causes no mid-form error-log change");
+
+const wrongQ=p1.queue[1],wrongSkill=Data.skill(wrongQ.skill),wrongItem=Data.item(wrongQ.skill,wrongQ.item);
+t.guessed=false;
+App.scoreTestResponse(t,wrongSkill,wrongQ,wrongItem,{correct:false,code:"INCORRECT"});
+eq(t.errors.length,0,"wrong test response remains buffered before finalization");
+eq(App.skillState(t,wrongSkill.id).status,"CHECK","wrong test response does not change visible readiness mid-form");
+
 const finished=App.finalizeTest(t);
 ok(finished.completed,"test finalizes");
 eq(t.testHistory.length,1,"completed form is saved to test history");
 eq(t.testHistory[0].form,"A","saved history keeps form identity");
+eq(t.errors.length,1,"buffered wrong answer enters error log only after finalization");
+eq(App.skillState(t,wrongSkill.id).status,"REVIEW","wrong-answer readiness updates only after finalization");
+eq(App.skillState(t,correctSkill.id).independentCorrect,0,"guessed correct remains non-independent after finalization");
+ok(finished.evidenceApplied,"test evidence is marked applied exactly once");
+const errorCountAfterFirstFinalize=t.errors.length;
+App.finalizeTest(t);
+eq(t.errors.length,errorCountAfterFirstFinalize,"finalizing twice does not duplicate buffered errors");
 
 // Errors route only to real foundation mappings, not invented ones.
 const s2=App.newState();
@@ -117,7 +132,7 @@ eq(recs.length,1,"only a mapped foundation gap produces a readiness-day recommen
 eq(recs[0].day,1,"representation gap routes to Day 1");
 ok(!recs.some(r=>r.skill==="ir"),"course-specific IR weakness stays in Unit 1");
 
-// UI contracts: actual F25 calibration is visible and test mode remains silent.
+// UI contracts: actual F25 calibration is visible and active test mode stays silent.
 const hub=fs.readFileSync("course-hub/index.html","utf8");
 const html=fs.readFileSync("course-units/unit1/index.html","utf8");
 const appSource=fs.readFileSync("course-units/unit1/unit1-app.js","utf8");
@@ -131,8 +146,10 @@ ok(html.includes("130-point practice scale"),"UI distinguishes current practice 
 ok(html.includes("have paper beside you")||html.includes("have paper"),"UI tells learner to prepare for written structure work");
 ok(html.includes("data-test-history"),"UI has completed test history");
 ok(html.includes("Canvas and Mercer email"),"learner is told to verify live course updates");
-ok(appSource.includes("no correctness, hints, or teaching are shown until the entire form is finished"),"test mode withholds feedback until completion");
-ok(appSource.includes("Codex P1 repair"),"P1 hint-contamination regression guard remains in source");
+ok(appSource.includes("no correctness, hints, teaching, error-log changes, or readiness updates are shown until the entire form is finished"),"test mode explicitly withholds all correctness side channels");
+ok(appSource.includes("Keep test evidence buffered"),"test lock path documents buffered evidence behavior");
+ok(appSource.includes("applyTestEvidence"),"buffered test evidence is applied only at finalization");
+ok(appSource.includes("Codex P1 repair from PR #71"),"hint-contamination regression guard remains in source");
 ok(appSource.includes("Paper required:"),"test renderer flags paper-required production tasks");
 
 console.log(`CHM 221 Unit 1: ${n} assertions passed`);
