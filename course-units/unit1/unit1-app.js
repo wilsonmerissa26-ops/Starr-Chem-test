@@ -96,7 +96,7 @@
 
   function commitTestStart(state,plan){
     state.testAttemptNumber=plan.attempt;
-    state.currentTest={attempt:plan.attempt,form:plan.form,startedAt:new Date().toISOString(),completed:false,items:plan.queue.map(x=>Object.assign({},x))};
+    state.currentTest={attempt:plan.attempt,form:plan.form,startedAt:new Date().toISOString(),completed:false,evidenceApplied:false,items:plan.queue.map(x=>Object.assign({},x))};
     state.testResponses=[];state.mix=emptyMix();
     state.seenTestItems=state.seenTestItems||{};
     plan.queue.forEach(x=>{const list=state.seenTestItems[x.skill]||(state.seenTestItems[x.skill]=[]);if(!list.includes(x.item))list.push(x.item);});
@@ -114,8 +114,23 @@
     state.testResponses.push({section:q.section||null,skill:skill.id,item:item.id,taskType:q.taskType||item.taskType||null,correct:!!result.correct,guessed:!!state.guessed,points,code:result.code||null});
   }
 
+  function applyTestEvidence(state){
+    if(!state.currentTest||state.currentTest.evidenceApplied)return;
+    const prior={guessed:state.guessed,supportUsed:state.supportUsed,wrongStreak:state.wrongStreak,mode:state.mode};
+    state.supportUsed=false;state.wrongStreak=0;state.mode='test-review';
+    (state.testResponses||[]).forEach(r=>{
+      const skill=Data.skill(r.skill),item=Data.item(r.skill,r.item);
+      if(!skill||!item)return;
+      state.guessed=!!r.guessed;
+      record(state,skill,item,{correct:!!r.correct,code:r.code||'INCORRECT'});
+    });
+    state.guessed=prior.guessed;state.supportUsed=prior.supportUsed;state.wrongStreak=prior.wrongStreak;state.mode=prior.mode;
+    state.currentTest.evidenceApplied=true;
+  }
+
   function finalizeTest(state){
     if(!state.currentTest||state.currentTest.completed)return state.currentTest;
+    applyTestEvidence(state);
     state.currentTest.completed=true;state.currentTest.completedAt=new Date().toISOString();
     state.currentTest.score={correct:state.mix.correct,secureCorrect:state.mix.secureCorrect,attempted:state.mix.attempted,pointsEarned:state.mix.pointsEarned,pointsPossible:state.mix.pointsPossible,guessed:state.mix.guessed,bySkill:JSON.parse(JSON.stringify(state.mix.bySkill||{}))};
     state.testHistory.push(JSON.parse(JSON.stringify(state.currentTest)));
@@ -172,20 +187,21 @@
       const weak=Object.keys(s.bySkill||{}).filter(id=>{const b=s.bySkill[id];return b.secure<b.attempted;});
       const weakHtml=weak.length?`<p><b>Repair before the next form:</b> ${weak.map(id=>esc(Data.skill(id).label)).join(', ')}.</p>`:'<p><b>No weak skill was flagged on this form.</b> Still use a fresh form later to prove the result transfers.</p>';
       persist();
-      return `<div class="complete"><div class="tag">Test 1 Form ${esc(completed.form)}</div><h2>${s.pointsEarned}/${s.pointsPossible} practice points (${percent}%)</h2><p><b>${s.secureCorrect}/${s.attempted}</b> scored subparts were correct without a guess. ${s.guessed} answer${s.guessed===1?' was':'s were'} marked as guessed.</p>${weakHtml}<p>This form follows the 11-question Fall 2025 Dr. Meadows task pattern, with multipart questions scored as separate subparts. No answers or hints were shown during the form.</p><div class="actions" style="justify-content:center"><button data-next-test>Start the next fresh form</button><button class="secondary" data-close>Review weak skills first</button></div></div>`;
+      return `<div class="complete"><div class="tag">Test 1 Form ${esc(completed.form)}</div><h2>${s.pointsEarned}/${s.pointsPossible} practice points (${percent}%)</h2><p><b>${s.secureCorrect}/${s.attempted}</b> scored subparts were correct without a guess. ${s.guessed} answer${s.guessed===1?' was':'s were'} marked as guessed.</p>${weakHtml}<p>This form follows the 11-question Fall 2025 Dr. Meadows task pattern, with multipart questions scored as separate subparts. No answers, hints, error-log changes, or readiness updates were exposed during the form.</p><div class="actions" style="justify-content:center"><button data-next-test>Start the next fresh form</button><button class="secondary" data-close>Review weak skills first</button></div></div>`;
     }
 
     function renderTestQuestion(pair){
       const {q,skill,item}=pair,count=`${state.index+1} of ${state.queue.length}`;
       const form=state.currentTest?state.currentTest.form:'?';
       const paper=(q.paper||item.paper)?'<div class="test-silence"><b>Paper required:</b> draw/work this part on paper first, just like the Mercer exam. Then enter the requested verification answer here.</div>':'';
-      practice.innerHTML=`<article class="practice-card test-question"><div class="practice-head"><div><span class="tag">Test 1 Form ${esc(form)} · Q${esc(q.section||state.index+1)} · ${esc(item.task||'production')}</span><h2>${esc(skill.label)}</h2></div><span class="counter">${count} · ${q.points} pts</span></div><p class="question">${esc(item.prompt)}</p>${paper}<label>Your verification answer<input data-answer autocomplete="off" spellcheck="false"></label><label class="guess"><input type="checkbox" data-guessed> I guessed or was not sure about this answer</label><div class="actions"><button data-lock>Lock answer and continue</button></div><div class="test-silence"><b>Test mode:</b> no correctness, hints, or teaching are shown until the entire form is finished.</div></article>`;
+      practice.innerHTML=`<article class="practice-card test-question"><div class="practice-head"><div><span class="tag">Test 1 Form ${esc(form)} · Q${esc(q.section||state.index+1)} · ${esc(item.task||'production')}</span><h2>${esc(skill.label)}</h2></div><span class="counter">${count} · ${q.points} pts</span></div><p class="question">${esc(item.prompt)}</p>${paper}<label>Your verification answer<input data-answer autocomplete="off" spellcheck="false"></label><label class="guess"><input type="checkbox" data-guessed> I guessed or was not sure about this answer</label><div class="actions"><button data-lock>Lock answer and continue</button></div><div class="test-silence"><b>Test mode:</b> no correctness, hints, teaching, error-log changes, or readiness updates are shown until the entire form is finished.</div></article>`;
       const input=practice.querySelector('[data-answer]'),guess=practice.querySelector('[data-guessed]');
       practice.querySelector('[data-lock]').onclick=()=>{
         state.guessed=!!guess.checked;
         const result=checkAnswer(item,input.value);
+        // Keep test evidence buffered. Applying record() here would leak correctness
+        // through the visible error log/readiness cards before the form is finished.
         scoreTestResponse(state,skill,q,item,result);
-        record(state,skill,item,result);
         persist();advance();
       };
       input.addEventListener('keydown',e=>{if(e.key==='Enter')practice.querySelector('[data-lock]').click();});
@@ -225,7 +241,7 @@
         else if(result.correct){feedback.innerHTML=`<div class="good supported"><b>Correct with support.</b><p>You learned it, but it does not count as independent evidence. A fresh item comes next.</p><button data-next>Fresh question</button></div>`;requireFresh(skill,item);feedback.querySelector('[data-next]').onclick=advance;}
         else if(state.wrongStreak>=2){teach('Two misses on this skill means we switch from testing to teaching.');}
         else{
-          // Codex P1 repair: revealing this automatic hint contaminates the retry.
+          // Codex P1 repair from PR #71: revealing this automatic hint contaminates the retry.
           // The learner may retry the same prompt to learn, but it cannot become independent evidence.
           markSupported(state,ss);persist();
           feedback.innerHTML=`<div class="bad"><b>Not yet.</b><p>${esc(skill.hint)}</p><p>This retry is now supported. If you solve it, the system will still require a different fresh question before independent evidence is awarded.</p></div>`;input.select();
@@ -240,5 +256,5 @@
     renderSummary();
   }
 
-  return{KEY,newState,load,save,skillState,checkAnswer,record,markSupported,foundationRecommendations,readiness,diagnosticQueue,formLabel,buildTestPlan,commitTestStart,scoreTestResponse,finalizeTest,mount};
+  return{KEY,newState,load,save,skillState,checkAnswer,record,markSupported,foundationRecommendations,readiness,diagnosticQueue,formLabel,buildTestPlan,commitTestStart,scoreTestResponse,applyTestEvidence,finalizeTest,mount};
 });
