@@ -566,7 +566,24 @@ Prompt:
 
 Correct: the second carbon in the condensed sequence.
 
-If wrong, highlight `CH(CH3)` and ask what the parentheses are attached to.
+### If wrong — visual connectivity repair
+
+Do not rely on highlighting alone.
+
+1. Box the substring `CH(CH3)` without changing the rest of the formula.
+2. Place a temporary **host** marker under the `CH` immediately before the parentheses and a **branch** marker under the `CH3` inside the parentheses.
+3. Animate a short attachment line from the branch `CH3` marker back to that host `CH`. Do not connect it to the carbon before or after the host.
+4. In the numbered carbon-token view, highlight carbon 2 and the branch carbon simultaneously, then toggle once between the condensed formula and the matching skeletal branch while preserving the same two markers.
+
+Dr. Merissa:
+
+> "Parentheses do not create a separate floating piece. The group inside the parentheses is attached to the atom immediately before the parentheses. Here, the branch CH3 is attached to this CH, which is carbon 2 in the main sequence."
+
+Repair interaction:
+
+**Tap the host carbon in `CH3CH(CH3)CH2CH3`, then tap the matching host carbon in the numbered skeleton.**
+
+Both taps must identify carbon 2. If either is wrong, keep the host/branch markers visible and repeat only this mapping step with a fresh condensed example before returning.
 
 ## Guided task C — build bond-line form
 
@@ -595,6 +612,14 @@ Explanation after learner answer:
 ## Guided success criterion
 
 Learner must complete two supported decisions in a row without a corrective reveal before support fades.
+
+**What support fades means operationally in this lesson:**
+
+1. After the first two consecutive guided decisions without a corrective reveal, remove the temporary numbered carbon tokens.
+2. Replace step-by-step directive prompts with the task goal only; for example, change "find carbon 2, then place the branch" to "build the correct carbon skeleton."
+3. Keep hints available only if the learner actively requests them; do not display the hint text automatically.
+4. Do **not** jump from Guided directly to a cold item simply because support faded. The remainder of this Guided example is still supported practice and cannot count as independent evidence.
+5. If an error appears after a scaffold has faded, restore only the minimum scaffold needed for that subskill and reset the two-success guided streak.
 
 If repeated errors occur, do not push to independent. Route to the misconception-specific responses below.
 
@@ -831,7 +856,24 @@ Follow-up explanation:
 
 **Tell me what you counted.**
 
-Correct-shaped explanation mentions line ends and vertices/corners, not number of lines.
+### BL-I1 explanation scoring contract
+
+This response must be graded by **role-preserving meaning**, not by keyword presence.
+
+Required relationship:
+- the learner identifies the **two line ends** and the **vertices/corners** as the positions counted as carbon atoms.
+
+Accept examples such as:
+- "I counted both ends and every corner as carbons."
+- "The carbons are at the line ends and vertices."
+
+If the learner also discusses line segments, the relationship must remain correct: the segments are **bonds/connections**, not additional carbon positions.
+
+Reject even when all expected words appear if the roles are reversed or contradicted. Examples that **fail**:
+- "The vertices are the bonds and the line segments are the carbons."
+- "I counted the middle of each line as a carbon and the ends as bonds."
+
+A keyword set such as `line`, `end`, `vertex`, `carbon`, `bond` is never sufficient by itself. The grader must preserve **which object has which role**.
 
 ## BL-I2 — Infer hydrogens on a branched carbon
 
@@ -917,33 +959,69 @@ Use short prompts tied to the exact decision.
 
 Accept semantically correct learner language; do not require memorized wording.
 
+## Role-preserving explanation rule
+
+Every explanation in this lesson must be graded as a set of **relationships/propositions**, not as a bag of expected words.
+
+A response passes when it expresses the required relationship in correct learner language, even if it uses synonyms or a different sentence order. A response fails if it attaches the correct terms to the wrong roles, reverses cause and effect, or contradicts a required relationship, even when every expected keyword is present.
+
+**Implementation guard:** a keyword-only, unordered token, or "contains all required words" grader is not allowed for these prompts.
+
 Examples:
 
 ### E-W1
 
 **Why does a three-segment unbranched bond-line chain contain four carbons instead of three?**
 
-Correct-shaped idea:
+Required propositions:
+1. The three visible segments/lines are **bonds or connections**, not three carbon atoms.
+2. Carbon positions occur at **both line ends and the vertices/corners**.
+3. In the shown three-segment unbranched chain, those positions total **four carbons**.
 
-The segments are bonds; carbons are located at both ends and the vertices.
+Acceptable learner language:
+- "The three lines are the bonds. The carbons are the two ends and the two corners, so there are four."
+
+Wrong-but-keyword-complete response that must fail:
+- "The vertices are bonds, and the three line segments plus an end are the four carbons."
+
+Why it fails: it reverses the roles of vertices and bond segments even though it contains `vertices`, `bonds`, `segments`, and `carbons`.
 
 ### E-W2
 
 **Why is the selected internal carbon CH2 even though no H labels are drawn?**
 
-Correct-shaped idea:
+Required propositions:
+1. The selected carbon already has **two visible C—C single bonds**, giving visible bond order 2.
+2. The neutral carbon pattern used here requires a total bond order of **four**.
+3. Therefore **two C—H bonds are implied**, making that carbon CH2.
 
-It already has two single bonds to carbons, so two additional C—H bonds are implied to reach four total bonds.
+Acceptable learner language:
+- "It already has two single bonds to carbons, so it needs two more bonds to reach four. Those two are hidden C-H bonds."
+
+Wrong-but-keyword-complete response that must fail:
+- "The two hidden hydrogens give the carbon its two visible C-C bonds, and those visible bonds are what get implied to reach four."
+
+Why it fails: it reverses what is visible versus implied and reverses the causal bookkeeping relationship.
 
 ### E-W3
 
 **Why do we write O explicitly but usually omit C labels at ordinary line ends and vertices?**
 
-Correct-shaped idea:
+Required propositions:
+1. An **unlabeled line end or vertex defaults to carbon** in the bond-line notation used here.
+2. Oxygen is a **heteroatom** and must be shown with its element symbol `O` so the drawing identifies oxygen rather than carbon.
 
-Unlabeled bond-line positions default to carbon; heteroatoms need their element symbols shown.
+Acceptable learner language:
+- "An unlabeled end or corner already means carbon, but oxygen is different, so O has to be written."
+
+Wrong-but-keyword-complete response that must fail:
+- "Oxygen is the default atom at unlabeled vertices, while carbon has to be explicitly labeled C."
+
+Why it fails: it assigns the default unlabeled role to oxygen and the explicit-label role to carbon, exactly reversing the chemistry.
 
 A vague response such as "because that's the rule" is not correct-shaped evidence.
+
+If a response contains one correct proposition and one contradictory proposition, it does not pass merely because the correct proposition is present. The contradiction must be resolved on a fresh explanation prompt before explanation evidence is recorded.
 
 ---
 
@@ -1110,6 +1188,7 @@ Before implementation, an auditor must answer YES to all of these:
 15. Can the learner translate in both directions, not merely count carbons?
 16. Does reduced-motion mode preserve the instructional transformation?
 17. Can the entire flow be operated comfortably on a phone/iPad?
+18. Are explanation graders defined by role-preserving propositions so a keyword-complete reversal cannot pass?
 
 Any NO blocks production.
 
