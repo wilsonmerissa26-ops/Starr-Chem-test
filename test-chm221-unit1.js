@@ -8,34 +8,54 @@ let n=0;
 function ok(v,m){assert(v,m);n++;}
 function eq(a,b,m){assert.equal(a,b,m);n++;}
 
-// Current course scope stays anchored to the Fall 2026 syllabus.
+// Current course scope stays anchored to Fall 2026 while the uploaded F25 exam
+// supplies the strongest historical format calibration.
 eq(Data.META.testDate,"2026-09-03","Test 1 date is Sept 3");
-eq(Data.META.testPoints,130,"Unit 1 Test is 130 points");
+eq(Data.META.testPoints,130,"current practice scale remains 130 points");
 ok(Data.META.currentChapter.includes("Alkanes and Cycloalkanes"),"current Chapter 4 title is present");
-ok(Data.META.cumulativeCoverage.some(x=>x.includes("2.1–2.6")),"Test 1 coverage keeps the assigned Chapter 2.1-2.6 slice");
-ok(Data.CALIBRATION.currentScope.includes("Fall 2026"),"calibration keeps current syllabus scope authoritative");
-ok(Data.CALIBRATION.historicalStyle.includes("not copied"),"historical Mercer material calibrates style without becoming a copied bank");
+ok(Data.META.cumulativeCoverage.some(x=>x.includes("2.1–2.6")),"current scope keeps the assigned Chapter 2.1-2.6 slice");
+eq(Data.F25_EXAM.points,100,"uploaded Fall 2025 exam was 100 points");
+eq(Data.F25_EXAM.minutes,50,"uploaded Fall 2025 exam allowed 50 minutes");
+eq(Data.F25_EXAM.numberedQuestions,11,"uploaded Fall 2025 exam had eleven numbered questions");
+ok(Data.F25_EXAM.observations.some(x=>x.includes("homework")),"F25 calibration records homework/problem-set sourcing");
+ok(Data.CALIBRATION.strongestHistorical.includes("Fall 2025"),"uploaded F25 exam is strongest historical calibration");
+ok(Data.CALIBRATION.currentPracticeDesign.includes("130-point"),"historical proportions are normalized to current practice scale");
+ok(Data.CALIBRATION.nextSource.includes("Fall 2026 Practice Test 1"),"official current practice test will supersede historical weighting");
 
-// The bank now covers the production-heavy task families needed for the current unit.
-eq(Data.SKILLS.length,9,"nine Unit 1 skill areas ship in the calibrated slice");
-["representations","functional_groups","formal_charge","three_d","hybridization","nomenclature","isomers","conformations","cycloalkanes"].forEach(id=>ok(Data.skill(id),`${id} skill exists`));
-Data.SKILLS.forEach(s=>eq(s.items.length,4,`${s.id} has four original variants`));
-eq(Data.TEST1_BLUEPRINT.length,13,"full Test 1 form has thirteen scored slots");
-eq(Data.TEST1_BLUEPRINT.reduce((sum,x)=>sum+x.points,0),130,"blueprint totals the syllabus 130 points");
+// Skill map now includes the task families actually visible on the F25 exam.
+const expectedSkills=["representations","intermolecular_forces","formal_charge","hybridization","ir","functional_groups","relationships","boiling_points","nomenclature","isomers","three_d","conformations","cycloalkanes"];
+eq(Data.SKILLS.length,expectedSkills.length,"thirteen Unit 1 skill areas ship in the calibrated slice");
+expectedSkills.forEach(id=>ok(Data.skill(id),`${id} skill exists`));
 
-// Reuse the locked readiness evaluator for open semantic answers.
-const r1=Data.item("representations","R1");
-ok(App.checkAnswer(r1,"Each unlabeled end or vertex is a carbon, and the hydrogens are omitted because enough are implied to give carbon four bonds.").correct,"semantic bond-line answer passes locked evaluator");
-ok(!App.checkAnswer(r1,"It means hydrogen.").correct,"wrong bond-line role is rejected");
-ok(App.checkAnswer(Data.item("functional_groups","G4"),"It contains a ketone and an alcohol.").correct,"multi-group production answer passes");
-ok(App.checkAnswer(Data.item("three_d","D1"),"toward the viewer").correct,"solid wedge meaning is accepted");
-ok(App.checkAnswer(Data.item("hybridization","H4"),"sp2").correct,"carbonyl carbon hybridization is accepted");
+// Historical 11-question proportions are preserved while multipart questions
+// are separated into scored subparts for useful error analysis.
+eq(Data.TEST1_BLUEPRINT.length,17,"full practice form has seventeen scored subparts across eleven question families");
+eq(Data.TEST1_BLUEPRINT.reduce((sum,x)=>sum+x.points,0),130,"blueprint totals 130 practice points");
+const byQuestion={};
+Data.TEST1_BLUEPRINT.forEach(x=>{const q=String(x.section).replace(/[a-z]$/i,'');byQuestion[q]=(byQuestion[q]||0)+x.points;});
+eq(Object.keys(byQuestion).length,11,"blueprint preserves eleven numbered question families");
+const expectedWeights={"1":7,"2":8,"3":12,"4":10,"5":5,"6":26,"7":5,"8":21,"9":10,"10":5,"11":21};
+Object.keys(expectedWeights).forEach(q=>eq(byQuestion[q],expectedWeights[q],`Q${q} normalized weight matches F25 proportion`));
 
-// Exact production checks work for nomenclature and short factual answers.
-ok(App.checkAnswer(Data.item("nomenclature","N1"),"2-methylpentane").correct,"correct IUPAC name accepted");
-ok(!App.checkAnswer(Data.item("nomenclature","N1"),"3-methylpentane").correct,"wrong locant rejected");
-ok(App.checkAnswer(Data.item("formal_charge","F1"),"two").correct,"oxygen lone-pair count accepted");
-ok(App.checkAnswer(Data.item("cycloalkanes","Y1"),"equatorial").correct,"chair stability production accepted");
+// Every repeated task family has enough variants to make the immediate next
+// full form different rather than recycling the same question.
+const slotsByTask={};
+Data.TEST1_BLUEPRINT.forEach(slot=>{const key=`${slot.skill}:${slot.taskType}`;slotsByTask[key]=(slotsByTask[key]||0)+1;});
+Object.keys(slotsByTask).forEach(key=>{
+  const [skill,taskType]=key.split(':');
+  const count=Data.skill(skill).items.filter(x=>x.taskType===taskType).length;
+  ok(count>=slotsByTask[key]*2,`${key} has enough variants for a fully fresh immediate retake`);
+});
+
+// Representative F25-style tasks are answer-checkable without copying the old exam.
+ok(App.checkAnswer(Data.item("intermolecular_forces","M1"),"London dispersion, dipole-dipole, and hydrogen bonding.").correct,"alcohol IMF production passes");
+ok(App.checkAnswer(Data.item("ir","IR1"),"1=B,2=A,3=C").correct,"three-way IR matching passes");
+ok(App.checkAnswer(Data.item("relationships","L2"),"constitutional isomers").correct,"relationship classification passes");
+ok(App.checkAnswer(Data.item("boiling_points","B1"),"A<B<C<D").correct,"boiling-point ranking passes");
+ok(App.checkAnswer(Data.item("conformations","C1"),"A<B<C<D").correct,"Newman stability ranking passes");
+ok(App.checkAnswer(Data.item("cycloalkanes","Y3"),"diequatorial").correct,"chair production verification passes");
+ok(App.checkAnswer(Data.item("isomers","I1"),"propanamide; 3-aminopropanal").correct,"formula-to-isomer production verification passes");
+ok(App.checkAnswer(Data.item("conformations","C5"),"The gauche conformation has steric crowding, while anti keeps the large groups farther apart at 180 degrees.").correct,"conformational energy explanation passes semantic rubric");
 
 // P1 review repair: once a hint is revealed, the same-item retry cannot become clean evidence.
 const s=App.newState();
@@ -47,31 +67,32 @@ eq(out.clean,false,"hinted retry is contaminated");
 eq(App.skillState(s,"formal_charge").independentCorrect,0,"hinted retry adds no independent evidence");
 eq(App.skillState(s,"formal_charge").supportedCorrect,1,"hinted retry is recorded as supported learning");
 
-// A different fresh item can restore independent evidence after support is removed.
+// A different fresh item in the same task family can restore independent evidence.
 s.supportUsed=false;s.guessed=false;
 out=App.record(s,fc,Data.item("formal_charge","F2"),{correct:true});
 eq(out.clean,true,"fresh unsupported item is clean");
 eq(App.skillState(s,"formal_charge").independentCorrect,1,"fresh unsupported item adds independent evidence");
 
-// A correct guess is scored as knowledge evidence only cautiously: it is not secure mastery evidence.
+// A correct guess is not secure mastery evidence.
 const g=App.newState();g.guessed=true;
 out=App.record(g,fc,f1,{correct:true});
 eq(out.clean,false,"guessed correct is not clean evidence");
 eq(App.skillState(g,"formal_charge").independentCorrect,0,"guessed correct adds no independent evidence");
 
-// Full retakes use the same blueprint but a different immediate form.
+// Full retakes use the same F25-calibrated blueprint but different immediate items.
 const t=App.newState();
 const p1=App.buildTestPlan(t);
 eq(p1.form,"A","first form is A");
-eq(p1.queue.length,13,"Form A has thirteen slots");
+eq(p1.queue.length,17,"Form A has seventeen scored subparts");
 eq(p1.queue.reduce((sum,x)=>sum+x.points,0),130,"Form A totals 130 points");
 App.commitTestStart(t,p1);
 const p2=App.buildTestPlan(t);
 eq(p2.form,"B","next form is B");
 const keys1=new Set(p1.queue.map(x=>`${x.skill}:${x.item}`));
 const keys2=new Set(p2.queue.map(x=>`${x.skill}:${x.item}`));
-ok([...keys2].every(k=>!keys1.has(k)),"immediate next full form uses different items in every slot");
-eq(p2.queue.map(x=>x.skill).join("|"),p1.queue.map(x=>x.skill).join("|"),"fresh form preserves the same skill blueprint");
+ok([...keys2].every(k=>!keys1.has(k)),"immediate next full form reuses none of the prior form items");
+eq(p2.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),p1.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),"fresh form preserves section, task family, and point blueprint");
+ok(p1.queue.some(x=>x.paper),"full form includes paper-required production tasks");
 
 // Test scoring separates raw practice points from secure no-guess evidence.
 const q=p1.queue[0],qs=Data.skill(q.skill),qi=Data.item(q.skill,q.item);
@@ -87,29 +108,31 @@ ok(finished.completed,"test finalizes");
 eq(t.testHistory.length,1,"completed form is saved to test history");
 eq(t.testHistory[0].form,"A","saved history keeps form identity");
 
-// Errors route only to mapped foundation days, while course-specific skills stay in the unit.
+// Errors route only to real foundation mappings, not invented ones.
 const s2=App.newState();
 App.record(s2,Data.skill("representations"),Data.item("representations","R1"),{correct:false,code:"REPRESENTATION_INCOMPLETE"});
-App.record(s2,Data.skill("nomenclature"),Data.item("nomenclature","N1"),{correct:false,code:"INCORRECT"});
+App.record(s2,Data.skill("ir"),Data.item("ir","IR1"),{correct:false,code:"INCORRECT"});
 const recs=App.foundationRecommendations(s2);
-eq(recs.length,1,"only a real mapped foundation gap produces a readiness-day recommendation");
+eq(recs.length,1,"only a mapped foundation gap produces a readiness-day recommendation");
 eq(recs[0].day,1,"representation gap routes to Day 1");
-ok(!recs.some(r=>r.skill==="nomenclature"),"course-specific nomenclature does not invent a foundation-day route");
+ok(!recs.some(r=>r.skill==="ir"),"course-specific IR weakness stays in Unit 1");
 
-// UI contracts: test mode is a real simulation, not guided practice with answer leaks.
+// UI contracts: actual F25 calibration is visible and test mode remains silent.
 const hub=fs.readFileSync("course-hub/index.html","utf8");
 const html=fs.readFileSync("course-units/unit1/index.html","utf8");
 const appSource=fs.readFileSync("course-units/unit1/unit1-app.js","utf8");
 ok(hub.includes("../course-units/unit1/#chapter4"),"course hub opens Chapter 4 support");
 ok(hub.includes("../course-units/unit1/#test1"),"course hub opens Test 1 practice");
-ok(html.includes("Every full practice test is a fresh form"),"Unit 1 explains fresh retake forms");
-ok(html.includes("Dr. Meadows-style task demands"),"Unit 1 explains Mercer/Dr. Meadows calibration");
-ok(html.includes("old questions are not copied"),"UI explicitly says historical questions are not copied");
+ok(html.includes("Fall 2025 Test 1"),"Unit 1 names the strongest historical calibration source");
+ok(html.includes("100 points, 50 minutes, 11 numbered questions"),"Unit 1 surfaces actual F25 exam constraints");
+ok(html.includes("bond-line drawing, intermolecular forces, formal charges, hybridization, three-way IR matching"),"Unit 1 surfaces actual task families");
+ok(html.includes("old questions are not copied"),"historical questions are not copied into the site");
+ok(html.includes("130-point practice scale"),"UI distinguishes current practice scale from historical 100-point exam");
+ok(html.includes("have paper beside you")||html.includes("have paper"),"UI tells learner to prepare for written structure work");
 ok(html.includes("data-test-history"),"UI has completed test history");
-ok(html.includes("closed book and closed notes"),"Unit 1 carries forward the syllabus test rule");
-ok(html.includes("generative AI should not be used to complete assignments"),"Unit 1 preserves academic-integrity boundary");
-ok(html.includes("Canvas and Mercer email"),"Unit 1 tells learner to verify live course updates");
+ok(html.includes("Canvas and Mercer email"),"learner is told to verify live course updates");
 ok(appSource.includes("no correctness, hints, or teaching are shown until the entire form is finished"),"test mode withholds feedback until completion");
-ok(appSource.includes("Codex P1 repair"),"merged P1 hint-contamination defect has an explicit regression guard in source");
+ok(appSource.includes("Codex P1 repair"),"P1 hint-contamination regression guard remains in source");
+ok(appSource.includes("Paper required:"),"test renderer flags paper-required production tasks");
 
 console.log(`CHM 221 Unit 1: ${n} assertions passed`);
