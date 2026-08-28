@@ -81,14 +81,15 @@
     const used={};
     const queue=Data.TEST1_BLUEPRINT.map((slot,index)=>{
       const s=Data.skill(slot.skill);const usedIds=used[slot.skill]||(used[slot.skill]=[]);
-      let pool=s.items.filter(x=>!usedIds.includes(x.id));
+      const taskPool=(Data.itemsFor?Data.itemsFor(slot):s.items.filter(x=>!slot.taskType||x.taskType===slot.taskType));
+      let pool=taskPool.filter(x=>!usedIds.includes(x.id));
       const unseen=pool.filter(x=>!(seen[slot.skill]||[]).includes(x.id));
       const notLast=pool.filter(x=>!lastKeys.has(itemKey(slot.skill,x.id)));
       let choices=unseen.length?unseen:(notLast.length?notLast:pool);
-      if(!choices.length)choices=s.items;
+      if(!choices.length)choices=taskPool.length?taskPool:s.items;
       const pick=choices[(attempt+index-1)%choices.length];
       usedIds.push(pick.id);
-      return{skill:slot.skill,item:pick.id,points:slot.points};
+      return{section:slot.section,skill:slot.skill,item:pick.id,taskType:slot.taskType,points:slot.points,paper:!!(slot.paper||pick.paper)};
     });
     return{attempt,form:formLabel(attempt),queue};
   }
@@ -110,7 +111,7 @@
     if(state.guessed){state.mix.guessed+=1;bucket.guessed+=1;}
     if(result.correct){state.mix.correct+=1;state.mix.pointsEarned+=points;bucket.correct+=1;bucket.pointsEarned+=points;}
     if(result.correct&&!state.guessed&&!state.supportUsed){state.mix.secureCorrect+=1;bucket.secure+=1;}
-    state.testResponses.push({skill:skill.id,item:item.id,correct:!!result.correct,guessed:!!state.guessed,points,code:result.code||null});
+    state.testResponses.push({section:q.section||null,skill:skill.id,item:item.id,taskType:q.taskType||item.taskType||null,correct:!!result.correct,guessed:!!state.guessed,points,code:result.code||null});
   }
 
   function finalizeTest(state){
@@ -161,8 +162,8 @@
     function advance(){state.index+=1;state.supportUsed=false;state.guessed=false;state.wrongStreak=0;state.current=null;persist();renderPractice();}
     function requireFresh(skill,item){
       const used=state.queue.filter(x=>x.skill===skill.id).map(x=>x.item);
-      const alt=Data.alternate(skill.id,item.id,used);
-      if(alt)state.queue.splice(state.index+1,0,{skill:skill.id,item:alt.id});
+      const alt=Data.alternate(skill.id,item.id,used,item.taskType);
+      if(alt)state.queue.splice(state.index+1,0,{skill:skill.id,item:alt.id,taskType:alt.taskType});
     }
 
     function testCompleteScreen(){
@@ -171,13 +172,14 @@
       const weak=Object.keys(s.bySkill||{}).filter(id=>{const b=s.bySkill[id];return b.secure<b.attempted;});
       const weakHtml=weak.length?`<p><b>Repair before the next form:</b> ${weak.map(id=>esc(Data.skill(id).label)).join(', ')}.</p>`:'<p><b>No weak skill was flagged on this form.</b> Still use a fresh form later to prove the result transfers.</p>';
       persist();
-      return `<div class="complete"><div class="tag">Test 1 Form ${esc(completed.form)}</div><h2>${s.pointsEarned}/${s.pointsPossible} practice points (${percent}%)</h2><p><b>${s.secureCorrect}/${s.attempted}</b> answers were correct without a guess. ${s.guessed} answer${s.guessed===1?' was':'s were'} marked as guessed.</p>${weakHtml}<p>No answers or hints were shown during the form. Review the error log and targeted skill practice below, then use a different full form.</p><div class="actions" style="justify-content:center"><button data-next-test>Start the next fresh form</button><button class="secondary" data-close>Review weak skills first</button></div></div>`;
+      return `<div class="complete"><div class="tag">Test 1 Form ${esc(completed.form)}</div><h2>${s.pointsEarned}/${s.pointsPossible} practice points (${percent}%)</h2><p><b>${s.secureCorrect}/${s.attempted}</b> scored subparts were correct without a guess. ${s.guessed} answer${s.guessed===1?' was':'s were'} marked as guessed.</p>${weakHtml}<p>This form follows the 11-question Fall 2025 Dr. Meadows task pattern, with multipart questions scored as separate subparts. No answers or hints were shown during the form.</p><div class="actions" style="justify-content:center"><button data-next-test>Start the next fresh form</button><button class="secondary" data-close>Review weak skills first</button></div></div>`;
     }
 
     function renderTestQuestion(pair){
       const {q,skill,item}=pair,count=`${state.index+1} of ${state.queue.length}`;
       const form=state.currentTest?state.currentTest.form:'?';
-      practice.innerHTML=`<article class="practice-card test-question"><div class="practice-head"><div><span class="tag">Test 1 Form ${esc(form)} · ${esc(item.task||'production')}</span><h2>${esc(skill.label)}</h2></div><span class="counter">${count} · ${q.points} pts</span></div><p class="question">${esc(item.prompt)}</p><label>Your answer<input data-answer autocomplete="off" spellcheck="false"></label><label class="guess"><input type="checkbox" data-guessed> I guessed or was not sure about this answer</label><div class="actions"><button data-lock>Lock answer and continue</button></div><div class="test-silence"><b>Test mode:</b> no correctness, hints, or teaching are shown until the entire form is finished.</div></article>`;
+      const paper=(q.paper||item.paper)?'<div class="test-silence"><b>Paper required:</b> draw/work this part on paper first, just like the Mercer exam. Then enter the requested verification answer here.</div>':'';
+      practice.innerHTML=`<article class="practice-card test-question"><div class="practice-head"><div><span class="tag">Test 1 Form ${esc(form)} · Q${esc(q.section||state.index+1)} · ${esc(item.task||'production')}</span><h2>${esc(skill.label)}</h2></div><span class="counter">${count} · ${q.points} pts</span></div><p class="question">${esc(item.prompt)}</p>${paper}<label>Your verification answer<input data-answer autocomplete="off" spellcheck="false"></label><label class="guess"><input type="checkbox" data-guessed> I guessed or was not sure about this answer</label><div class="actions"><button data-lock>Lock answer and continue</button></div><div class="test-silence"><b>Test mode:</b> no correctness, hints, or teaching are shown until the entire form is finished.</div></article>`;
       const input=practice.querySelector('[data-answer]'),guess=practice.querySelector('[data-guessed]');
       practice.querySelector('[data-lock]').onclick=()=>{
         state.guessed=!!guess.checked;
@@ -208,7 +210,8 @@
 
       const {skill,item}=pair,ss=skillState(state,skill.id);
       const count=`${state.index+1} of ${state.queue.length}`;
-      practice.innerHTML=`<article class="practice-card"><div class="practice-head"><div><span class="tag">${esc(skill.source)} · ${esc(item.task||'practice')}</span><h2>${esc(skill.label)}</h2></div><span class="counter">${count}</span></div><p class="question">${esc(item.prompt)}</p><label>Your answer<input data-answer autocomplete="off" spellcheck="false"></label><div class="actions"><button data-check>Check answer</button><button class="secondary" data-hint>Give me a hint</button><button class="ghost" data-idk>I don’t know yet</button></div><div data-feedback></div><p class="evidence">Independent evidence: ${ss.independentCorrect} · Supported/repaired: ${ss.supportedCorrect}</p></article>`;
+      const paper=item.paper?'<div class="hint"><b>Use paper.</b><p>This skill includes written structure production. Do the drawing first, then enter the requested verification answer.</p></div>':'';
+      practice.innerHTML=`<article class="practice-card"><div class="practice-head"><div><span class="tag">${esc(skill.source)} · ${esc(item.task||'practice')}</span><h2>${esc(skill.label)}</h2></div><span class="counter">${count}</span></div><p class="question">${esc(item.prompt)}</p>${paper}<label>Your answer<input data-answer autocomplete="off" spellcheck="false"></label><div class="actions"><button data-check>Check answer</button><button class="secondary" data-hint>Give me a hint</button><button class="ghost" data-idk>I don’t know yet</button></div><div data-feedback></div><p class="evidence">Independent evidence: ${ss.independentCorrect} · Supported/repaired: ${ss.supportedCorrect}</p></article>`;
       const input=practice.querySelector('[data-answer]'),feedback=practice.querySelector('[data-feedback]');
       function teach(reason){markSupported(state,ss);persist();feedback.innerHTML=`<div class="teach"><b>${esc(reason)}</b><p>${esc(skill.teaching)}</p><p><b>Fresh-item rule:</b> this explanation helps you learn, but this same question cannot count as independent proof. You will get a different question from this skill next.</p><button data-fresh>Try a fresh question</button></div>`;feedback.querySelector('[data-fresh]').onclick=()=>{requireFresh(skill,item);advance();};}
       practice.querySelector('[data-hint]').onclick=()=>{markSupported(state,ss);persist();feedback.innerHTML=`<div class="hint"><b>Hint</b><p>${esc(skill.hint)}</p><p>This attempt is now supported. A fresh item will be required for independent evidence.</p></div>`;input.focus();};
