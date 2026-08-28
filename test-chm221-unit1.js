@@ -37,8 +37,9 @@ eq(Object.keys(byQuestion).length,11,"blueprint preserves eleven numbered questi
 const expectedWeights={"1":7,"2":8,"3":12,"4":10,"5":5,"6":26,"7":5,"8":21,"9":10,"10":5,"11":21};
 Object.keys(expectedWeights).forEach(q=>eq(byQuestion[q],expectedWeights[q],`Q${q} normalized weight matches F25 proportion`));
 
-// Every repeated task family has enough variants to make the immediate next
-// full form different rather than recycling the same question.
+// Every repeated task family has enough variants for one completely different
+// immediate retake. Once unique inventory is exhausted, the app must stop rather
+// than recycling old items and calling them fresh.
 const slotsByTask={};
 Data.TEST1_BLUEPRINT.forEach(slot=>{const key=`${slot.skill}:${slot.taskType}`;slotsByTask[key]=(slotsByTask[key]||0)+1;});
 Object.keys(slotsByTask).forEach(key=>{
@@ -49,13 +50,20 @@ Object.keys(slotsByTask).forEach(key=>{
 
 // Representative F25-style tasks are answer-checkable without copying the old exam.
 ok(App.checkAnswer(Data.item("intermolecular_forces","M1"),"London dispersion, dipole-dipole, and hydrogen bonding.").correct,"alcohol IMF production passes");
+ok(App.checkAnswer(Data.item("intermolecular_forces","M2"),"London dispersion and dipole-dipole, but no hydrogen bonding.").correct,"correct denial of ether self hydrogen-bonding passes");
+ok(!App.checkAnswer(Data.item("intermolecular_forces","M2"),"London dispersion, dipole-dipole, and hydrogen bonding.").correct,"incorrect affirmative hydrogen-bond claim is rejected");
 ok(App.checkAnswer(Data.item("ir","IR1"),"1=B,2=A,3=C").correct,"three-way IR matching passes");
 ok(App.checkAnswer(Data.item("relationships","L2"),"constitutional isomers").correct,"relationship classification passes");
 ok(App.checkAnswer(Data.item("boiling_points","B1"),"A<B<C<D").correct,"boiling-point ranking passes");
 ok(App.checkAnswer(Data.item("conformations","C1"),"A<B<C<D").correct,"Newman stability ranking passes");
-ok(App.checkAnswer(Data.item("cycloalkanes","Y3"),"diequatorial").correct,"chair production verification passes");
-ok(App.checkAnswer(Data.item("isomers","I1"),"propanamide; 3-aminopropanal").correct,"formula-to-isomer production verification passes");
 ok(App.checkAnswer(Data.item("conformations","C5"),"The gauche conformation has steric crowding, while anti keeps the large groups farther apart at 180 degrees.").correct,"conformational energy explanation passes semantic rubric");
+
+// Paper-production prompts must not display the verification answer/key.
+const rawPaper=Data.item("representations","R1");
+const visiblePaper=App.paperPrompt(rawPaper);
+ok(visiblePaper.includes("draw a bond-line structure"),"paper prompt keeps the actual production task");
+ok(!/then type/i.test(visiblePaper),"paper prompt strips the leading verification instruction");
+ok(!visiblePaper.includes("5 carbons; OH explicit"),"paper prompt does not reveal its accepted answer");
 
 // PR71 P1 repair: once a hint is revealed, the same-item retry cannot become clean evidence.
 const s=App.newState();
@@ -79,33 +87,48 @@ out=App.record(g,fc,f1,{correct:true});
 eq(out.clean,false,"guessed correct is not clean evidence");
 eq(App.skillState(g,"formal_charge").independentCorrect,0,"guessed correct adds no independent evidence");
 
-// Full retakes use the same F25-calibrated blueprint but different immediate items.
-const t=App.newState();
-const p1=App.buildTestPlan(t);
+// Form A and Form B are entirely different. After both unique inventories are
+// consumed, Form C is refused instead of silently recycling Form A.
+const forms=App.newState();
+const p1=App.buildTestPlan(forms);
 eq(p1.form,"A","first form is A");
 eq(p1.queue.length,17,"Form A has seventeen scored subparts");
 eq(p1.queue.reduce((sum,x)=>sum+x.points,0),130,"Form A totals 130 points");
-App.commitTestStart(t,p1);
-const p2=App.buildTestPlan(t);
+App.commitTestStart(forms,p1);
+const p2=App.buildTestPlan(forms);
 eq(p2.form,"B","next form is B");
+ok(!p2.exhausted,"Form B is available as a fully fresh retake");
 const keys1=new Set(p1.queue.map(x=>`${x.skill}:${x.item}`));
 const keys2=new Set(p2.queue.map(x=>`${x.skill}:${x.item}`));
-ok([...keys2].every(k=>!keys1.has(k)),"immediate next full form reuses none of the prior form items");
-eq(p2.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),p1.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),"fresh form preserves section, task family, and point blueprint");
-ok(p1.queue.some(x=>x.paper),"full form includes paper-required production tasks");
+ok([...keys2].every(k=>!keys1.has(k)),"Form B reuses none of Form A's items");
+eq(p2.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),p1.queue.map(x=>`${x.section}:${x.skill}:${x.taskType}:${x.points}`).join("|"),"Form B preserves section, task family, and point blueprint");
+App.commitTestStart(forms,p2);
+const p3=App.buildTestPlan(forms);
+ok(p3.exhausted,"Form C is blocked when no never-seen full form remains");
+eq(p3.queue.length,0,"exhausted form contains no recycled questions");
 
-// PR72 review repair: test scoring is buffered. During the active form, neither
-// errors nor readiness may reveal whether a locked answer was right or wrong.
-const correctQ=p1.queue[0],correctSkill=Data.skill(correctQ.skill),correctItem=Data.item(correctQ.skill,correctQ.item);
+// PR72 review repair: paper work is pending review, never auto-scored or used as
+// mastery evidence. Auto-scored answers remain buffered until full-form finalization.
+const t=App.newState();
+const testPlan=App.buildTestPlan(t);App.commitTestStart(t,testPlan);
+const paperQ=testPlan.queue.find(x=>x.paper),paperSkill=Data.skill(paperQ.skill),paperItem=Data.item(paperQ.skill,paperQ.item);
+App.scoreTestResponse(t,paperSkill,paperQ,paperItem,{correct:true});
+eq(t.mix.pointsEarned,0,"paper task cannot earn automatic points");
+eq(t.mix.paperPointsPending,paperQ.points,"paper task points are held for review");
+eq(t.mix.paperTasks,1,"paper task is counted as pending review");
+eq(App.skillState(t,paperSkill.id).independentCorrect,0,"unverified paper task creates no independent evidence");
+
+const autoQuestions=testPlan.queue.filter(x=>!x.paper);
+const correctQ=autoQuestions[0],correctSkill=Data.skill(correctQ.skill),correctItem=Data.item(correctQ.skill,correctQ.item);
 t.guessed=true;
 App.scoreTestResponse(t,correctSkill,correctQ,correctItem,{correct:true});
-eq(t.mix.pointsEarned,correctQ.points,"guessed correct still earns raw practice points");
+eq(t.mix.pointsEarned,correctQ.points,"guessed correct still earns raw auto-scored practice points");
 eq(t.mix.secureCorrect,0,"guessed correct does not count as secure");
 eq(t.mix.guessed,1,"guess is tracked");
 eq(App.skillState(t,correctSkill.id).independentCorrect,0,"test evidence is not applied mid-form");
 eq(t.errors.length,0,"correct test response causes no mid-form error-log change");
 
-const wrongQ=p1.queue[1],wrongSkill=Data.skill(wrongQ.skill),wrongItem=Data.item(wrongQ.skill,wrongQ.item);
+const wrongQ=autoQuestions[1],wrongSkill=Data.skill(wrongQ.skill),wrongItem=Data.item(wrongQ.skill,wrongQ.item);
 t.guessed=false;
 App.scoreTestResponse(t,wrongSkill,wrongQ,wrongItem,{correct:false,code:"INCORRECT"});
 eq(t.errors.length,0,"wrong test response remains buffered before finalization");
@@ -115,9 +138,11 @@ const finished=App.finalizeTest(t);
 ok(finished.completed,"test finalizes");
 eq(t.testHistory.length,1,"completed form is saved to test history");
 eq(t.testHistory[0].form,"A","saved history keeps form identity");
-eq(t.errors.length,1,"buffered wrong answer enters error log only after finalization");
+eq(t.errors.length,1,"buffered wrong auto-scored answer enters error log only after finalization");
 eq(App.skillState(t,wrongSkill.id).status,"REVIEW","wrong-answer readiness updates only after finalization");
 eq(App.skillState(t,correctSkill.id).independentCorrect,0,"guessed correct remains non-independent after finalization");
+eq(App.skillState(t,paperSkill.id).independentCorrect,0,"paper task still has no automatic mastery after finalization");
+eq(finished.score.paperPointsPending,paperQ.points,"history preserves paper points pending review");
 ok(finished.evidenceApplied,"test evidence is marked applied exactly once");
 const errorCountAfterFirstFinalize=t.errors.length;
 App.finalizeTest(t);
@@ -132,7 +157,7 @@ eq(recs.length,1,"only a mapped foundation gap produces a readiness-day recommen
 eq(recs[0].day,1,"representation gap routes to Day 1");
 ok(!recs.some(r=>r.skill==="ir"),"course-specific IR weakness stays in Unit 1");
 
-// UI contracts: actual F25 calibration is visible and active test mode stays silent.
+// UI/source contracts: actual F25 calibration is visible and active test mode stays silent.
 const hub=fs.readFileSync("course-hub/index.html","utf8");
 const html=fs.readFileSync("course-units/unit1/index.html","utf8");
 const appSource=fs.readFileSync("course-units/unit1/unit1-app.js","utf8");
@@ -148,7 +173,8 @@ ok(html.includes("data-test-history"),"UI has completed test history");
 ok(html.includes("Canvas and Mercer email"),"learner is told to verify live course updates");
 ok(appSource.includes("no correctness, hints, teaching, error-log changes, or readiness updates are shown until the entire form is finished"),"test mode explicitly withholds all correctness side channels");
 ok(appSource.includes("Keep test evidence buffered"),"test lock path documents buffered evidence behavior");
-ok(appSource.includes("applyTestEvidence"),"buffered test evidence is applied only at finalization");
+ok(appSource.includes("Unverified drawings never create automatic mastery evidence"),"paper tasks cannot fake mastery");
+ok(appSource.includes("Fresh-form bank exhausted"),"app refuses to recycle old forms as fresh");
 ok(appSource.includes("Codex P1 repair from PR #71"),"hint-contamination regression guard remains in source");
 ok(appSource.includes("Paper required:"),"test renderer flags paper-required production tasks");
 
