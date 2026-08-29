@@ -7,6 +7,7 @@ on:
       - 'unit1-skill-registry.js'
       - 'course-units/unit1/bond-line/**'
       - 'test-unit1-bond-line-runtime-slice1.js'
+      - 'test-unit1-bond-line-repair-focus.js'
       - '.github/workflows/unit1-bond-line-runtime-slice1.yml'
   push:
     branches:
@@ -16,6 +17,7 @@ on:
       - 'unit1-skill-registry.js'
       - 'course-units/unit1/bond-line/**'
       - 'test-unit1-bond-line-runtime-slice1.js'
+      - 'test-unit1-bond-line-repair-focus.js'
       - '.github/workflows/unit1-bond-line-runtime-slice1.yml'
 
 jobs:
@@ -30,3 +32,5 @@ jobs:
         run: node test-watch-mode.js
       - name: Bond-Line runtime Slice 1 contract
         run: node test-unit1-bond-line-runtime-slice1.js
+      - name: Repair focus regression
+        run: node test-unit1-bond-line-repair-focus.js
