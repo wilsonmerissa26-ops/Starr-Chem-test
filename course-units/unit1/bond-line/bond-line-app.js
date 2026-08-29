@@ -446,7 +446,9 @@
   backBtn.addEventListener("click", function () {
     if (watchFinished) {
       reopenCompletedWatch();
-      announce("Back to Watch Step 2.");
+      var completionBack = Watch.back(watchSession, Slice.WATCH_SEQUENCE, Date.now());
+      if (completionBack.changed) Slice.syncWatchPhase(session, watchSession.currentIndex);
+      announce("Back one Watch step.");
       renderWatch();
       return;
     }
