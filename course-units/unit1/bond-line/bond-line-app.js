@@ -67,6 +67,20 @@
     controls.hidden = true;
   }
 
+  function updateRepairFeedbackInPlace(repairId, text) {
+    repairFeedback[repairId] = text || "";
+    var feedback = panel.querySelector(".repair-feedback");
+    if (!feedback) {
+      feedback = document.createElement("div");
+      feedback.className = "repair-feedback";
+      feedback.setAttribute("role", "status");
+      var choices = panel.querySelector(".choice-grid");
+      if (choices) panel.insertBefore(feedback, choices);
+      else panel.appendChild(feedback);
+    }
+    feedback.innerHTML = "<strong>Try this:</strong> " + escapeHtml(text);
+  }
+
   function renderOrientation() {
     hideWatchControls();
     setPhase("Orient", "No score. We are setting up the mental model.");
@@ -110,9 +124,13 @@
       (repairFeedback.P1 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P1) + "</div>" : "");
     panel.appendChild(choiceButtons([1, 2, 3, 4], function (value) {
       var result = Slice.submitRepair(session, "P1", value);
-      repairFeedback.P1 = result.correct ? "" : result.feedback;
       announce(result.feedback);
-      if (result.correct) speak(result.feedback);
+      if (!result.correct) {
+        updateRepairFeedbackInPlace("P1", result.feedback);
+        return;
+      }
+      repairFeedback.P1 = "";
+      speak(result.feedback);
       render();
     }));
   }
@@ -146,9 +164,13 @@
       (repairFeedback.P2 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P2) + "</div>" : "");
     panel.appendChild(choiceButtons([1, 2, 3, 4], function (value) {
       var result = Slice.submitRepair(session, "P2", value);
-      repairFeedback.P2 = result.correct ? "" : result.feedback;
       announce(result.feedback);
-      if (result.correct) speak(result.feedback);
+      if (!result.correct) {
+        updateRepairFeedbackInPlace("P2", result.feedback);
+        return;
+      }
+      repairFeedback.P2 = "";
+      speak(result.feedback);
       render();
     }));
   }
