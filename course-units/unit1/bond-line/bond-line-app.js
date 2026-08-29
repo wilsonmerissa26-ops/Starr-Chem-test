@@ -181,6 +181,28 @@
     return svg;
   }
 
+  function updateCarbonSelectionInPlace(node, result) {
+    var carbonId = node.getAttribute("data-carbon-id");
+    node.classList.add("selected");
+    node.setAttribute("aria-label", "Carbon " + carbonId.slice(1) + ", selected");
+
+    var progress = document.getElementById("carbonProgress");
+    if (progress) progress.textContent = result.count + " of 4 carbons found";
+
+    if (result.stepComplete) {
+      status.textContent = "Four carbons identified. You control when to move on.";
+      if (!document.getElementById("watchStepSuccess")) {
+        var success = document.createElement("div");
+        success.id = "watchStepSuccess";
+        success.className = "success-box";
+        success.textContent = "Four carbons. Keep that number in mind. We are about to make the drawing shorter without changing the molecule.";
+        panel.appendChild(success);
+      }
+    }
+
+    nextBtn.disabled = !session.watchStep1Complete || watchSession.paused || watchFinished;
+  }
+
   function bindCarbonTargets() {
     panel.querySelectorAll("[data-carbon-id]").forEach(function (node) {
       function choose() {
@@ -191,7 +213,7 @@
         var result = Slice.tapWatchCarbon(session, node.getAttribute("data-carbon-id"));
         if (result.accepted) {
           announce(result.stepComplete ? "Four carbons. Keep that number in mind." : result.count + " of 4 carbons found.");
-          renderWatch();
+          updateCarbonSelectionInPlace(node, result);
         } else if (result.reason === "already_tapped") {
           announce("You already counted that carbon. Find a different carbon.");
         }
@@ -226,7 +248,7 @@
       teacher(narration) +
       '<div class="watch-stage">' + butaneSvg(session.watchCarbonIds) + '</div>' +
       '<div class="prompt-card"><div class="eyebrow">Low-risk interaction</div><h2>Tap each carbon once.</h2><p id="carbonProgress" class="progress-copy">' + session.watchCarbonIds.length + ' of 4 carbons found</p></div>' +
-      (session.watchStep1Complete ? '<div class="success-box">Four carbons. Keep that number in mind. We are about to make the drawing shorter without changing the molecule.</div>' : "");
+      (session.watchStep1Complete ? '<div id="watchStepSuccess" class="success-box">Four carbons. Keep that number in mind. We are about to make the drawing shorter without changing the molecule.</div>' : "");
     bindCarbonTargets();
 
     backBtn.disabled = true;
