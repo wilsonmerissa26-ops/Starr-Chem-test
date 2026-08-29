@@ -1,10 +1,9 @@
 /*
  * RED/GREEN compatibility gate for the first Unit 1 vertical slice.
  *
- * This test is intentionally authored before the router extension. Against the
- * current three-reason router, the new Unit 1 reason assertions must fail.
- * Existing router behavior is also exercised so the later GREEN change cannot
- * quietly replace the old contract.
+ * This test protects both the six-way router extension and the evidence
+ * registry invariants that keep prerequisite probes from being mistaken for
+ * stronger evidence than they actually are.
  */
 "use strict";
 
@@ -35,6 +34,19 @@ function safeIdk(reason, requiredSkillId) {
   }
 }
 
+function recordFor(skillId, itemId, evidenceKind) {
+  return {
+    lessonId: "chm221.u1.01",
+    skillId: skillId,
+    itemId: itemId,
+    evidenceKind: evidenceKind,
+    scaffoldLevel: 0,
+    supported: false,
+    correct: true,
+    timestamp: 1000
+  };
+}
+
 console.log("=== REGISTRY INVARIANTS ===");
 {
   var lesson = R.getLesson("chm221.u1.01");
@@ -47,18 +59,40 @@ console.log("=== REGISTRY INVARIANTS ===");
   check("covalent-bond gate skill is explicitly probe-only for this slice",
     R.getSkill("chem.bonding.covalent_bond_meaning").mayAwardMasteryByItself === false);
 
-  var gateRecord = {
-    lessonId: "chm221.u1.01",
-    skillId: "chem.bonding.carbon_valence_four",
-    itemId: "BL-P1",
-    evidenceKind: R.EVIDENCE_KINDS.PROBE,
-    scaffoldLevel: 0,
-    supported: false,
-    correct: true,
-    timestamp: 1000
-  };
+  var gateRecord = recordFor(
+    "chem.bonding.carbon_valence_four",
+    "BL-P1",
+    R.EVIDENCE_KINDS.PROBE
+  );
+  check("a clean prerequisite probe is valid gate evidence",
+    R.validateEvidenceRecord(gateRecord).valid === true);
   check("a clean prerequisite probe still cannot award mastery",
     R.canEvidenceAwardMastery(gateRecord) === false);
+
+  var invalidCarbonGuided = recordFor(
+    "chem.bonding.carbon_valence_four",
+    "BL-P1-guided",
+    R.EVIDENCE_KINDS.GUIDED
+  );
+  var invalidBondIndependent = recordFor(
+    "chem.bonding.covalent_bond_meaning",
+    "BL-P2-independent",
+    R.EVIDENCE_KINDS.INDEPENDENT
+  );
+  check("carbon-valence gate rejects guided evidence for a probe-only skill",
+    R.validateEvidenceRecord(invalidCarbonGuided).valid === false &&
+    R.validateEvidenceRecord(invalidCarbonGuided).reason === "evidence_kind_not_allowed_for_skill");
+  check("covalent-bond gate rejects independent evidence for a probe-only skill",
+    R.validateEvidenceRecord(invalidBondIndependent).valid === false &&
+    R.validateEvidenceRecord(invalidBondIndependent).reason === "evidence_kind_not_allowed_for_skill");
+
+  var primarySingleCold = recordFor(
+    "chem.representation.bond_line",
+    "BL-I1",
+    R.EVIDENCE_KINDS.INDEPENDENT
+  );
+  check("one clean cold Bond-Line record cannot award mastery by itself",
+    R.canEvidenceAwardMastery(primarySingleCold) === false);
 }
 
 console.log("\n=== SIX-WAY UNIT 1 IDK CONTRACT ===");
