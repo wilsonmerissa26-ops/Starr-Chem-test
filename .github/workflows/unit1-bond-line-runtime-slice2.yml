@@ -10,6 +10,7 @@ on:
       - 'test-unit1-bond-line-repair-focus.js'
       - 'test-unit1-bond-line-runtime-slice2.js'
       - 'test-unit1-bond-line-slice2-visual-style.js'
+      - 'test-unit1-bond-line-slice2-review-regressions.js'
       - '.github/workflows/unit1-bond-line-runtime-slice2.yml'
   push:
     branches:
@@ -22,6 +23,7 @@ on:
       - 'test-unit1-bond-line-repair-focus.js'
       - 'test-unit1-bond-line-runtime-slice2.js'
       - 'test-unit1-bond-line-slice2-visual-style.js'
+      - 'test-unit1-bond-line-slice2-review-regressions.js'
       - '.github/workflows/unit1-bond-line-runtime-slice2.yml'
 
 jobs:
@@ -46,3 +48,5 @@ jobs:
         run: node test-unit1-bond-line-runtime-slice2.js
       - name: Watch Step 2 visual emphasis
         run: node test-unit1-bond-line-slice2-visual-style.js
+      - name: Codex review regressions
+        run: node test-unit1-bond-line-slice2-review-regressions.js
