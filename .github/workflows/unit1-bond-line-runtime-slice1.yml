@@ -1,0 +1,32 @@
+name: Unit 1 Bond-Line runtime Slice 1
+
+on:
+  pull_request:
+    paths:
+      - 'watch-mode.js'
+      - 'unit1-skill-registry.js'
+      - 'course-units/unit1/bond-line/**'
+      - 'test-unit1-bond-line-runtime-slice1.js'
+      - '.github/workflows/unit1-bond-line-runtime-slice1.yml'
+  push:
+    branches:
+      - feature/unit1-bond-line-runtime-slice1
+    paths:
+      - 'watch-mode.js'
+      - 'unit1-skill-registry.js'
+      - 'course-units/unit1/bond-line/**'
+      - 'test-unit1-bond-line-runtime-slice1.js'
+      - '.github/workflows/unit1-bond-line-runtime-slice1.yml'
+
+jobs:
+  runtime-slice1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Existing Watch Mode contract
+        run: node test-watch-mode.js
+      - name: Bond-Line runtime Slice 1 contract
+        run: node test-unit1-bond-line-runtime-slice1.js
