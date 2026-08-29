@@ -9,6 +9,12 @@
  * Usage:
  *   node test-unit1-bond-line-repair-focus.js
  *   BOND_LINE_APP_PATH=/tmp/old-app.js node test-unit1-bond-line-repair-focus.js
+ *   EXPECT_REPAIR_FOCUS_BUG=1 BOND_LINE_APP_PATH=/tmp/old-app.js node test-unit1-bond-line-repair-focus.js
+ *
+ * EXPECT_REPAIR_FOCUS_BUG=1 is a historical-regression proof mode. It succeeds
+ * only when the exact known focus failure set is reproduced and every unrelated
+ * harness/behavior assertion still passes. A crash or different regression is
+ * therefore not accepted as proof of the historical focus bug.
  */
 "use strict";
 
@@ -18,13 +24,23 @@ var JSDOM = require("jsdom").JSDOM;
 
 var ROOT = __dirname;
 var APP_PATH = process.env.BOND_LINE_APP_PATH || path.join(ROOT, "course-units/unit1/bond-line/bond-line-app.js");
-var failed = 0;
+var EXPECT_BUG = process.env.EXPECT_REPAIR_FOCUS_BUG === "1";
+var failures = [];
 
-function check(label, condition) {
+var EXPECTED_HISTORICAL_FAILURES = [
+  "P1_same_element",
+  "P1_active_element",
+  "P1_repeat_focus",
+  "P2_same_element",
+  "P2_active_element",
+  "P2_repeat_focus"
+];
+
+function check(id, label, condition) {
   if (condition) console.log("PASS  " + label);
   else {
-    console.log("FAIL  " + label);
-    failed += 1;
+    console.log("FAIL  " + label + " [" + id + "]");
+    failures.push(id);
   }
 }
 
@@ -81,41 +97,66 @@ function assertWrongRepairPreservesFocus(document, repairLabel, wrongAnswer, exp
   if (!before) throw new Error(repairLabel + " wrong-answer button not found: " + wrongAnswer);
 
   before.focus();
-  check(repairLabel + " wrong-answer button can receive focus before submission", document.activeElement === before);
+  check(repairLabel + "_pre_focus", repairLabel + " wrong-answer button can receive focus before submission", document.activeElement === before);
 
   before.click();
 
-  check(repairLabel + " wrong answer keeps the exact same button element mounted", before.isConnected === true);
-  check(repairLabel + " wrong answer preserves document.activeElement on that same button", document.activeElement === before);
+  check(repairLabel + "_same_element", repairLabel + " wrong answer keeps the exact same button element mounted", before.isConnected === true);
+  check(repairLabel + "_active_element", repairLabel + " wrong answer preserves document.activeElement on that same button", document.activeElement === before);
 
   var feedbackNodes = document.querySelectorAll(".repair-feedback");
-  check(repairLabel + " wrong answer renders exactly one visible retry-feedback container", feedbackNodes.length === 1);
-  check(repairLabel + " visible retry feedback contains the narrow repair cue",
+  check(repairLabel + "_feedback_count", repairLabel + " wrong answer renders exactly one visible retry-feedback container", feedbackNodes.length === 1);
+  check(repairLabel + "_feedback_text", repairLabel + " visible retry feedback contains the narrow repair cue",
     feedbackNodes.length === 1 && feedbackNodes[0].textContent.indexOf(expectedFeedbackText) !== -1);
 
-  // A second wrong attempt must reuse the same visible feedback container.
   var secondWrong = buttonByText(document, wrongAnswer);
+  if (!secondWrong) throw new Error(repairLabel + " second wrong-answer button not found: " + wrongAnswer);
   secondWrong.focus();
   secondWrong.click();
-  check(repairLabel + " repeated wrong answer does not duplicate visible feedback containers",
+  check(repairLabel + "_repeat_feedback_count", repairLabel + " repeated wrong answer does not duplicate visible feedback containers",
     document.querySelectorAll(".repair-feedback").length === 1);
-  check(repairLabel + " repeated wrong answer still preserves focus",
+  check(repairLabel + "_repeat_focus", repairLabel + " repeated wrong answer still preserves focus",
     document.activeElement === secondWrong && secondWrong.isConnected === true);
+}
+
+function evaluateResult() {
+  if (!EXPECT_BUG) {
+    console.log("=== SUMMARY: " + (failures.length ? "FAIL" : "PASS") + " ===");
+    return failures.length ? 1 : 0;
+  }
+
+  var missingExpected = EXPECTED_HISTORICAL_FAILURES.filter(function (id) {
+    return failures.indexOf(id) === -1;
+  });
+  var unexpected = failures.filter(function (id) {
+    return EXPECTED_HISTORICAL_FAILURES.indexOf(id) === -1;
+  });
+
+  if (missingExpected.length || unexpected.length) {
+    if (missingExpected.length) console.log("HISTORICAL PROOF MISSING EXPECTED FAILURES: " + missingExpected.join(", "));
+    if (unexpected.length) console.log("HISTORICAL PROOF HAS UNEXPECTED FAILURES: " + unexpected.join(", "));
+    console.log("=== HISTORICAL FOCUS BUG PROOF: FAIL ===");
+    return 1;
+  }
+
+  console.log("EXPECTED HISTORICAL FOCUS FAILURES: " + EXPECTED_HISTORICAL_FAILURES.join(", "));
+  console.log("NO UNRELATED ASSERTIONS FAILED.");
+  console.log("=== HISTORICAL FOCUS BUG PROOF: PASS ===");
+  return 0;
 }
 
 console.log("=== BOND-LINE REPAIR FOCUS DOM REGRESSION ===");
 console.log("App under test: " + APP_PATH);
+console.log("Historical bug proof mode: " + (EXPECT_BUG ? "ON" : "OFF"));
 
 var dom = buildApp();
 var document = dom.window.document;
 
-// Orientation -> P1 gate.
 clickButton(document, "The drawing may be using a shortcut.");
-check("orientation advances to the first prerequisite gate", document.body.textContent.indexOf("One tiny carbon check") !== -1);
+check("orientation_to_p1", "orientation advances to the first prerequisite gate", document.body.textContent.indexOf("One tiny carbon check") !== -1);
 
-// Fail P1 gate to enter the P1 repair.
 clickButton(document, "3");
-check("wrong P1 gate enters the tiny carbon repair", document.body.textContent.indexOf("Tiny carbon-bond repair") !== -1);
+check("p1_gate_to_repair", "wrong P1 gate enters the tiny carbon repair", document.body.textContent.indexOf("Tiny carbon-bond repair") !== -1);
 
 assertWrongRepairPreservesFocus(
   document,
@@ -124,13 +165,11 @@ assertWrongRepairPreservesFocus(
   "One of carbon's four bond slots is already used"
 );
 
-// Correct P1 repair must still advance normally after the in-place wrong-answer path.
 clickButton(document, "3");
-check("correct P1 repair still advances to P2 gate", document.body.textContent.indexOf("What is the line doing?") !== -1);
+check("p1_correct_advances", "correct P1 repair still advances to P2 gate", document.body.textContent.indexOf("What is the line doing?") !== -1);
 
-// Fail P2 gate to enter the P2 repair.
 clickButton(document, "A carbon atom");
-check("wrong P2 gate enters the tiny bond-line repair", document.body.textContent.indexOf("Tiny bond-line repair") !== -1);
+check("p2_gate_to_repair", "wrong P2 gate enters the tiny bond-line repair", document.body.textContent.indexOf("Tiny bond-line repair") !== -1);
 
 assertWrongRepairPreservesFocus(
   document,
@@ -139,17 +178,15 @@ assertWrongRepairPreservesFocus(
   "Keep the atoms separate from the connections"
 );
 
-// Correct P2 repair must still advance into Watch.
 clickButton(document, "2");
-check("correct P2 repair still advances to Watch Step 1", document.body.textContent.indexOf("Start with everything visible") !== -1);
+check("p2_correct_advances", "correct P2 repair still advances to Watch Step 1", document.body.textContent.indexOf("Start with everything visible") !== -1);
 
-// Assistive announcement path remains present and no timer-driven teaching was introduced.
 var liveRegion = document.getElementById("liveRegion");
-check("screen-reader live region remains available", !!liveRegion && liveRegion.getAttribute("aria-live") === "polite");
+check("live_region", "screen-reader live region remains available", !!liveRegion && liveRegion.getAttribute("aria-live") === "polite");
 var appSource = fs.readFileSync(APP_PATH, "utf8");
-check("repair-focus fix introduces no timer-driven advancement",
+check("no_timers", "repair-focus fix introduces no timer-driven advancement",
   appSource.indexOf("setTimeout(") === -1 && appSource.indexOf("setInterval(") === -1);
 
-console.log("=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
+var exitCode = evaluateResult();
 dom.window.close();
-if (failed) process.exit(1);
+if (exitCode) process.exit(exitCode);
