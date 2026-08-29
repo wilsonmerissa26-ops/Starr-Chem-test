@@ -1,4 +1,4 @@
-/* Regression: Watch Step 3 must fade carbon-bound H marks sequentially and Pause must freeze the exact visual node. */
+/* Regression: Watch Step 3 must fade carbon-bound H marks sequentially; Pause freezes that exact visual; Replay restarts it. */
 "use strict";
 
 var fs = require("fs");
@@ -90,6 +90,18 @@ doc.getElementById("pauseBtn").click();
 var stageResumed = doc.querySelector(".step3-stage");
 check("Resume keeps the same Step 3 SVG node instead of restarting it", stageResumed === stageBefore && stageBefore.isConnected);
 check("Resume releases the animation-freeze state", !!stageResumed && !stageResumed.classList.contains("is-paused"));
+
+console.log("\n=== REPLAY RESTARTS THE CURRENT STEP 3 VISUAL ONLY ===");
+var replayStageBefore = doc.querySelector(".step3-stage");
+doc.getElementById("replayBtn").click();
+var replayStageAfter = doc.querySelector(".step3-stage");
+check("Replay restarts the Step 3 visual sequence with a fresh SVG node", !!replayStageAfter && replayStageAfter !== replayStageBefore && !replayStageBefore.isConnected);
+check("Replay stays on Watch Step 3", /Watch · I Do · Step 3/i.test(doc.getElementById("phaseLabel").textContent));
+var replayDelays = Array.prototype.slice.call(doc.querySelectorAll("[data-step3-hydrogen]")).map(delayMs);
+check("Replay preserves the same ten-step fade schedule", replayDelays.length === 10 && replayDelays.every(function (value, index) {
+  return value === labelDelays[index];
+}));
+
 check("Step 3 sequential fade uses no JavaScript timer-driven advancement",
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setTimeout(") === -1 &&
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setInterval(") === -1);
