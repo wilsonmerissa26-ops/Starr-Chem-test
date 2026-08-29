@@ -1,4 +1,4 @@
-/* Regression: Watch Step 3 must fade carbon-bound H marks sequentially; Pause freezes that exact visual; Replay restarts it. */
+/* Regression: Watch Step 3 must fade carbon-bound H marks sequentially; Pause freezes that exact visual; Replay restarts it only when playing. */
 "use strict";
 
 var fs = require("fs");
@@ -86,10 +86,14 @@ check("Pause applies the visual animation-freeze state", !!stagePaused && stageP
 check("Pause changes control to Resume", doc.getElementById("pauseBtn").textContent.trim() === "Resume");
 check("Pause disables Back", doc.getElementById("backBtn").disabled === true);
 check("Pause disables Next", doc.getElementById("nextBtn").disabled === true);
+check("Pause disables Replay so the frozen frame cannot be restarted underneath Pause", doc.getElementById("replayBtn").disabled === true);
+doc.getElementById("replayBtn").click();
+check("Replay activation while paused cannot replace the frozen Step 3 SVG", doc.querySelector(".step3-stage") === stagePaused && stagePaused.isConnected);
 doc.getElementById("pauseBtn").click();
 var stageResumed = doc.querySelector(".step3-stage");
 check("Resume keeps the same Step 3 SVG node instead of restarting it", stageResumed === stageBefore && stageBefore.isConnected);
 check("Resume releases the animation-freeze state", !!stageResumed && !stageResumed.classList.contains("is-paused"));
+check("Resume re-enables Replay", doc.getElementById("replayBtn").disabled === false);
 
 console.log("\n=== REPLAY RESTARTS THE CURRENT STEP 3 VISUAL ONLY ===");
 var replayStageBefore = doc.querySelector(".step3-stage");
