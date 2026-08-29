@@ -165,7 +165,7 @@
       [410,105,410,158],[410,275,410,222],
       [550,105,550,158],[550,275,550,222],[605,190,550,190]
     ];
-    var svg = '<svg class="molecule-svg" viewBox="0 0 680 330" role="img" aria-label="Fully expanded butane with four carbon atoms and all ten hydrogens visible">';
+    var svg = '<svg class="molecule-svg" viewBox="0 0 680 330" role="group" aria-label="Fully expanded butane with four carbon atoms and all ten hydrogens visible">';
     svg += '<g class="bonds" aria-hidden="true"><line x1="158" y1="190" x2="242" y2="190"/><line x1="298" y1="190" x2="382" y2="190"/><line x1="438" y1="190" x2="522" y2="190"/>';
     hydrogens.forEach(function (h) { svg += '<line x1="' + h[2] + '" y1="' + h[3] + '" x2="' + h[0] + '" y2="' + h[1] + '"/>'; });
     svg += "</g>";
