@@ -842,7 +842,7 @@ Why it fails: it correctly identifies the starting relationship but incorrectly 
 
 ## CC-I4 — Monosubstituted stability
 
-Show two fresh chair conformers of the same substituted cyclohexane, one substituent axial and one equatorial.
+Use a held-out **ethylcyclohexane** example with the ethyl group on **C4-DOWN**, drawn in a chair orientation not used in Watch. Show both conformers, one with the C4-DOWN ethyl axial and one with it equatorial. Do not use the C1-UP methylcyclohexane teaching example.
 
 Prompt:
 
