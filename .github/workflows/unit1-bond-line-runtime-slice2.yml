@@ -9,6 +9,7 @@ on:
       - 'test-unit1-bond-line-runtime-slice1.js'
       - 'test-unit1-bond-line-repair-focus.js'
       - 'test-unit1-bond-line-runtime-slice2.js'
+      - 'test-unit1-bond-line-slice2-visual-style.js'
       - '.github/workflows/unit1-bond-line-runtime-slice2.yml'
   push:
     branches:
@@ -20,6 +21,7 @@ on:
       - 'test-unit1-bond-line-runtime-slice1.js'
       - 'test-unit1-bond-line-repair-focus.js'
       - 'test-unit1-bond-line-runtime-slice2.js'
+      - 'test-unit1-bond-line-slice2-visual-style.js'
       - '.github/workflows/unit1-bond-line-runtime-slice2.yml'
 
 jobs:
@@ -42,3 +44,5 @@ jobs:
         run: node test-unit1-bond-line-repair-focus.js
       - name: Watch Step 2 contract
         run: node test-unit1-bond-line-runtime-slice2.js
+      - name: Watch Step 2 visual emphasis
+        run: node test-unit1-bond-line-slice2-visual-style.js
