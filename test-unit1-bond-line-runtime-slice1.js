@@ -171,6 +171,9 @@ if (app) {
   check("interactive carbon targets are not nested inside an atomic image role",
     app.indexOf('class=\"molecule-svg\" viewBox=\"0 0 680 330\" role=\"img\"') === -1 &&
     app.indexOf('class=\"molecule-svg\" viewBox=\"0 0 680 330\" role=\"group\"') !== -1);
+  check("successful carbon selections update in place instead of rebuilding the focused SVG",
+    app.indexOf("function updateCarbonSelectionInPlace") !== -1 &&
+    /if \(result\.accepted\)[\s\S]{0,500}updateCarbonSelectionInPlace\(node, result\)/.test(app));
 }
 
 console.log("\n=== SUMMARY: " + passed + " passed, " + failed + " failed ===");
