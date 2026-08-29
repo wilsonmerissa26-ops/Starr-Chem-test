@@ -115,6 +115,9 @@
     if (Object.keys(EVIDENCE_KINDS).map(function (key) { return EVIDENCE_KINDS[key]; }).indexOf(record.evidenceKind) === -1) {
       return { valid: false, reason: "unknown_evidence_kind" };
     }
+    if (Array.isArray(skill.allowedEvidenceKinds) && skill.allowedEvidenceKinds.indexOf(record.evidenceKind) === -1) {
+      return { valid: false, reason: "evidence_kind_not_allowed_for_skill" };
+    }
     if (typeof record.scaffoldLevel !== "number" || record.scaffoldLevel < 0 || record.scaffoldLevel > 4) {
       return { valid: false, reason: "invalid_scaffold_level" };
     }
@@ -124,11 +127,21 @@
     return { valid: true, reason: null };
   }
 
+  /*
+   * This helper answers the narrow question its name states: can this ONE
+   * evidence record award mastery by itself? For a skill whose contract also
+   * requires a correct explanation or a distinct later cold item, the answer is
+   * necessarily false. Sequence-level mastery remains the Student Model's job.
+   */
   function canEvidenceAwardMastery(record) {
     var validation = validateEvidenceRecord(record);
     if (!validation.valid) return false;
     var skill = getSkill(record.skillId);
     if (skill.mayAwardMasteryByItself === false) return false;
+    if (skill.mastery &&
+        (skill.mastery.requiresCorrectExplanation || skill.mastery.requiresDistinctLaterColdItem)) {
+      return false;
+    }
     return record.evidenceKind === EVIDENCE_KINDS.INDEPENDENT &&
       record.scaffoldLevel === 0 &&
       record.supported === false &&
