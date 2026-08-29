@@ -8,6 +8,7 @@
   var session = Slice.createSession();
   var watchSession = null;
   var watchFinished = false;
+  var repairFeedback = { P1: "", P2: "" };
 
   var panel = document.getElementById("lessonPanel");
   var phaseLabel = document.getElementById("phaseLabel");
@@ -91,6 +92,7 @@
       '<div class="prompt-card"><h2>' + escapeHtml(gate.prompt) + "</h2></div>";
     panel.appendChild(choiceButtons(gate.choices, function (value) {
       var result = Slice.submitGate(session, "P1", value, Date.now());
+      repairFeedback.P1 = "";
       announce(result.correct ? "Yes. Carbon commonly reaches four total bonds in these structures." : "That tells me exactly what to repair first. We are not restarting anything.");
       render();
     }));
@@ -104,9 +106,11 @@
       '<h1>' + escapeHtml(repair.title) + "</h1>" +
       teacher(repair.narration) +
       '<div class="slot-visual" aria-label="Carbon with four bond slots; one slot is already occupied by a carbon-carbon bond"><div class="slot top">?</div><div class="slot left">?</div><div class="carbon-core">C</div><div class="bond-right"></div><div class="neighbor-c">C</div><div class="slot bottom">?</div></div>' +
-      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2><p class=\"support-note\">One bond slot is already occupied by C—C. Count what remains.</p></div>';
+      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2><p class=\"support-note\">One bond slot is already occupied by C—C. Count what remains.</p></div>' +
+      (repairFeedback.P1 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P1) + "</div>" : "");
     panel.appendChild(choiceButtons([1, 2, 3, 4], function (value) {
       var result = Slice.submitRepair(session, "P1", value);
+      repairFeedback.P1 = result.correct ? "" : result.feedback;
       announce(result.feedback);
       if (result.correct) speak(result.feedback);
       render();
@@ -124,6 +128,7 @@
       '<div class="prompt-card"><h2>' + escapeHtml(gate.prompt) + "</h2></div>";
     panel.appendChild(choiceButtons(gate.choices, function (value) {
       var result = Slice.submitGate(session, "P2", value, Date.now());
+      repairFeedback.P2 = "";
       announce(result.correct ? "Right. The line is the bond connecting the atoms." : "Good. We found the exact distinction to repair before the shortcut starts.");
       render();
     }));
@@ -137,9 +142,11 @@
       '<h1>' + escapeHtml(repair.title) + "</h1>" +
       teacher(repair.narration) +
       '<div class="three-carbon" aria-label="Three carbon atoms connected by two single bonds"><span>C</span><span class="mini-line"></span><span>C</span><span class="mini-line"></span><span>C</span></div>' +
-      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2></div>";
+      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2></div>" +
+      (repairFeedback.P2 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P2) + "</div>" : "");
     panel.appendChild(choiceButtons([1, 2, 3, 4], function (value) {
       var result = Slice.submitRepair(session, "P2", value);
+      repairFeedback.P2 = result.correct ? "" : result.feedback;
       announce(result.feedback);
       if (result.correct) speak(result.feedback);
       render();
@@ -162,7 +169,7 @@
     svg += '<g class="bonds" aria-hidden="true"><line x1="158" y1="190" x2="242" y2="190"/><line x1="298" y1="190" x2="382" y2="190"/><line x1="438" y1="190" x2="522" y2="190"/>';
     hydrogens.forEach(function (h) { svg += '<line x1="' + h[2] + '" y1="' + h[3] + '" x2="' + h[0] + '" y2="' + h[1] + '"/>'; });
     svg += "</g>";
-    hydrogens.forEach(function (h, index) {
+    hydrogens.forEach(function (h) {
       var tx = h[0] + (h[0] < 100 ? -14 : h[0] > 590 ? 6 : -10);
       var ty = h[1] + (h[1] < 150 ? -3 : h[1] > 230 ? 18 : 7);
       svg += '<text class="hydrogen" x="' + tx + '" y="' + ty + '">H</text>';
@@ -201,6 +208,12 @@
       watchSession = Watch.createWatchSession(Slice.WATCH_SEQUENCE, { timestamp: Date.now() });
       Watch.begin(watchSession, Slice.WATCH_SEQUENCE, Date.now());
     }
+  }
+
+  function reopenCompletedWatch() {
+    watchFinished = false;
+    watchSession = Watch.createWatchSession(Slice.WATCH_SEQUENCE, { timestamp: Date.now() });
+    Watch.begin(watchSession, Slice.WATCH_SEQUENCE, Date.now());
   }
 
   function renderWatch() {
@@ -258,13 +271,17 @@
 
   backBtn.addEventListener("click", function () {
     if (!watchFinished) return;
-    watchFinished = false;
-    if (watchSession && watchSession.completed) Watch.back(watchSession, Slice.WATCH_SEQUENCE, Date.now());
-    render();
+    reopenCompletedWatch();
+    announce("Back to Watch Step 1.");
+    renderWatch();
   });
 
   replayBtn.addEventListener("click", function () {
     if (!watchSession) return;
+    if (watchFinished) {
+      reopenCompletedWatch();
+      renderWatch();
+    }
     Watch.replay(watchSession, Slice.WATCH_SEQUENCE, Date.now());
     announce("Replaying the current Watch step only.");
     speak(Slice.WATCH_SEQUENCE.steps[0].narration);
