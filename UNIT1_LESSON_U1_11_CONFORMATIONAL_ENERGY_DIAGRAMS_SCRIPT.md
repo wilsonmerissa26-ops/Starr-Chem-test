@@ -663,7 +663,7 @@ Show two eclipsed butane Newmans:
 
 Overlay `both eclipsed` on both, then separately highlight the group identities in direct alignment.
 
-Dr. Merissa
+Dr. Merissa:
 
 > "Eclipsing explains why both are peaks. The groups doing the eclipsing help explain why one peak is taller."
 
