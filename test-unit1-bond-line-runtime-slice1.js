@@ -168,6 +168,9 @@ if (app) {
     /backBtn\.addEventListener[\s\S]*reopenCompletedWatch\(\)/.test(app));
   check("Replay from completion reopens the visible Watch step before replaying",
     /replayBtn\.addEventListener[\s\S]*watchFinished[\s\S]*reopenCompletedWatch\(\)[\s\S]*renderWatch\(\)[\s\S]*Watch\.replay/.test(app));
+  check("interactive carbon targets are not nested inside an atomic image role",
+    app.indexOf('class=\"molecule-svg\" viewBox=\"0 0 680 330\" role=\"img\"') === -1 &&
+    app.indexOf('class=\"molecule-svg\" viewBox=\"0 0 680 330\" role=\"group\"') !== -1);
 }
 
 console.log("\n=== SUMMARY: " + passed + " passed, " + failed + " failed ===");
