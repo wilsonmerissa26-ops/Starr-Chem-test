@@ -1,6 +1,6 @@
 /*
- * U1-01 Bond-Line runtime — Slice 1
- * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Step 1
+ * U1-01 Bond-Line incremental runtime.
+ * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-2
  *
  * Pure lesson logic. No DOM. No timers. No mastery shortcuts.
  */
@@ -69,10 +69,35 @@
     })
   });
 
+  var BUTANE_ATOMS = Object.freeze([
+    "C1", "C2", "C3", "C4",
+    "H1a", "H1b", "H1c", "H2a", "H2b", "H3a", "H3b", "H4a", "H4b", "H4c"
+  ]);
+
+  var BUTANE_BONDS = Object.freeze([
+    Object.freeze(["C1", "C2", 1]), Object.freeze(["C2", "C3", 1]), Object.freeze(["C3", "C4", 1]),
+    Object.freeze(["C1", "H1a", 1]), Object.freeze(["C1", "H1b", 1]), Object.freeze(["C1", "H1c", 1]),
+    Object.freeze(["C2", "H2a", 1]), Object.freeze(["C2", "H2b", 1]),
+    Object.freeze(["C3", "H3a", 1]), Object.freeze(["C3", "H3b", 1]),
+    Object.freeze(["C4", "H4a", 1]), Object.freeze(["C4", "H4b", 1]), Object.freeze(["C4", "H4c", 1])
+  ]);
+
+  var STEP_2_PREDICTION = Object.freeze({
+    prompt: "If we stop writing the H labels that are attached to carbon, will the molecule suddenly have fewer hydrogen atoms?",
+    choices: Object.freeze([
+      Object.freeze({ id: "yes", label: "Yes" }),
+      Object.freeze({ id: "no", label: "No" }),
+      Object.freeze({ id: "unsure", label: "I am not sure yet" })
+    ]),
+    answer: "no",
+    correctFeedback: "Right. The notation changes. The molecule does not.",
+    repairFeedback: "Watch what changes next. We are going to hide the labels without breaking a single bond."
+  });
+
   var WATCH_SEQUENCE = Object.freeze({
     id: "watch_bond_line_butane_step1_v1",
     skillId: SKILL_ID,
-    title: "Watch Step 1 — start with everything visible",
+    title: "Watch — butane from expanded structure toward bond-line notation",
     molecule: "butane",
     requiresCounter: false,
     carbonTargets: Object.freeze(["C1", "C2", "C3", "C4"]),
@@ -82,15 +107,29 @@
         narration: "Right now nothing is hidden. We can see four carbon atoms connected in a chain, and we can see every hydrogen attached to them.",
         visual: Object.freeze({
           representation: "fully_expanded",
-          atoms: Object.freeze(["C1", "C2", "C3", "C4", "H1a", "H1b", "H1c", "H2a", "H2b", "H3a", "H3b", "H4a", "H4b", "H4c"]),
-          bonds: Object.freeze([
-            Object.freeze(["C1", "C2", 1]), Object.freeze(["C2", "C3", 1]), Object.freeze(["C3", "C4", 1]),
-            Object.freeze(["C1", "H1a", 1]), Object.freeze(["C1", "H1b", 1]), Object.freeze(["C1", "H1c", 1]),
-            Object.freeze(["C2", "H2a", 1]), Object.freeze(["C2", "H2b", 1]),
-            Object.freeze(["C3", "H3a", 1]), Object.freeze(["C3", "H3b", 1]),
-            Object.freeze(["C4", "H4a", 1]), Object.freeze(["C4", "H4b", 1]), Object.freeze(["C4", "H4c", 1])
-          ]),
+          atoms: BUTANE_ATOMS,
+          bonds: BUTANE_BONDS,
           lonePairs: Object.freeze([])
+        }),
+        notebookFacts: Object.freeze([])
+      }),
+      Object.freeze({
+        id: "bl_watch_2",
+        narration: "This connected chain of carbon atoms is the carbon skeleton. The hydrogens are still part of the molecule, but the carbon-to-carbon pattern is the part chemists usually sketch first.",
+        vocabulary: Object.freeze({
+          term: "carbon skeleton",
+          definition: "the connected pattern of carbon atoms in the molecule"
+        }),
+        prediction: STEP_2_PREDICTION,
+        visual: Object.freeze({
+          representation: "carbon_skeleton_emphasis",
+          atoms: BUTANE_ATOMS,
+          bonds: BUTANE_BONDS,
+          lonePairs: Object.freeze([]),
+          emphasis: Object.freeze({
+            carbonSkeleton: "strong",
+            carbonHydrogens: "light"
+          })
         }),
         notebookFacts: Object.freeze([])
       })
@@ -111,7 +150,9 @@
       repairLog: [],
       gateResults: { P1: null, P2: null },
       watchCarbonIds: [],
-      watchStep1Complete: false
+      watchStep1Complete: false,
+      watchStep2Prediction: null,
+      watchStep2Complete: false
     };
   }
 
@@ -163,11 +204,8 @@
     session.gateResults[gateId] = correct;
     recordProbe(session, gate, correct, timestamp);
 
-    if (correct) {
-      session.phase = gateId === "P1" ? "gate_p2" : "watch_step_1";
-    } else {
-      session.phase = gateId === "P1" ? "repair_p1" : "repair_p2";
-    }
+    if (correct) session.phase = gateId === "P1" ? "gate_p2" : "watch_step_1";
+    else session.phase = gateId === "P1" ? "repair_p1" : "repair_p2";
     return { accepted: true, correct: correct, nextPhase: session.phase };
   }
 
@@ -209,8 +247,42 @@
     };
   }
 
+  function syncWatchPhase(session, stepIndex) {
+    if (stepIndex === 0) session.phase = "watch_step_1";
+    else if (stepIndex === 1) session.phase = "watch_step_2";
+    else return { accepted: false, reason: "unknown_watch_step", phase: session.phase };
+    return { accepted: true, reason: null, phase: session.phase };
+  }
+
+  function submitWatchStep2Prediction(session, choiceId) {
+    if (session.phase !== "watch_step_2") {
+      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    }
+    if (session.watchStep2Complete) {
+      return {
+        accepted: false,
+        correct: session.watchStep2Prediction === STEP_2_PREDICTION.answer,
+        reason: "already_answered",
+        nextPhase: session.phase
+      };
+    }
+    var known = STEP_2_PREDICTION.choices.some(function (choice) { return choice.id === choiceId; });
+    if (!known) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+
+    session.watchStep2Prediction = choiceId;
+    session.watchStep2Complete = true;
+    var correct = choiceId === STEP_2_PREDICTION.answer;
+    return {
+      accepted: true,
+      correct: correct,
+      reason: null,
+      nextPhase: session.phase,
+      feedback: correct ? STEP_2_PREDICTION.correctFeedback : STEP_2_PREDICTION.repairFeedback
+    };
+  }
+
   function canEnterWatch(session) {
-    return session.phase === "watch_step_1";
+    return session.phase === "watch_step_1" || session.phase === "watch_step_2";
   }
 
   if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) {
@@ -229,6 +301,8 @@
     submitGate: submitGate,
     submitRepair: submitRepair,
     tapWatchCarbon: tapWatchCarbon,
+    syncWatchPhase: syncWatchPhase,
+    submitWatchStep2Prediction: submitWatchStep2Prediction,
     canEnterWatch: canEnterWatch
   });
 });
