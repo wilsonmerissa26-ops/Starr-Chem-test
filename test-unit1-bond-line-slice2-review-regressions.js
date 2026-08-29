@@ -12,8 +12,8 @@ function check(label, condition) {
 }
 function read(rel) { return fs.readFileSync(path.join(__dirname, rel), "utf8"); }
 function evalFile(win, rel) { win.eval(read(rel) + "\n//# sourceURL=" + rel); }
-function byText(doc, text) {
-  return Array.prototype.slice.call(doc.querySelectorAll("button")).find(function (b) {
+function byText(root, text) {
+  return Array.prototype.slice.call(root.querySelectorAll("button")).find(function (b) {
     return b.textContent.trim() === text;
   }) || null;
 }
@@ -24,13 +24,11 @@ function activate(node) {
 }
 function buildApp() {
   var dom = new JSDOM(read("course-units/unit1/bond-line/index.html"), {
-    runScripts: "outside-only",
-    pretendToBeVisual: true,
+    runScripts: "outside-only", pretendToBeVisual: true,
     url: "https://example.test/course-units/unit1/bond-line/"
   });
   Object.defineProperty(dom.window, "speechSynthesis", {
-    configurable: true,
-    value: { cancel: function () {}, speak: function () {} }
+    configurable: true, value: { cancel: function () {}, speak: function () {} }
   });
   dom.window.SpeechSynthesisUtterance = function (text) { this.text = text; };
   evalFile(dom.window, "watch-mode.js");
@@ -66,38 +64,42 @@ function compositeOnWhite(rgb, opacity) {
   return rgb.map(function (channel) { return Math.round(opacity * channel + (1 - opacity) * 255); });
 }
 
-var dom = buildApp();
-var doc = reachStep2(dom);
-
 console.log("=== PAUSE MUST FREEZE THE EXACT WATCH STEP ===");
-check("precondition: learner is on Watch Step 2", /Step 2/i.test(doc.getElementById("phaseLabel").textContent));
-doc.getElementById("pauseBtn").click();
-check("Pause changes control to Resume", doc.getElementById("pauseBtn").textContent.trim() === "Resume");
-check("Back is disabled while paused", doc.getElementById("backBtn").disabled === true);
-doc.getElementById("backBtn").click();
-check("Back cannot move away from Step 2 while paused", /Step 2/i.test(doc.getElementById("phaseLabel").textContent));
-check("paused visual still contains the Step 2 carbon-skeleton stage", !!doc.querySelector(".skeleton-stage"));
+var pauseDom = buildApp();
+var pauseDoc = reachStep2(pauseDom);
+check("precondition: learner is on Watch Step 2", /Step 2/i.test(pauseDoc.getElementById("phaseLabel").textContent));
+pauseDoc.getElementById("pauseBtn").click();
+check("Pause changes control to Resume", pauseDoc.getElementById("pauseBtn").textContent.trim() === "Resume");
+check("Back is disabled while paused", pauseDoc.getElementById("backBtn").disabled === true);
+pauseDoc.getElementById("backBtn").click();
+check("Back cannot move away from Step 2 while paused", /Step 2/i.test(pauseDoc.getElementById("phaseLabel").textContent));
+check("paused visual remains the Step 2 carbon-skeleton stage", !!pauseDoc.querySelector(".skeleton-stage"));
+pauseDom.window.close();
 
 console.log("\n=== PREDICTION CONTROLS MUST CARRY THE QUESTION ACCESSIBLY ===");
-var group = doc.querySelector(".prediction-grid");
+var labelDom = buildApp();
+var labelDoc = reachStep2(labelDom);
+var group = labelDoc.querySelector(".prediction-grid");
 var labelledBy = group ? group.getAttribute("aria-labelledby") : null;
-var prompt = labelledBy ? doc.getElementById(labelledBy) : null;
+var prompt = labelledBy ? labelDoc.getElementById(labelledBy) : null;
 check("prediction choices expose a labelled group", !!group && group.getAttribute("role") === "group" && !!labelledBy);
 check("prediction group label points to the visible question", !!prompt && prompt.textContent.trim() === "If we stop writing the H labels that are attached to carbon, will the molecule suddenly have fewer hydrogen atoms?");
 check("Yes/No/unsure controls are descendants of that labelled group",
   !!group && !!byText(group, "Yes") && !!byText(group, "No") && !!byText(group, "I am not sure yet"));
+labelDom.window.close();
 
 console.log("\n=== DE-EMPHASIZED HYDROGENS MUST REMAIN PERCEIVABLE ===");
-var h = doc.querySelector("[data-step2-hydrogen]");
-var hBond = doc.querySelector(".hydrogen-bonds-light line");
-var skeletonBond = doc.querySelector(".skeleton-bonds line");
+var contrastDom = buildApp();
+var contrastDoc = reachStep2(contrastDom);
+var h = contrastDoc.querySelector("[data-step2-hydrogen]");
+var hBond = contrastDoc.querySelector(".hydrogen-bonds-light line");
+var skeletonBond = contrastDoc.querySelector(".skeleton-bonds line");
 check("hydrogen label, C-H bond, and C-C skeleton bond all exist", !!h && !!hBond && !!skeletonBond);
 if (h && hBond && skeletonBond) {
-  var hOpacity = parseFloat(dom.window.getComputedStyle(h).opacity || "1");
-  var hBondOpacity = parseFloat(dom.window.getComputedStyle(hBond).opacity || "1");
-  var skeletonOpacity = parseFloat(dom.window.getComputedStyle(skeletonBond).opacity || "1");
-  var base = [49, 40, 56];
-  var white = [255, 255, 255];
+  var hOpacity = parseFloat(contrastDom.window.getComputedStyle(h).opacity || "1");
+  var hBondOpacity = parseFloat(contrastDom.window.getComputedStyle(hBond).opacity || "1");
+  var skeletonOpacity = parseFloat(contrastDom.window.getComputedStyle(skeletonBond).opacity || "1");
+  var base = [49, 40, 56], white = [255, 255, 255];
   var hContrast = contrast(compositeOnWhite(base, hOpacity), white);
   var hBondContrast = contrast(compositeOnWhite(base, hBondOpacity), white);
   check("hydrogen label contrast is at least 3:1 on the white stage", hContrast >= 3);
@@ -105,7 +107,7 @@ if (h && hBond && skeletonBond) {
   check("hydrogens remain visually de-emphasized relative to the carbon skeleton",
     hOpacity < skeletonOpacity && hBondOpacity < skeletonOpacity);
 }
+contrastDom.window.close();
 
-dom.window.close();
 console.log("\n=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
 if (failed) process.exit(1);
