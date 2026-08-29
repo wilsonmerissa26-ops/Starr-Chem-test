@@ -12,6 +12,7 @@ on:
       - 'test-unit1-bond-line-slice2-visual-style.js'
       - 'test-unit1-bond-line-slice2-review-regressions.js'
       - 'test-unit1-bond-line-runtime-slice3.js'
+      - 'test-unit1-bond-line-slice3-fade-pause.js'
       - '.github/workflows/unit1-bond-line-runtime-slice3.yml'
   push:
     branches:
@@ -26,6 +27,7 @@ on:
       - 'test-unit1-bond-line-slice2-visual-style.js'
       - 'test-unit1-bond-line-slice2-review-regressions.js'
       - 'test-unit1-bond-line-runtime-slice3.js'
+      - 'test-unit1-bond-line-slice3-fade-pause.js'
       - '.github/workflows/unit1-bond-line-runtime-slice3.yml'
 
 jobs:
@@ -54,3 +56,5 @@ jobs:
         run: node test-unit1-bond-line-slice2-review-regressions.js
       - name: Watch Step 3 contract
         run: node test-unit1-bond-line-runtime-slice3.js
+      - name: Watch Step 3 sequential fade and exact Pause
+        run: node test-unit1-bond-line-slice3-fade-pause.js
