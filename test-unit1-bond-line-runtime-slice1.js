@@ -156,6 +156,18 @@ if (page) {
 if (app) {
   check("DOM adapter contains no timer-driven instructional advancement",
     app.indexOf("setTimeout(") === -1 && app.indexOf("setInterval(") === -1);
+
+  console.log("\n=== CODEX REVIEW REGRESSIONS ===");
+  check("incorrect repair feedback is retained for visible rendering",
+    app.indexOf("repairFeedback.P1") !== -1 &&
+    app.indexOf("repairFeedback.P2") !== -1 &&
+    app.indexOf('class=\"repair-feedback\"') !== -1);
+  check("one-step Watch completion has an explicit reopen helper",
+    app.indexOf("function reopenCompletedWatch") !== -1);
+  check("Back from completion uses the Watch reopen helper",
+    /backBtn\.addEventListener[\s\S]*reopenCompletedWatch\(\)/.test(app));
+  check("Replay from completion reopens the visible Watch step before replaying",
+    /replayBtn\.addEventListener[\s\S]*watchFinished[\s\S]*reopenCompletedWatch\(\)[\s\S]*renderWatch\(\)[\s\S]*Watch\.replay/.test(app));
 }
 
 console.log("\n=== SUMMARY: " + passed + " passed, " + failed + " failed ===");
