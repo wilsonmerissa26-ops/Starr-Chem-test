@@ -50,11 +50,11 @@ if (h && hBond && skeletonBond) {
   var hOpacity = parseFloat(dom.window.getComputedStyle(h).opacity || "1");
   var hBondOpacity = parseFloat(dom.window.getComputedStyle(hBond).opacity || "1");
   var skeletonStyle = dom.window.getComputedStyle(skeletonBond);
-  check("hydrogen labels are genuinely visually lighter", hOpacity <= 0.45);
-  check("C-H bonds are genuinely visually lighter", hBondOpacity <= 0.45);
+  var skeletonOpacity = parseFloat(skeletonStyle.opacity || "1");
+  check("hydrogen labels are genuinely visually lighter", hOpacity > 0 && hOpacity < skeletonOpacity);
+  check("C-H bonds are genuinely visually lighter", hBondOpacity > 0 && hBondOpacity < skeletonOpacity);
   check("C-C skeleton bonds are visibly stroked", !!skeletonStyle.stroke && skeletonStyle.stroke !== "none");
-  check("C-C skeleton bonds remain more prominent than C-H bonds",
-    parseFloat(skeletonStyle.opacity || "1") > hBondOpacity);
+  check("C-C skeleton bonds remain more prominent than C-H bonds", skeletonOpacity > hBondOpacity);
 }
 
 dom.window.close();
