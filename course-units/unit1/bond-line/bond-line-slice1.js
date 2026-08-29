@@ -1,6 +1,6 @@
 /*
  * U1-01 Bond-Line incremental runtime.
- * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-2
+ * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-3
  *
  * Pure lesson logic. No DOM. No timers. No mastery shortcuts.
  */
@@ -94,6 +94,21 @@
     repairFeedback: "Watch what changes next. We are going to hide the labels without breaking a single bond."
   });
 
+  var STEP_3_INTERACTION = Object.freeze({
+    prompt: "This carbon already has 1 bond. How many C—H bonds are implied here so carbon reaches 4?",
+    choices: Object.freeze([1, 2, 3, 4]),
+    answer: 3
+  });
+
+  var STEP_3_REPAIR = Object.freeze({
+    representation: "four_bond_slots",
+    prompt: "How many bond slots remain?",
+    choices: Object.freeze([1, 2, 3, 4]),
+    answer: 3,
+    totalSlots: 4,
+    occupiedSlots: 1
+  });
+
   var WATCH_SEQUENCE = Object.freeze({
     id: "watch_bond_line_butane_step1_v1",
     skillId: SKILL_ID,
@@ -132,6 +147,24 @@
           })
         }),
         notebookFacts: Object.freeze([])
+      }),
+      Object.freeze({
+        id: "bl_watch_3",
+        narration: "The hydrogens attached to carbon are no longer written, but they are still implied. If I want to know how many hydrogens belong on a carbon, I look at the bonds already drawn to that carbon and ask how many more bonds it needs to reach four.",
+        interaction: STEP_3_INTERACTION,
+        repair: STEP_3_REPAIR,
+        visual: Object.freeze({
+          representation: "carbon_hydrogens_implied",
+          atoms: BUTANE_ATOMS,
+          bonds: BUTANE_BONDS,
+          lonePairs: Object.freeze([]),
+          visibility: Object.freeze({
+            carbonLabels: "visible",
+            carbonHydrogenLabels: "hidden"
+          }),
+          banner: "Same molecule. Fewer written labels."
+        }),
+        notebookFacts: Object.freeze([])
       })
     ])
   });
@@ -152,7 +185,10 @@
       watchCarbonIds: [],
       watchStep1Complete: false,
       watchStep2Prediction: null,
-      watchStep2Complete: false
+      watchStep2Complete: false,
+      watchStep3Response: null,
+      watchStep3RepairActive: false,
+      watchStep3Complete: false
     };
   }
 
@@ -250,6 +286,7 @@
   function syncWatchPhase(session, stepIndex) {
     if (stepIndex === 0) session.phase = "watch_step_1";
     else if (stepIndex === 1) session.phase = "watch_step_2";
+    else if (stepIndex === 2) session.phase = "watch_step_3";
     else return { accepted: false, reason: "unknown_watch_step", phase: session.phase };
     return { accepted: true, reason: null, phase: session.phase };
   }
@@ -281,8 +318,82 @@
     };
   }
 
+  function submitWatchStep3Hydrogen(session, value) {
+    if (session.phase !== "watch_step_3") {
+      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    }
+    if (session.watchStep3Complete) {
+      return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
+    }
+    if (session.watchStep3RepairActive) {
+      return { accepted: false, correct: false, reason: "repair_in_progress", nextPhase: session.phase };
+    }
+    var numeric = Number(value);
+    if (STEP_3_INTERACTION.choices.indexOf(numeric) === -1) {
+      return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+    }
+
+    session.watchStep3Response = numeric;
+    var correct = numeric === STEP_3_INTERACTION.answer;
+    if (correct) {
+      session.watchStep3Complete = true;
+      return {
+        accepted: true,
+        correct: true,
+        reason: null,
+        nextPhase: session.phase,
+        feedback: "Yes. One visible C—C bond leaves three C—H bonds implied on this terminal carbon."
+      };
+    }
+
+    session.watchStep3RepairActive = true;
+    return {
+      accepted: true,
+      correct: false,
+      repairRequired: true,
+      reason: null,
+      nextPhase: session.phase,
+      feedback: "Let's switch views and count the bond slots that are still open."
+    };
+  }
+
+  function submitWatchStep3Repair(session, value) {
+    if (session.phase !== "watch_step_3") {
+      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    }
+    if (!session.watchStep3RepairActive) {
+      return { accepted: false, correct: false, reason: "repair_not_active", nextPhase: session.phase };
+    }
+    var numeric = Number(value);
+    if (STEP_3_REPAIR.choices.indexOf(numeric) === -1) {
+      return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+    }
+
+    var correct = numeric === STEP_3_REPAIR.answer;
+    session.repairLog.push({ gateId: "WATCH_STEP_3", correct: correct, response: numeric });
+    if (!correct) {
+      return {
+        accepted: true,
+        correct: false,
+        reason: null,
+        nextPhase: session.phase,
+        feedback: "Count the four bond slots again and notice that one is already occupied by the C—C bond."
+      };
+    }
+
+    session.watchStep3RepairActive = false;
+    session.watchStep3Complete = true;
+    return {
+      accepted: true,
+      correct: true,
+      reason: null,
+      nextPhase: session.phase,
+      feedback: "Yes. The three remaining bond slots reconnect to three implied hydrogens."
+    };
+  }
+
   function canEnterWatch(session) {
-    return session.phase === "watch_step_1" || session.phase === "watch_step_2";
+    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3";
   }
 
   if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) {
@@ -303,6 +414,8 @@
     tapWatchCarbon: tapWatchCarbon,
     syncWatchPhase: syncWatchPhase,
     submitWatchStep2Prediction: submitWatchStep2Prediction,
+    submitWatchStep3Hydrogen: submitWatchStep3Hydrogen,
+    submitWatchStep3Repair: submitWatchStep3Repair,
     canEnterWatch: canEnterWatch
   });
 });
