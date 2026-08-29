@@ -25,12 +25,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install DOM-test dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
       - name: Existing Watch Mode contract
         run: node test-watch-mode.js
       - name: Bond-Line runtime Slice 1 contract
         run: node test-unit1-bond-line-runtime-slice1.js
-      - name: Repair focus regression
+      - name: Prove repair-focus regression is RED on the pre-fix app
+        shell: bash
+        run: |
+          git show 6b6bc7c555e10b8377fc789d05095e56db8309b9:course-units/unit1/bond-line/bond-line-app.js > /tmp/bond-line-app-pre-fix.js
+          set +e
+          BOND_LINE_APP_PATH=/tmp/bond-line-app-pre-fix.js node test-unit1-bond-line-repair-focus.js
+          red_status=$?
+          set -e
+          if [ "$red_status" -eq 0 ]; then
+            echo "ERROR: behavioral focus regression unexpectedly passed against the known pre-fix app."
+            exit 1
+          fi
+          echo "Confirmed RED: the real DOM focus test fails against the known pre-fix app."
+      - name: Prove repair-focus regression is GREEN on current app
         run: node test-unit1-bond-line-repair-focus.js
