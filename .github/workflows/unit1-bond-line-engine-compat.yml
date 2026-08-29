@@ -1,0 +1,20 @@
+name: Unit 1 Bond-Line engine compatibility
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feature/unit1-bond-line-engine-compat
+
+jobs:
+  bond-line-engine-compat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Existing Student Model contract
+        run: node test-student-model.js
+      - name: Unit 1 Bond-Line compatibility contract
+        run: node test-unit1-bond-line-engine-compat.js
