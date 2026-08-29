@@ -109,5 +109,18 @@ if (h && hBond && skeletonBond) {
 }
 contrastDom.window.close();
 
+console.log("\n=== COMPLETION BACK MUST REVERT ONE WATCH STEP ===");
+var completionDom = buildApp();
+var completionDoc = reachStep2(completionDom);
+byText(completionDoc, "No").click();
+check("precondition: Step 2 prediction enables Next", completionDoc.getElementById("nextBtn").disabled === false);
+completionDoc.getElementById("nextBtn").click();
+check("precondition: learner reaches the Slice 2 completion screen", /Step 2 complete/i.test(completionDoc.getElementById("phaseLabel").textContent));
+completionDoc.getElementById("backBtn").click();
+check("Back from completion returns exactly one Watch step to Step 1",
+  /Watch · I Do · Step 1/i.test(completionDoc.getElementById("phaseLabel").textContent) &&
+  completionDoc.body.textContent.indexOf("Start with everything visible") !== -1);
+completionDom.window.close();
+
 console.log("\n=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
 if (failed) process.exit(1);
