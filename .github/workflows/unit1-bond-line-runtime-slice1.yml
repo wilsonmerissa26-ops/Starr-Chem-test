@@ -40,7 +40,7 @@ jobs:
         run: node test-watch-mode.js
       - name: Bond-Line runtime Slice 1 contract
         run: node test-unit1-bond-line-runtime-slice1.js
-      - name: Prove repair-focus regression is RED on the pre-focus-fix behavior
+      - name: Prove ordinary regression is RED on pre-focus-fix behavior
         shell: bash
         run: |
           git show 6b6bc7c555e10b8377fc789d05095e56db8309b9:course-units/unit1/bond-line/bond-line-app.js > /tmp/bond-line-app-pre-fix.js
@@ -54,6 +54,7 @@ jobs:
             echo "ERROR: behavioral focus regression unexpectedly passed against the known pre-focus-fix behavior."
             exit 1
           fi
-          echo "Confirmed RED: after only the unrelated historical quote typo is normalized, the real DOM focus test fails against the pre-focus-fix behavior."
+      - name: Require the exact historical focus failure set
+        run: EXPECT_REPAIR_FOCUS_BUG=1 BOND_LINE_APP_PATH=/tmp/bond-line-app-pre-fix.js node test-unit1-bond-line-repair-focus.js
       - name: Prove repair-focus regression is GREEN on current app
         run: node test-unit1-bond-line-repair-focus.js
