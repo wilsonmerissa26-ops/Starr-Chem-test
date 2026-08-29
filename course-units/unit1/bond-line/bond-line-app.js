@@ -561,6 +561,8 @@
       panel.appendChild(existing);
     }
 
+    var step3Stage = panel.querySelector(".step3-stage");
+    if (step3Stage && watchSession.paused) step3Stage.classList.add("is-paused");
     backBtn.disabled = watchSession.paused;
     replayBtn.disabled = false;
     pauseBtn.disabled = false;
@@ -660,6 +662,7 @@
       renderWatch();
     }
     Watch.replay(watchSession, Slice.WATCH_SEQUENCE, Date.now());
+    if (session.phase === "watch_step_3" && !session.watchStep3RepairActive) renderWatchStep3();
     announce("Replaying the current Watch step only.");
     speak(Slice.WATCH_SEQUENCE.steps[watchSession.currentIndex].narration);
   });
