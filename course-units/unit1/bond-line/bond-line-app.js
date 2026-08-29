@@ -340,7 +340,7 @@
       teacher(step.narration) +
       '<div class="prompt-card vocabulary-card"><div class="eyebrow">New term</div><h2>Carbon skeleton</h2><p>When we say <strong>carbon skeleton</strong>, we mean ' + escapeHtml(step.vocabulary.definition) + '.</p></div>' +
       '<div class="watch-stage">' + butaneSkeletonSvg() + '</div>' +
-      '<div class="prompt-card"><div class="eyebrow">Predict before reveal</div><h2>' + escapeHtml(step.prediction.prompt) + '</h2></div>';
+      '<div class="prompt-card"><div class="eyebrow">Predict before reveal</div><h2 id="step2PredictionPrompt">' + escapeHtml(step.prediction.prompt) + '</h2></div>';
 
     var predictionGrid = choiceButtons(step.prediction.choices, function (choiceId, button) {
       if (watchSession.paused) {
@@ -357,7 +357,8 @@
       speak(result.feedback);
     });
     predictionGrid.classList.add("prediction-grid");
-    predictionGrid.setAttribute("aria-label", "Prediction choices");
+    predictionGrid.setAttribute("role", "group");
+    predictionGrid.setAttribute("aria-labelledby", "step2PredictionPrompt");
     predictionGrid.querySelectorAll("button").forEach(function (button) {
       button.classList.add("prediction-choice");
       button.setAttribute("aria-pressed", "false");
@@ -380,7 +381,7 @@
       panel.appendChild(feedback);
     }
 
-    backBtn.disabled = false;
+    backBtn.disabled = watchSession.paused;
     replayBtn.disabled = false;
     pauseBtn.disabled = false;
     pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
@@ -449,7 +450,7 @@
       renderWatch();
       return;
     }
-    if (!watchSession || watchSession.currentIndex === 0) return;
+    if (!watchSession || watchSession.paused || watchSession.currentIndex === 0) return;
     var result = Watch.back(watchSession, Slice.WATCH_SEQUENCE, Date.now());
     if (result.changed) {
       Slice.syncWatchPhase(session, watchSession.currentIndex);
