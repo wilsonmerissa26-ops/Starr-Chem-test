@@ -1,0 +1,52 @@
+name: Unit 1 Bond-Line runtime Slice 2
+
+on:
+  pull_request:
+    paths:
+      - 'watch-mode.js'
+      - 'unit1-skill-registry.js'
+      - 'course-units/unit1/bond-line/**'
+      - 'test-unit1-bond-line-runtime-slice1.js'
+      - 'test-unit1-bond-line-repair-focus.js'
+      - 'test-unit1-bond-line-runtime-slice2.js'
+      - 'test-unit1-bond-line-slice2-visual-style.js'
+      - 'test-unit1-bond-line-slice2-review-regressions.js'
+      - '.github/workflows/unit1-bond-line-runtime-slice2.yml'
+  push:
+    branches:
+      - feature/unit1-bond-line-runtime-slice2
+    paths:
+      - 'watch-mode.js'
+      - 'unit1-skill-registry.js'
+      - 'course-units/unit1/bond-line/**'
+      - 'test-unit1-bond-line-runtime-slice1.js'
+      - 'test-unit1-bond-line-repair-focus.js'
+      - 'test-unit1-bond-line-runtime-slice2.js'
+      - 'test-unit1-bond-line-slice2-visual-style.js'
+      - 'test-unit1-bond-line-slice2-review-regressions.js'
+      - '.github/workflows/unit1-bond-line-runtime-slice2.yml'
+
+jobs:
+  runtime-slice2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install DOM-test dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+      - name: Browser app parses
+        run: node --check course-units/unit1/bond-line/bond-line-app.js
+      - name: Existing Watch Mode contract
+        run: node test-watch-mode.js
+      - name: Locked Slice 1 runtime contract
+        run: node test-unit1-bond-line-runtime-slice1.js
+      - name: Locked repair-focus behavior
+        run: node test-unit1-bond-line-repair-focus.js
+      - name: Watch Step 2 contract
+        run: node test-unit1-bond-line-runtime-slice2.js
+      - name: Watch Step 2 visual emphasis
+        run: node test-unit1-bond-line-slice2-visual-style.js
+      - name: Codex review regressions
+        run: node test-unit1-bond-line-slice2-review-regressions.js
