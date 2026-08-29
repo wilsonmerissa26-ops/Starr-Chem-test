@@ -120,7 +120,7 @@
       '<h1>' + escapeHtml(repair.title) + "</h1>" +
       teacher(repair.narration) +
       '<div class="slot-visual" aria-label="Carbon with four bond slots; one slot is already occupied by a carbon-carbon bond"><div class="slot top">?</div><div class="slot left">?</div><div class="carbon-core">C</div><div class="bond-right"></div><div class="neighbor-c">C</div><div class="slot bottom">?</div></div>' +
-      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2><p class=\"support-note\">One bond slot is already occupied by C—C. Count what remains.</p></div>' +
+      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + '</h2><p class="support-note">One bond slot is already occupied by C—C. Count what remains.</p></div>' +
       (repairFeedback.P1 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P1) + "</div>" : "");
     panel.appendChild(choiceButtons([1, 2, 3, 4], function (value) {
       var result = Slice.submitRepair(session, "P1", value);
