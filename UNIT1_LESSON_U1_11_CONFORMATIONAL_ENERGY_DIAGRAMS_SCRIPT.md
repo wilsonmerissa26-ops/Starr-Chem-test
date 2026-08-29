@@ -663,7 +663,7 @@ Show two eclipsed butane Newmans:
 
 Overlay `both eclipsed` on both, then separately highlight the group identities in direct alignment.
 
-Dr. Merissa:
+Dr. Merissa
 
 > "Eclipsing explains why both are peaks. The groups doing the eclipsing help explain why one peak is taller."
 
@@ -956,7 +956,7 @@ Why it fails: it reverses staggered/eclipsed status and the spatial relationship
 
 ## CE-I5 — Compare two eclipsed peak heights
 
-Use a held-out asymmetric molecule with two clearly different-size substituents, such as a simple C—C bond carrying ethyl/H on one side and methyl/H on the other, arranged so one eclipsed conformation has ethyl eclipsing methyl and another has ethyl eclipsing H.
+Use held-out **3-methylpentane viewed down C2—C3**. On C2, the non-axis groups are `CH3`, `H`, `H`; on C3, the non-axis groups are `CH2CH3`, `CH3`, `H`. Compare one eclipsed conformation where the C3 `CH2CH3` group eclipses the C2 `CH3` group with another where that same `CH2CH3` group eclipses a C2 `H`. Do not reuse a molecule-plus-orientation from Watch, Build Together, Guided, misconception repairs, or IDK examples.
 
 Prompt:
 
