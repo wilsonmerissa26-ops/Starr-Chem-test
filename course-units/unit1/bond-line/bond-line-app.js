@@ -502,7 +502,7 @@
     repairChoices.querySelectorAll("button").forEach(function (button) { button.classList.add("step3-repair-choice"); });
     panel.appendChild(repairChoices);
     backBtn.disabled = watchSession.paused;
-    replayBtn.disabled = false;
+    replayBtn.disabled = watchSession.paused;
     pauseBtn.disabled = false;
     pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
     nextBtn.disabled = !session.watchStep3Complete || watchSession.paused || watchFinished;
@@ -564,7 +564,7 @@
     var step3Stage = panel.querySelector(".step3-stage");
     if (step3Stage && watchSession.paused) step3Stage.classList.add("is-paused");
     backBtn.disabled = watchSession.paused;
-    replayBtn.disabled = false;
+    replayBtn.disabled = watchSession.paused;
     pauseBtn.disabled = false;
     pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
     nextBtn.disabled = !session.watchStep3Complete || watchSession.paused || watchFinished;
@@ -657,6 +657,10 @@
 
   replayBtn.addEventListener("click", function () {
     if (!watchSession) return;
+    if (watchSession.paused) {
+      announce("Watch is paused. Resume before replaying this step.");
+      return;
+    }
     if (watchFinished) {
       reopenCompletedWatch();
       renderWatch();
@@ -676,6 +680,7 @@
       var step3Stage = panel.querySelector(".step3-stage");
       if (step3Stage) step3Stage.classList.toggle("is-paused", watchSession.paused);
       backBtn.disabled = watchSession.paused;
+      replayBtn.disabled = watchSession.paused;
       nextBtn.disabled = watchSession.paused || !session.watchStep3Complete || watchFinished;
       pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
       return;
