@@ -230,6 +230,36 @@
     return svg;
   }
 
+  function butaneImpliedHydrogensSvg(showGhosts) {
+    var carbons = [
+      ["C1",130,190],["C2",270,190],["C3",410,190],["C4",550,190]
+    ];
+    var hydrogens = [
+      [75,190,130,190],[130,105,130,158],[130,275,130,222],
+      [270,105,270,158],[270,275,270,222],
+      [410,105,410,158],[410,275,410,222],
+      [550,105,550,158],[550,275,550,222],[605,190,550,190]
+    ];
+    var svg = '<svg class="molecule-svg step3-stage" viewBox="0 0 680 330" role="group" aria-label="The same butane molecule. Four carbon labels and three carbon-carbon bonds are written. Ten carbon-bound hydrogens are still part of the molecular model but their labels are now omitted.">';
+    svg += '<g class="step3-cc-bonds" aria-hidden="true"><line x1="158" y1="190" x2="242" y2="190"/><line x1="298" y1="190" x2="382" y2="190"/><line x1="438" y1="190" x2="522" y2="190"/></g>';
+    hydrogens.forEach(function (h, index) {
+      var tx = h[0] + (h[0] < 100 ? -14 : h[0] > 590 ? 6 : -10);
+      var ty = h[1] + (h[1] < 150 ? -3 : h[1] > 230 ? 18 : 7);
+      svg += '<line class="step3-hydrogen-bond-hidden" data-fade-order="' + (index + 1) + '" x1="' + h[2] + '" y1="' + h[3] + '" x2="' + h[0] + '" y2="' + h[1] + '" aria-hidden="true"/>';
+      svg += '<text data-step3-hydrogen="H' + (index + 1) + '" data-fade-order="' + (index + 1) + '" class="hydrogen step3-hydrogen-hidden" x="' + tx + '" y="' + ty + '" aria-hidden="true">H</text>';
+    });
+    carbons.forEach(function (c, index) {
+      svg += '<g data-step3-carbon="' + c[0] + '" class="step3-carbon' + (index === 0 ? " terminal-carbon-highlight" : "") + '" aria-hidden="true"><circle cx="' + c[1] + '" cy="' + c[2] + '" r="31"/><text x="' + (c[1]-12) + '" y="' + (c[2]+10) + '">C</text></g>';
+    });
+    if (showGhosts) {
+      svg += '<text class="implied-h-ghost" x="70" y="197">H</text>';
+      svg += '<text class="implied-h-ghost" x="118" y="105">H</text>';
+      svg += '<text class="implied-h-ghost" x="118" y="287">H</text>';
+    }
+    svg += "</svg>";
+    return svg;
+  }
+
   function updateCarbonSelectionInPlace(node, result) {
     var carbonId = node.getAttribute("data-carbon-id");
     node.classList.add("selected");
@@ -295,6 +325,39 @@
     }
     feedback.textContent = result.feedback;
     nextBtn.disabled = !session.watchStep2Complete || watchSession.paused || watchFinished;
+  }
+
+  function showStep3SuccessInPlace(button, result) {
+    if (button) {
+      panel.querySelectorAll(".step3-choice").forEach(function (choice) {
+        choice.classList.toggle("selected", choice === button);
+        choice.setAttribute("aria-pressed", choice === button ? "true" : "false");
+      });
+    }
+    var svg = panel.querySelector(".step3-stage");
+    if (svg && !svg.querySelector(".implied-h-ghost")) {
+      [
+        ["70","197"], ["118","105"], ["118","287"]
+      ].forEach(function (point) {
+        var ghost = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        ghost.setAttribute("class", "implied-h-ghost");
+        ghost.setAttribute("x", point[0]);
+        ghost.setAttribute("y", point[1]);
+        ghost.textContent = "H";
+        svg.appendChild(ghost);
+      });
+    }
+    var feedback = document.getElementById("step3Feedback");
+    if (!feedback) {
+      feedback = document.createElement("div");
+      feedback.id = "step3Feedback";
+      feedback.className = "success-box";
+      feedback.setAttribute("role", "status");
+      panel.appendChild(feedback);
+    }
+    feedback.textContent = result.feedback;
+    status.textContent = "Three implied hydrogens recovered. You control when to move on.";
+    nextBtn.disabled = watchSession.paused || watchFinished;
   }
 
   function ensureWatchSession() {
@@ -388,20 +451,137 @@
     nextBtn.disabled = !session.watchStep2Complete || watchSession.paused || watchFinished;
   }
 
+  function renderWatchStep3Repair() {
+    var step = Slice.WATCH_SEQUENCE.steps[2];
+    setPhase("Watch · I Do · Step 3 · representation switch", "Same carbon, different view. Count the slots instead of guessing the hidden H count.");
+    panel.innerHTML =
+      '<h1>Switch views: count the bond slots</h1>' +
+      teacher("We are not going to repeat the same sentence. We will show carbon's four bond slots and mark the C—C bond that is already using one of them.") +
+      '<div class="step3-slot-board" data-step3-repair-slots aria-label="Carbon with four bond slots; one occupied by the carbon-carbon bond and three still open">' +
+        '<div class="step3-slot occupied" data-step3-slot="occupied">C—C</div>' +
+        '<div class="step3-slot open" data-step3-slot="open">open</div>' +
+        '<div class="step3-slot open" data-step3-slot="open">open</div>' +
+        '<div class="step3-slot open" data-step3-slot="open">open</div>' +
+        '<div class="step3-slot-carbon">C</div>' +
+      '</div>' +
+      '<div class="prompt-card"><div class="eyebrow">Different representation</div><h2 id="step3RepairPrompt" tabindex="-1">' + escapeHtml(step.repair.prompt) + '</h2></div>';
+
+    var repairChoices = choiceButtons(step.repair.choices, function (value, button) {
+      if (watchSession.paused) {
+        announce("Watch is paused. Press Pause again to resume before answering.");
+        return;
+      }
+      var result = Slice.submitWatchStep3Repair(session, value);
+      if (!result.accepted) return;
+      announce(result.feedback);
+      if (!result.correct) {
+        var feedback = panel.querySelector(".step3-repair-feedback");
+        if (!feedback) {
+          feedback = document.createElement("div");
+          feedback.className = "prediction-feedback step3-repair-feedback";
+          feedback.setAttribute("role", "status");
+          panel.appendChild(feedback);
+        }
+        feedback.textContent = result.feedback;
+        return;
+      }
+      panel.querySelectorAll(".step3-repair-choice").forEach(function (choice) {
+        choice.classList.toggle("selected", choice === button);
+      });
+      var success = document.createElement("div");
+      success.id = "step3Feedback";
+      success.className = "success-box";
+      success.setAttribute("role", "status");
+      success.textContent = result.feedback;
+      panel.appendChild(success);
+      status.textContent = "Three implied hydrogens reconnected. You control when to move on.";
+      nextBtn.disabled = watchSession.paused || watchFinished;
+      speak(result.feedback);
+    });
+    repairChoices.querySelectorAll("button").forEach(function (button) { button.classList.add("step3-repair-choice"); });
+    panel.appendChild(repairChoices);
+    backBtn.disabled = watchSession.paused;
+    replayBtn.disabled = false;
+    pauseBtn.disabled = false;
+    pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
+    nextBtn.disabled = !session.watchStep3Complete || watchSession.paused || watchFinished;
+    var prompt = document.getElementById("step3RepairPrompt");
+    if (prompt) prompt.focus();
+  }
+
+  function renderWatchStep3() {
+    if (session.watchStep3RepairActive) {
+      renderWatchStep3Repair();
+      return;
+    }
+    var step = Slice.WATCH_SEQUENCE.steps[2];
+    setPhase("Watch · I Do · Step 3", session.watchStep3Complete ? "Three implied hydrogens recovered. You control when to move on." : "The H labels are omitted, but the atoms are still implied.");
+    panel.innerHTML =
+      '<h1>Hide the carbon-bound H labels</h1>' +
+      teacher(step.narration) +
+      '<div class="same-molecule-banner">' + escapeHtml(step.visual.banner) + '</div>' +
+      '<div class="watch-stage">' + butaneImpliedHydrogensSvg(session.watchStep3Complete) + '</div>' +
+      '<div class="prompt-card"><div class="eyebrow">Recover what is hidden</div><h2 id="step3HydrogenPrompt">' + escapeHtml(step.interaction.prompt) + '</h2></div>';
+
+    var choices = choiceButtons(step.interaction.choices, function (value, button) {
+      if (watchSession.paused) {
+        announce("Watch is paused. Press Pause again to resume before answering.");
+        return;
+      }
+      var result = Slice.submitWatchStep3Hydrogen(session, value);
+      if (!result.accepted) {
+        if (result.reason === "already_answered") announce("This Watch interaction is already complete. Use Next when you are ready.");
+        return;
+      }
+      announce(result.feedback);
+      if (!result.correct && result.repairRequired) {
+        renderWatchStep3Repair();
+        return;
+      }
+      showStep3SuccessInPlace(button, result);
+      speak(result.feedback);
+    });
+    choices.classList.add("step3-choice-grid");
+    choices.setAttribute("role", "group");
+    choices.setAttribute("aria-labelledby", "step3HydrogenPrompt");
+    choices.querySelectorAll("button").forEach(function (button) {
+      button.classList.add("step3-choice");
+      button.setAttribute("aria-pressed", String(session.watchStep3Complete && Number(button.textContent.trim()) === 3));
+      if (session.watchStep3Complete && Number(button.textContent.trim()) === 3) button.classList.add("selected");
+    });
+    panel.appendChild(choices);
+
+    if (session.watchStep3Complete) {
+      var existing = document.createElement("div");
+      existing.id = "step3Feedback";
+      existing.className = "success-box";
+      existing.setAttribute("role", "status");
+      existing.textContent = "Yes. The three remaining bond slots reconnect to three implied hydrogens.";
+      panel.appendChild(existing);
+    }
+
+    backBtn.disabled = watchSession.paused;
+    replayBtn.disabled = false;
+    pauseBtn.disabled = false;
+    pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
+    nextBtn.disabled = !session.watchStep3Complete || watchSession.paused || watchFinished;
+  }
+
   function renderWatch() {
     ensureWatchSession();
     controls.hidden = false;
-    if (watchSession.currentIndex === 1 || session.phase === "watch_step_2") renderWatchStep2();
+    if (watchSession.currentIndex === 2 || session.phase === "watch_step_3") renderWatchStep3();
+    else if (watchSession.currentIndex === 1 || session.phase === "watch_step_2") renderWatchStep2();
     else renderWatchStep1();
   }
 
   function renderSliceComplete() {
     controls.hidden = false;
-    setPhase("Watch · Step 2 complete", "Slice 2 stops here. No mastery claim has been made.");
+    setPhase("Watch · Step 3 complete", "Slice 3 stops here. No mastery claim has been made.");
     panel.innerHTML =
-      '<h1>Step 2 is working.</h1>' +
-      teacher("You saw that the hydrogens can become less visually prominent while remaining part of the same molecule, and you named the connected carbon pattern as the carbon skeleton. The next Watch step will hide carbon-bound hydrogen labels without breaking any bonds. Nothing here counts as independent mastery evidence.") +
-      '<div class="success-box">Runtime Slice 2 complete: the same butane moved from fully expanded structure to carbon-skeleton emphasis, with a prediction before any labels are hidden.</div>';
+      '<h1>Step 3 is working.</h1>' +
+      teacher("You kept the same butane molecule while its carbon-bound hydrogen labels disappeared, then recovered a terminal carbon's implied hydrogens by counting from the visible bond total to four. If that count was uncertain, we switched to four bond slots instead of repeating the same explanation. Nothing here counts as independent mastery evidence.") +
+      '<div class="success-box">Runtime Slice 3 complete: same molecule, fewer written labels, with hidden hydrogens recovered from carbon bond count.</div>';
     nextBtn.disabled = true;
     backBtn.disabled = false;
     replayBtn.disabled = false;
@@ -415,7 +595,7 @@
     else if (session.phase === "repair_p1") renderRepairP1();
     else if (session.phase === "gate_p2") renderGateP2();
     else if (session.phase === "repair_p2") renderRepairP2();
-    else if (session.phase === "watch_step_1" || session.phase === "watch_step_2") renderWatch();
+    else if (session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3") renderWatch();
   }
 
   nextBtn.addEventListener("click", function () {
@@ -435,9 +615,20 @@
     if (watchSession.currentIndex === 1) {
       if (!session.watchStep2Complete) return;
       var step2Result = Watch.next(watchSession, Slice.WATCH_SEQUENCE, Date.now());
-      if (step2Result.reason === "completed") {
+      if (step2Result.changed && watchSession.currentIndex === 2) {
+        Slice.syncWatchPhase(session, 2);
+        announce("Watch Step 3. The carbon-bound hydrogen labels are no longer written, but the hydrogens are still implied.");
+        renderWatch();
+      }
+      return;
+    }
+
+    if (watchSession.currentIndex === 2) {
+      if (!session.watchStep3Complete) return;
+      var step3Result = Watch.next(watchSession, Slice.WATCH_SEQUENCE, Date.now());
+      if (step3Result.reason === "completed") {
         watchFinished = true;
-        announce("Watch Step 2 complete.");
+        announce("Watch Step 3 complete.");
         render();
       }
     }
