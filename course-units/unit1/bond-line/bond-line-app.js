@@ -245,8 +245,9 @@
     hydrogens.forEach(function (h, index) {
       var tx = h[0] + (h[0] < 100 ? -14 : h[0] > 590 ? 6 : -10);
       var ty = h[1] + (h[1] < 150 ? -3 : h[1] > 230 ? 18 : 7);
-      svg += '<line class="step3-hydrogen-bond-hidden" data-fade-order="' + (index + 1) + '" x1="' + h[2] + '" y1="' + h[3] + '" x2="' + h[0] + '" y2="' + h[1] + '" aria-hidden="true"/>';
-      svg += '<text data-step3-hydrogen="H' + (index + 1) + '" data-fade-order="' + (index + 1) + '" class="hydrogen step3-hydrogen-hidden" x="' + tx + '" y="' + ty + '" aria-hidden="true">H</text>';
+      var fadeDelay = index * 180;
+      svg += '<line class="step3-hydrogen-bond-hidden" data-fade-order="' + (index + 1) + '" style="animation-delay:' + fadeDelay + 'ms" x1="' + h[2] + '" y1="' + h[3] + '" x2="' + h[0] + '" y2="' + h[1] + '" aria-hidden="true"/>';
+      svg += '<text data-step3-hydrogen="H' + (index + 1) + '" data-fade-order="' + (index + 1) + '" class="hydrogen step3-hydrogen-hidden" style="animation-delay:' + fadeDelay + 'ms" x="' + tx + '" y="' + ty + '" aria-hidden="true">H</text>';
     });
     carbons.forEach(function (c, index) {
       svg += '<g data-step3-carbon="' + c[0] + '" class="step3-carbon' + (index === 0 ? " terminal-carbon-highlight" : "") + '" aria-hidden="true"><circle cx="' + c[1] + '" cy="' + c[2] + '" r="31"/><text x="' + (c[1]-12) + '" y="' + (c[2]+10) + '">C</text></g>';
@@ -667,6 +668,16 @@
     if (!watchSession || watchFinished) return;
     var result = Watch.pause(watchSession, Slice.WATCH_SEQUENCE, Date.now());
     announce(result.reason === "paused" ? "Watch paused. The visual will stay exactly here." : "Watch resumed.");
+
+    if (session.phase === "watch_step_3") {
+      var step3Stage = panel.querySelector(".step3-stage");
+      if (step3Stage) step3Stage.classList.toggle("is-paused", watchSession.paused);
+      backBtn.disabled = watchSession.paused;
+      nextBtn.disabled = watchSession.paused || !session.watchStep3Complete || watchFinished;
+      pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
+      return;
+    }
+
     renderWatch();
   });
 
