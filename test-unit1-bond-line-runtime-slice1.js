@@ -173,7 +173,7 @@ if (app) {
     app.indexOf('class=\"molecule-svg\" viewBox=\"0 0 680 330\" role=\"group\"') !== -1);
   check("successful carbon selections update in place instead of rebuilding the focused SVG",
     app.indexOf("function updateCarbonSelectionInPlace") !== -1 &&
-    /if \(result\.accepted\)[\s\S]{0,500}updateCarbonSelectionInPlace\(node, result\)/.test(app));
+    /if\s*\(\s*result\.accepted\s*\)[\s\S]{0,500}updateCarbonSelectionInPlace\(\s*node\s*,\s*result\s*\)/.test(app));
 }
 
 console.log("\n=== SUMMARY: " + passed + " passed, " + failed + " failed ===");
