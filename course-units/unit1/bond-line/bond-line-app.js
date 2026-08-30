@@ -9,6 +9,7 @@
   var watchSession = null;
   var watchFinished = false;
   var repairFeedback = { P1: "", P2: "" };
+  var step4GateCleanups = [];
 
   var panel = document.getElementById("lessonPanel");
   var phaseLabel = document.getElementById("phaseLabel");
@@ -90,73 +91,131 @@
     return function () {};
   }
 
+  function clearStep4GateListeners() {
+    step4GateCleanups.splice(0).forEach(function (cleanup) { cleanup(); });
+  }
+
+  function trackStep4GateCleanup(cleanup) {
+    step4GateCleanups.push(cleanup);
+  }
+
+  function hasNamedAnimation(node, animationName) {
+    var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
+    return !!(computed && computed.animationName && computed.animationName !== "none" &&
+      String(computed.animationName).split(",").some(function (name) { return name.trim() === animationName; }));
+  }
+
   function gateChoiceGridUntilAnimationEnd(grid, node, animationName, readyMessage) {
     var buttons = Array.prototype.slice.call(grid.querySelectorAll("button"));
     if (!buttons.length || !node) return;
     var motionQuery = reducedMotionQuery();
-    if (motionQuery && motionQuery.matches) return;
-    var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
-    if (!computed || !computed.animationName || computed.animationName === "none") return;
-    buttons.forEach(function (button) { button.disabled = true; });
-    var released = false;
+    var cleaned = false;
     var removeMotionListener = function () {};
+
+    function setEnabled(enabled) {
+      buttons.forEach(function (button) { button.disabled = !enabled; });
+    }
+
     function cleanup() {
-      node.removeEventListener("animationend", release);
-      node.removeEventListener("animationcancel", release);
+      if (cleaned) return;
+      cleaned = true;
+      node.removeEventListener("animationend", onAnimationFinished);
+      node.removeEventListener("animationcancel", onAnimationFinished);
       removeMotionListener();
     }
-    function release(event) {
-      if (released) return;
-      if (event && event.type === "change" && !event.matches) return;
-      if (event && (event.type === "animationend" || event.type === "animationcancel") &&
-          event.animationName && event.animationName !== animationName) return;
-      released = true;
-      cleanup();
-      if (!node.isConnected) return;
-      buttons.forEach(function (button) { button.disabled = false; });
+
+    function release() {
+      if (cleaned || !node.isConnected) { cleanup(); return; }
+      setEnabled(true);
       if (readyMessage) announce(readyMessage);
     }
-    node.addEventListener("animationend", release);
-    node.addEventListener("animationcancel", release);
-    removeMotionListener = addMediaChangeListener(motionQuery, release);
+
+    function armForCurrentMotion() {
+      if (cleaned || !node.isConnected) { cleanup(); return; }
+      if (motionQuery && motionQuery.matches) {
+        setEnabled(true);
+        return;
+      }
+      if (hasNamedAnimation(node, animationName)) {
+        setEnabled(false);
+      } else {
+        setEnabled(true);
+      }
+    }
+
+    function onAnimationFinished(event) {
+      if (event && event.animationName && event.animationName !== animationName) return;
+      release();
+    }
+
+    function onMotionChange(event) {
+      if (cleaned || !node.isConnected) { cleanup(); return; }
+      if (event && event.matches) release();
+      else armForCurrentMotion();
+    }
+
+    node.addEventListener("animationend", onAnimationFinished);
+    node.addEventListener("animationcancel", onAnimationFinished);
+    removeMotionListener = addMediaChangeListener(motionQuery, onMotionChange);
+    trackStep4GateCleanup(cleanup);
+    armForCurrentMotion();
   }
 
   function gateControlUntilAnimationEnd(control, node, animationName, readyMessage) {
     if (!control || !node) return;
     var motionQuery = reducedMotionQuery();
-    if (motionQuery && motionQuery.matches) {
-      node.setAttribute("data-animation-gate-complete", "true");
-      return;
-    }
-    var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
-    if (!computed || !computed.animationName || computed.animationName === "none") {
-      node.setAttribute("data-animation-gate-complete", "true");
-      return;
-    }
-    node.setAttribute("data-animation-gate-complete", "false");
-    control.disabled = true;
-    var released = false;
+    var cleaned = false;
     var removeMotionListener = function () {};
+
+    function controlReady() {
+      return !(watchSession && watchSession.paused) && !watchFinished && session.watchStep4Complete;
+    }
+
     function cleanup() {
-      node.removeEventListener("animationend", release);
-      node.removeEventListener("animationcancel", release);
+      if (cleaned) return;
+      cleaned = true;
+      node.removeEventListener("animationend", onAnimationFinished);
+      node.removeEventListener("animationcancel", onAnimationFinished);
       removeMotionListener();
     }
-    function release(event) {
-      if (released) return;
-      if (event && event.type === "change" && !event.matches) return;
-      if (event && (event.type === "animationend" || event.type === "animationcancel") &&
-          event.animationName && event.animationName !== animationName) return;
-      released = true;
-      cleanup();
-      if (!node.isConnected) return;
+
+    function markComplete() {
+      if (cleaned || !node.isConnected) { cleanup(); return; }
       node.setAttribute("data-animation-gate-complete", "true");
-      control.disabled = !!(watchSession && watchSession.paused) || watchFinished || !session.watchStep4Complete;
+      control.disabled = !controlReady();
       if (readyMessage) announce(readyMessage);
     }
-    node.addEventListener("animationend", release);
-    node.addEventListener("animationcancel", release);
-    removeMotionListener = addMediaChangeListener(motionQuery, release);
+
+    function armForCurrentMotion() {
+      if (cleaned || !node.isConnected) { cleanup(); return; }
+      if (motionQuery && motionQuery.matches) {
+        markComplete();
+        return;
+      }
+      if (hasNamedAnimation(node, animationName)) {
+        node.setAttribute("data-animation-gate-complete", "false");
+        control.disabled = true;
+      } else {
+        markComplete();
+      }
+    }
+
+    function onAnimationFinished(event) {
+      if (event && event.animationName && event.animationName !== animationName) return;
+      markComplete();
+    }
+
+    function onMotionChange(event) {
+      if (cleaned || !node.isConnected) { cleanup(); return; }
+      if (event && event.matches) markComplete();
+      else armForCurrentMotion();
+    }
+
+    node.addEventListener("animationend", onAnimationFinished);
+    node.addEventListener("animationcancel", onAnimationFinished);
+    removeMotionListener = addMediaChangeListener(motionQuery, onMotionChange);
+    trackStep4GateCleanup(cleanup);
+    armForCurrentMotion();
   }
 
   function updateRepairFeedbackInPlace(repairId, text) {
@@ -174,6 +233,7 @@
   }
 
   function renderOrientation() {
+    clearStep4GateListeners();
     hideWatchControls();
     setPhase("Orient", "No score. We are setting up the mental model.");
     panel.innerHTML =
@@ -189,6 +249,7 @@
   }
 
   function renderGateP1() {
+    clearStep4GateListeners();
     hideWatchControls();
     setPhase("Diagnose · prerequisite 1 of 2", "This is the smallest check Bond-Line needs.");
     var gate = Slice.GATES.P1;
@@ -205,6 +266,7 @@
   }
 
   function renderRepairP1() {
+    clearStep4GateListeners();
     hideWatchControls();
     setPhase("Teach · tiny prerequisite repair", "Only the missing carbon-bond idea is being repaired.");
     var repair = Slice.REPAIRS.P1;
@@ -225,6 +287,7 @@
   }
 
   function renderGateP2() {
+    clearStep4GateListeners();
     hideWatchControls();
     setPhase("Diagnose · prerequisite 2 of 2", "One last tiny check before teaching begins.");
     var gate = Slice.GATES.P2;
@@ -242,6 +305,7 @@
   }
 
   function renderRepairP2() {
+    clearStep4GateListeners();
     hideWatchControls();
     setPhase("Teach · tiny prerequisite repair", "Atoms are positions. Lines are connections.");
     var repair = Slice.REPAIRS.P2;
@@ -486,6 +550,7 @@
   }
 
   function renderWatchStep1() {
+    clearStep4GateListeners();
     setPhase("Watch · I Do · Step 1", session.watchStep1Complete ? "Four carbons identified. You control when to move on." : "Tap all four carbon atoms before moving on.");
     var narration = Slice.WATCH_SEQUENCE.steps[0].narration;
     panel.innerHTML = '<h1>Start with everything visible</h1>' + teacher(narration) + '<div class="watch-stage">' + butaneSvg(session.watchCarbonIds) + '</div>' +
@@ -498,6 +563,7 @@
   }
 
   function renderWatchStep2() {
+    clearStep4GateListeners();
     var step = Slice.WATCH_SEQUENCE.steps[1];
     setPhase("Watch · I Do · Step 2", session.watchStep2Complete ? "Prediction recorded. You control when to move on." : "Notice what is emphasized before you predict what changes.");
     panel.innerHTML = '<h1>See the carbon skeleton</h1>' + teacher(step.narration) +
@@ -528,6 +594,7 @@
   }
 
   function renderWatchStep3Repair() {
+    clearStep4GateListeners();
     var step = Slice.WATCH_SEQUENCE.steps[2];
     setPhase("Watch · I Do · Step 3 · representation switch", "Same carbon, different view. Count the slots instead of guessing the hidden H count.");
     panel.innerHTML = '<h1>Switch views: count the bond slots</h1>' +
@@ -555,6 +622,7 @@
   }
 
   function renderWatchStep3(options) {
+    clearStep4GateListeners();
     if (session.watchStep3RepairActive) { renderWatchStep3Repair(); return; }
     var step = Slice.WATCH_SEQUENCE.steps[2];
     var suppressCompletionGhosts = !!(options && options.suppressCompletionGhosts);
@@ -586,6 +654,7 @@
   }
 
   function renderWatchStep4(options) {
+    clearStep4GateListeners();
     var step = Slice.WATCH_SEQUENCE.steps[3];
     var replayVisual = !!(options && options.replayVisual);
     var repairMode = session.watchStep4RepairActive;
@@ -669,6 +738,7 @@
   }
 
   function renderSliceComplete() {
+    clearStep4GateListeners();
     controls.hidden = false;
     setPhase("Watch · Step 4 complete", "Slice 4 stops here. No mastery claim has been made.");
     panel.innerHTML = '<h1>Step 4 is working.</h1>' +
