@@ -3,7 +3,8 @@
  * Real DOM/CSS behavior:
  * 1) collapse animations cannot overlap,
  * 2) prediction choices stay gated until C2 finishes (reduced motion may enable immediately),
- * 3) Replay while the same-position repair is active restarts that repair visual.
+ * 3) Replay while the same-position repair is active restarts that repair visual,
+ * 4) Next stays gated until the final C4 collapse finishes, including repair and completed Replay.
  */
 "use strict";
 
@@ -70,11 +71,18 @@ function reachStep4(dom) {
   doc.getElementById("nextBtn").click();
   return doc;
 }
-function dispatchAnimationEnd(node) {
+function dispatchAnimationEnd(node, animationName) {
+  if (!node) return;
   var win = node.ownerDocument.defaultView;
   var event = new win.Event("animationend", { bubbles: true, cancelable: false });
-  Object.defineProperty(event, "animationName", { value: "step4HideCarbon" });
+  Object.defineProperty(event, "animationName", { value: animationName || "step4HideCarbon" });
   node.dispatchEvent(event);
+}
+function unlockInitialPrediction(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-label="C2"]'), "step4HideCarbon");
+}
+function finishFinalCollapse(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-label="C4"]'), "step4HideCarbon");
 }
 
 console.log("=== COLLAPSE ANIMATIONS MUST NOT OVERLAP ===");
@@ -99,7 +107,7 @@ var phaseBeforeEarlyClick = orderDoc.getElementById("phaseLabel").textContent;
 if (choices[1]) choices[1].click();
 check("disabled prediction cannot complete Step 4 early",
   orderDoc.getElementById("phaseLabel").textContent === phaseBeforeEarlyClick && orderDoc.getElementById("nextBtn").disabled === true);
-if (c2) dispatchAnimationEnd(c2);
+unlockInitialPrediction(orderDoc);
 check("C2 animation end enables all prediction choices",
   choices.length === 3 && choices.every(function (button) { return button.disabled === false; }));
 orderDom.window.close();
@@ -110,13 +118,15 @@ var reducedDoc = reachStep4(reducedDom);
 var reducedChoices = Array.prototype.slice.call(reducedDoc.querySelectorAll(".step4-prediction-grid button"));
 check("reduced-motion path does not wait for an animation that will not run",
   reducedChoices.length === 3 && reducedChoices.every(function (button) { return button.disabled === false; }));
+byText(reducedDoc, "No, the corner now stands for the carbon").click();
+check("reduced-motion completion enables Next immediately",
+  reducedDoc.getElementById("nextBtn").disabled === false);
 reducedDom.window.close();
 
 console.log("\n=== REPAIR REPLAY RESTARTS THE SAME C2 TOGGLE ===");
 var repairDom = buildApp(false);
 var repairDoc = reachStep4(repairDom);
-var repairC2 = repairDoc.querySelector('[data-step4-label="C2"]');
-if (repairC2) dispatchAnimationEnd(repairC2);
+unlockInitialPrediction(repairDoc);
 var yes = byText(repairDoc, "Yes");
 check("precondition: Yes becomes available after C2 finishes", !!yes && yes.disabled === false);
 if (yes) yes.click();
@@ -133,11 +143,51 @@ if (toggleAfter) {
   check("replayed repair still carries the three-iteration toggle animation",
     /step4ToggleCarbon/i.test(toggleStyle.animationName || "") && parseFloat(toggleStyle.animationIterationCount || "0") === 3);
 }
+repairDom.window.close();
+
+console.log("\n=== NEXT WAITS FOR FINAL C4 COLLAPSE AFTER DIRECT CORRECT ===");
+var directDom = buildApp(false);
+var directDoc = reachStep4(directDom);
+unlockInitialPrediction(directDoc);
+byText(directDoc, "No, the corner now stands for the carbon").click();
+check("direct correct answer starts the C3/C4 continuation but keeps Next disabled",
+  !!directDoc.querySelector('[data-step4-label="C4"]') && directDoc.getElementById("nextBtn").disabled === true);
+finishFinalCollapse(directDoc);
+check("C4 animation end releases Next after direct correct",
+  directDoc.getElementById("nextBtn").disabled === false);
+
+console.log("\n=== COMPLETED STEP 4 REPLAY REGATES NEXT UNTIL C4 ===");
+var completedStageBeforeReplay = directDoc.querySelector("[data-step4-visual]");
+directDoc.getElementById("replayBtn").click();
+var completedStageAfterReplay = directDoc.querySelector("[data-step4-visual]");
+check("completed Step 4 Replay remounts the four-label collapse visual",
+  !!completedStageBeforeReplay && !!completedStageAfterReplay && completedStageAfterReplay !== completedStageBeforeReplay);
+check("completed Step 4 Replay disables Next while the replayed sequence is running",
+  directDoc.getElementById("nextBtn").disabled === true);
+finishFinalCollapse(directDoc);
+check("completed Replay releases Next only when replayed C4 finishes",
+  directDoc.getElementById("nextBtn").disabled === false);
+directDom.window.close();
+
+console.log("\n=== REPAIR CORRECTION ALSO WAITS FOR FINAL C4 COLLAPSE ===");
+var correctedDom = buildApp(false);
+var correctedDoc = reachStep4(correctedDom);
+unlockInitialPrediction(correctedDoc);
+byText(correctedDoc, "Yes").click();
+dispatchAnimationEnd(correctedDoc.querySelector('[data-step4-toggle-carbon="C2"]'), "step4ToggleCarbon");
+var correctedChoice = byText(correctedDoc, "No, the corner now stands for the carbon");
+check("repair correction becomes available after the three-toggle repair", !!correctedChoice && correctedChoice.disabled === false);
+if (correctedChoice) correctedChoice.click();
+check("corrected answer keeps Next disabled while C3/C4 finish collapsing",
+  correctedDoc.getElementById("nextBtn").disabled === true);
+finishFinalCollapse(correctedDoc);
+check("corrected path releases Next when C4 finishes",
+  correctedDoc.getElementById("nextBtn").disabled === false);
+correctedDom.window.close();
 
 check("Codex fixes add no JavaScript timer-driven advancement",
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setTimeout(") === -1 &&
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setInterval(") === -1);
-repairDom.window.close();
 
 console.log("\n=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
 if (failed) process.exit(1);
