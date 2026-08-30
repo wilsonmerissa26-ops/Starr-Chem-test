@@ -28,6 +28,19 @@ function activate(node) {
   var win = node.ownerDocument.defaultView;
   node.dispatchEvent(new win.MouseEvent("click", { bubbles: true, cancelable: true }));
 }
+function dispatchAnimationEnd(node, animationName) {
+  if (!node) return;
+  var win = node.ownerDocument.defaultView;
+  var event = new win.Event("animationend", { bubbles: true, cancelable: false });
+  Object.defineProperty(event, "animationName", { value: animationName });
+  node.dispatchEvent(event);
+}
+function unlockStep4Prediction(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-label="C2"]'), "step4HideCarbon");
+}
+function unlockStep4Repair(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-toggle-carbon="C2"]'), "step4ToggleCarbon");
+}
 function buildApp() {
   var dom = new JSDOM(read("course-units/unit1/bond-line/index.html"), {
     runScripts: "outside-only",
@@ -144,6 +157,7 @@ check("prediction choices are programmatically associated with the visible quest
   !!predictionGroup && !!predictionGroup.querySelector("button"));
 check("Next is gated before the Step 4 prediction is resolved", docA.getElementById("nextBtn").disabled === true);
 
+unlockStep4Prediction(docA);
 var correctChoice = byText(docA, "No, the corner now stands for the carbon");
 if (correctChoice) {
   correctChoice.click();
@@ -155,6 +169,7 @@ if (correctChoice) {
 console.log("\n=== WRONG ANSWER MUST TOGGLE THE SAME VERTEX ===");
 var appB = buildApp();
 var docB = reachStep4(appB);
+unlockStep4Prediction(docB);
 var yes = byText(docB, "Yes");
 if (yes) {
   yes.click();
@@ -165,6 +180,7 @@ if (yes) {
   check("repair keeps the same prediction question available for correction",
     docB.body.textContent.indexOf("The letter C disappeared from this corner. Did the carbon atom disappear?") !== -1);
   check("Next remains gated during the repair", docB.getElementById("nextBtn").disabled === true);
+  unlockStep4Repair(docB);
   var corrected = byText(docB, "No, the corner now stands for the carbon");
   if (corrected) {
     corrected.click();
@@ -190,6 +206,7 @@ check("Resume keeps the exact Step 4 visual node mounted", svgBeforePause && svg
 console.log("\n=== CURRENT FINAL COMPLETION BACK RETURNS ONE STEP ===");
 var appD = buildApp();
 var docD = reachStep4(appD);
+unlockStep4Prediction(docD);
 byText(docD, "No, the corner now stands for the carbon").click();
 check("precondition: completed Step 4 enables Next", docD.getElementById("nextBtn").disabled === false);
 docD.getElementById("nextBtn").click();
