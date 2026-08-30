@@ -5,7 +5,8 @@
  * 2) prediction choices stay gated until C2 finishes (reduced motion may enable immediately),
  * 3) Replay while the same-position repair is active restarts that repair visual,
  * 4) Next stays gated until the final C4 collapse finishes, including repair and completed Replay,
- * 5) Pause/Resume restores Next only when the completed final visual is already ready.
+ * 5) Pause/Resume restores Next only when the completed final visual is already ready,
+ * 6) switching reduced motion on mid-animation releases every affected gate without timers.
  */
 "use strict";
 
@@ -40,14 +41,43 @@ function buildApp(reducedMotion) {
     runScripts: "outside-only", pretendToBeVisual: true,
     url: "https://example.test/course-units/unit1/bond-line/"
   });
+  var motionListeners = [];
+  var reducedMql = {
+    matches: !!reducedMotion,
+    media: "(prefers-reduced-motion: reduce)",
+    onchange: null,
+    addListener: function (fn) {
+      if (motionListeners.indexOf(fn) === -1) motionListeners.push(fn);
+    },
+    removeListener: function (fn) {
+      motionListeners = motionListeners.filter(function (item) { return item !== fn; });
+    },
+    addEventListener: function (type, fn) {
+      if (type === "change" && motionListeners.indexOf(fn) === -1) motionListeners.push(fn);
+    },
+    removeEventListener: function (type, fn) {
+      if (type === "change") motionListeners = motionListeners.filter(function (item) { return item !== fn; });
+    },
+    dispatchEvent: function (event) {
+      motionListeners.slice().forEach(function (fn) { fn.call(reducedMql, event); });
+      if (typeof reducedMql.onchange === "function") reducedMql.onchange.call(reducedMql, event);
+      return true;
+    }
+  };
   dom.window.matchMedia = function (query) {
+    if (/prefers-reduced-motion\s*:\s*reduce/.test(query)) return reducedMql;
     return {
-      matches: !!reducedMotion && /prefers-reduced-motion\s*:\s*reduce/.test(query),
-      media: query,
-      onchange: null,
+      matches: false, media: query, onchange: null,
       addListener: function () {}, removeListener: function () {},
       addEventListener: function () {}, removeEventListener: function () {}, dispatchEvent: function () { return true; }
     };
+  };
+  dom.setReducedMotion = function (value) {
+    reducedMql.matches = !!value;
+    var event = new dom.window.Event("change");
+    Object.defineProperty(event, "matches", { value: reducedMql.matches });
+    Object.defineProperty(event, "media", { value: reducedMql.media });
+    reducedMql.dispatchEvent(event);
   };
   Object.defineProperty(dom.window, "speechSynthesis", {
     configurable: true, value: { cancel: function () {}, speak: function () {} }
@@ -76,6 +106,13 @@ function dispatchAnimationEnd(node, animationName) {
   if (!node) return;
   var win = node.ownerDocument.defaultView;
   var event = new win.Event("animationend", { bubbles: true, cancelable: false });
+  Object.defineProperty(event, "animationName", { value: animationName || "step4HideCarbon" });
+  node.dispatchEvent(event);
+}
+function dispatchAnimationCancel(node, animationName) {
+  if (!node) return;
+  var win = node.ownerDocument.defaultView;
+  var event = new win.Event("animationcancel", { bubbles: true, cancelable: false });
   Object.defineProperty(event, "animationName", { value: animationName || "step4HideCarbon" });
   node.dispatchEvent(event);
 }
@@ -113,6 +150,28 @@ check("C2 animation end enables all prediction choices",
   choices.length === 3 && choices.every(function (button) { return button.disabled === false; }));
 orderDom.window.close();
 
+console.log("\n=== ANIMATION CANCELLATION RELEASES THE INITIAL C2 GATE ===");
+var cancelDom = buildApp(false);
+var cancelDoc = reachStep4(cancelDom);
+var cancelChoices = Array.prototype.slice.call(cancelDoc.querySelectorAll(".step4-prediction-grid button"));
+check("precondition: initial prediction is gated before cancellation",
+  cancelChoices.length === 3 && cancelChoices.every(function (button) { return button.disabled === true; }));
+dispatchAnimationCancel(cancelDoc.querySelector('[data-step4-label="C2"]'), "step4HideCarbon");
+check("animationcancel releases the initial prediction gate",
+  cancelChoices.length === 3 && cancelChoices.every(function (button) { return button.disabled === false; }));
+cancelDom.window.close();
+
+console.log("\n=== TURNING REDUCED MOTION ON MID-C2 RELEASES PREDICTION ===");
+var liveMotionDom = buildApp(false);
+var liveMotionDoc = reachStep4(liveMotionDom);
+var liveMotionChoices = Array.prototype.slice.call(liveMotionDoc.querySelectorAll(".step4-prediction-grid button"));
+check("precondition: C2 gate is active before preference changes",
+  liveMotionChoices.length === 3 && liveMotionChoices.every(function (button) { return button.disabled === true; }));
+liveMotionDom.setReducedMotion(true);
+check("enabling reduced motion releases the C2 prediction gate without animationend",
+  liveMotionChoices.length === 3 && liveMotionChoices.every(function (button) { return button.disabled === false; }));
+liveMotionDom.window.close();
+
 console.log("\n=== REDUCED MOTION ENABLES PREDICTION IMMEDIATELY ===");
 var reducedDom = buildApp(true);
 var reducedDoc = reachStep4(reducedDom);
@@ -131,6 +190,19 @@ reducedDoc.getElementById("pauseBtn").click();
 check("reduced-motion completed Step 4 Resume restores Next",
   reducedDoc.getElementById("nextBtn").disabled === false);
 reducedDom.window.close();
+
+console.log("\n=== TURNING REDUCED MOTION ON DURING REPAIR RELEASES CORRECTION ===");
+var liveRepairDom = buildApp(false);
+var liveRepairDoc = reachStep4(liveRepairDom);
+unlockInitialPrediction(liveRepairDoc);
+byText(liveRepairDoc, "Yes").click();
+var liveCorrectedChoice = byText(liveRepairDoc, "No, the corner now stands for the carbon");
+check("precondition: repair correction is gated while C2 toggle runs",
+  !!liveCorrectedChoice && liveCorrectedChoice.disabled === true);
+liveRepairDom.setReducedMotion(true);
+check("enabling reduced motion releases the repair correction without toggle animationend",
+  !!liveCorrectedChoice && liveCorrectedChoice.disabled === false);
+liveRepairDom.window.close();
 
 console.log("\n=== REPAIR REPLAY RESTARTS THE SAME C2 TOGGLE ===");
 var repairDom = buildApp(false);
@@ -189,6 +261,21 @@ finishFinalCollapse(directDoc);
 check("completed Replay releases Next only when replayed C4 finishes",
   directDoc.getElementById("nextBtn").disabled === false);
 directDom.window.close();
+
+console.log("\n=== TURNING REDUCED MOTION ON MID-C4 RELEASES NEXT ===");
+var liveFinalDom = buildApp(false);
+var liveFinalDoc = reachStep4(liveFinalDom);
+unlockInitialPrediction(liveFinalDoc);
+byText(liveFinalDoc, "No, the corner now stands for the carbon").click();
+var liveFinalC4 = liveFinalDoc.querySelector('[data-step4-label="C4"]');
+check("precondition: final C4 gate is active before preference changes",
+  !!liveFinalC4 && liveFinalC4.getAttribute("data-animation-gate-complete") === "false" && liveFinalDoc.getElementById("nextBtn").disabled === true);
+liveFinalDom.setReducedMotion(true);
+check("enabling reduced motion marks the final C4 gate complete",
+  !!liveFinalC4 && liveFinalC4.getAttribute("data-animation-gate-complete") === "true");
+check("enabling reduced motion releases Next without C4 animationend",
+  liveFinalDoc.getElementById("nextBtn").disabled === false);
+liveFinalDom.window.close();
 
 console.log("\n=== REPAIR CORRECTION ALSO WAITS FOR FINAL C4 COLLAPSE ===");
 var correctedDom = buildApp(false);
