@@ -63,6 +63,26 @@
 
   function hideWatchControls() { controls.hidden = true; }
 
+  function prefersReducedMotion() {
+    return typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function gateChoiceGridUntilAnimationEnd(grid, node, animationName, readyMessage) {
+    var buttons = Array.prototype.slice.call(grid.querySelectorAll("button"));
+    if (!buttons.length || !node || prefersReducedMotion()) return;
+    var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
+    if (!computed || !computed.animationName || computed.animationName === "none") return;
+    buttons.forEach(function (button) { button.disabled = true; });
+    function release(event) {
+      if (event && event.animationName && event.animationName !== animationName) return;
+      node.removeEventListener("animationend", release);
+      buttons.forEach(function (button) { button.disabled = false; });
+      if (readyMessage) announce(readyMessage);
+    }
+    node.addEventListener("animationend", release);
+  }
+
   function updateRepairFeedbackInPlace(repairId, text) {
     repairFeedback[repairId] = text || "";
     var feedback = panel.querySelector(".repair-feedback");
@@ -244,6 +264,7 @@
     var carbons = [
       ["C1",100,220,"first"], ["C2",260,120,"second"], ["C3",420,220,"third"], ["C4",580,120,"fourth"]
     ];
+    var collapseSpacing = 320;
     var svg = '<svg data-step4-visual class="molecule-svg step4-stage' + (replayVisual ? ' replay-all' : '') + '" viewBox="0 0 680 340" role="group" aria-label="The same four-carbon butane skeleton. Carbon labels are being abbreviated into line ends and vertices while the carbon atoms and bonds remain.">';
     svg += '<g class="step4-bonds" aria-hidden="true"><line x1="100" y1="220" x2="260" y2="120"/><line x1="260" y1="120" x2="420" y2="220"/><line x1="420" y1="220" x2="580" y2="120"/></g>';
     carbons.forEach(function (c, index) {
@@ -254,7 +275,7 @@
       if (replayVisual && allCollapsed) {
         collapsed = true;
         labelClass += " step4-collapse-now";
-        delay = index * 220;
+        delay = index * collapseSpacing;
       } else if (repairMode) {
         collapsed = index < 2;
         labelClass += index < 2 ? " step4-collapsed-static" : " step4-visible-label";
@@ -263,13 +284,13 @@
         if (index < 2) labelClass += " step4-collapsed-static";
         else {
           labelClass += " step4-collapse-now";
-          delay = (index - 2) * 220;
+          delay = (index - 2) * collapseSpacing;
         }
       } else {
         collapsed = index < 2;
         if (index < 2) {
           labelClass += " step4-collapse-now";
-          delay = index * 220;
+          delay = index * collapseSpacing;
         } else labelClass += " step4-visible-label";
       }
 
@@ -527,6 +548,25 @@
       if (selected) { button.classList.add("selected"); button.setAttribute("aria-pressed", "true"); }
     });
     panel.appendChild(predictionChoices);
+
+    if (!allCollapsed) {
+      if (repairMode) {
+        gateChoiceGridUntilAnimationEnd(
+          predictionChoices,
+          panel.querySelector('[data-step4-toggle-carbon="C2"]'),
+          "step4ToggleCarbon",
+          "Same position, same bonds, same carbon. Now answer the prediction again."
+        );
+      } else {
+        gateChoiceGridUntilAnimationEnd(
+          predictionChoices,
+          panel.querySelector('[data-step4-label="C2"]'),
+          "step4HideCarbon",
+          "The first two carbon labels are now abbreviated. Make your prediction."
+        );
+      }
+    }
+
     if (allCollapsed) {
       var success = document.createElement("div"); success.id = "step4CompleteFocus"; success.tabIndex = -1; success.className = "success-box"; success.setAttribute("role", "status");
       success.textContent = "Same positions, same bonds, same four carbons. The labels are abbreviated into two line ends and two vertices."; panel.appendChild(success);
@@ -608,7 +648,7 @@
     if (watchFinished) { reopenCompletedWatch(); renderWatch(); }
     Watch.replay(watchSession, Slice.WATCH_SEQUENCE, Date.now());
     if (session.phase === "watch_step_3" && !session.watchStep3RepairActive) renderWatchStep3({ suppressCompletionGhosts: true });
-    if (session.phase === "watch_step_4" && !session.watchStep4RepairActive) renderWatchStep4({ replayVisual: true });
+    if (session.phase === "watch_step_4") renderWatchStep4({ replayVisual: !session.watchStep4RepairActive });
     announce("Replaying the current Watch step only.");
     speak(Slice.WATCH_SEQUENCE.steps[watchSession.currentIndex].narration);
   });
