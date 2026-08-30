@@ -16,6 +16,7 @@ on:
       - 'test-unit1-bond-line-slice3-final-review.js'
       - 'test-unit1-bond-line-runtime-slice4.js'
       - 'test-unit1-bond-line-slice4-collapse-pause.js'
+      - 'test-unit1-bond-line-slice4-codex-regressions.js'
       - '.github/workflows/unit1-bond-line-runtime-slice4.yml'
   push:
     branches:
@@ -34,6 +35,7 @@ on:
       - 'test-unit1-bond-line-slice3-final-review.js'
       - 'test-unit1-bond-line-runtime-slice4.js'
       - 'test-unit1-bond-line-slice4-collapse-pause.js'
+      - 'test-unit1-bond-line-slice4-codex-regressions.js'
       - '.github/workflows/unit1-bond-line-runtime-slice4.yml'
 
 jobs:
@@ -70,3 +72,5 @@ jobs:
         run: node test-unit1-bond-line-runtime-slice4.js
       - name: Watch Step 4 collapse/toggle/Pause visual contract
         run: node test-unit1-bond-line-slice4-collapse-pause.js
+      - name: Watch Step 4 Codex regressions
+        run: node test-unit1-bond-line-slice4-codex-regressions.js
