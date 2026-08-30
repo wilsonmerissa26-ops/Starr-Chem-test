@@ -187,6 +187,19 @@ check("Pause on Step 4 disables Next", docC.getElementById("nextBtn").disabled =
 docC.getElementById("pauseBtn").click();
 check("Resume keeps the exact Step 4 visual node mounted", svgBeforePause && svgBeforePause.isConnected && docC.querySelector("[data-step4-visual]") === svgBeforePause);
 
+console.log("\n=== CURRENT FINAL COMPLETION BACK RETURNS ONE STEP ===");
+var appD = buildApp();
+var docD = reachStep4(appD);
+byText(docD, "No, the corner now stands for the carbon").click();
+check("precondition: completed Step 4 enables Next", docD.getElementById("nextBtn").disabled === false);
+docD.getElementById("nextBtn").click();
+check("current four-step sequence reaches the Step 4 completion screen",
+  /Watch · Step 4 complete/i.test(docD.getElementById("phaseLabel").textContent));
+docD.getElementById("backBtn").click();
+check("Back from current final completion returns exactly one Watch step to Step 3",
+  /Watch · I Do · Step 3/i.test(docD.getElementById("phaseLabel").textContent) &&
+  docD.body.textContent.indexOf("Hide the carbon-bound H labels") !== -1);
+
 check("Slice 4 adds no timer-driven instructional advancement",
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setTimeout(") === -1 &&
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setInterval(") === -1);
@@ -194,5 +207,6 @@ check("Slice 4 adds no timer-driven instructional advancement",
 appA.dom.window.close();
 appB.dom.window.close();
 appC.dom.window.close();
+appD.dom.window.close();
 console.log("\n=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
 if (failed) process.exit(1);
