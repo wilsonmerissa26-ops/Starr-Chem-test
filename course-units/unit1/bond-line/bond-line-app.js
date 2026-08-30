@@ -83,6 +83,20 @@
     node.addEventListener("animationend", release);
   }
 
+  function gateControlUntilAnimationEnd(control, node, animationName, readyMessage) {
+    if (!control || !node || prefersReducedMotion()) return;
+    var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
+    if (!computed || !computed.animationName || computed.animationName === "none") return;
+    control.disabled = true;
+    function release(event) {
+      if (event && event.animationName && event.animationName !== animationName) return;
+      node.removeEventListener("animationend", release);
+      control.disabled = !!(watchSession && watchSession.paused) || watchFinished || !session.watchStep4Complete;
+      if (readyMessage) announce(readyMessage);
+    }
+    node.addEventListener("animationend", release);
+  }
+
   function updateRepairFeedbackInPlace(repairId, text) {
     repairFeedback[repairId] = text || "";
     var feedback = panel.querySelector(".repair-feedback");
@@ -574,6 +588,14 @@
     var stage = panel.querySelector(".step4-stage"); if (stage && watchSession.paused) stage.classList.add("is-paused");
     backBtn.disabled = watchSession.paused; replayBtn.disabled = watchSession.paused; pauseBtn.disabled = false; pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause";
     nextBtn.disabled = !session.watchStep4Complete || watchSession.paused || watchFinished;
+    if (allCollapsed && session.watchStep4Complete) {
+      gateControlUntilAnimationEnd(
+        nextBtn,
+        panel.querySelector('[data-step4-label="C4"]'),
+        "step4HideCarbon",
+        "All four carbon labels are now abbreviated. You control when to move on."
+      );
+    }
   }
 
   function renderWatch() {
@@ -624,7 +646,7 @@
       return;
     }
     if (watchSession.currentIndex === 3) {
-      if (!session.watchStep4Complete) return;
+      if (!session.watchStep4Complete || nextBtn.disabled) return;
       var r4 = Watch.next(watchSession, Slice.WATCH_SEQUENCE, Date.now());
       if (r4.reason === "completed") { watchFinished = true; announce("Watch Step 4 complete."); render(); }
     }
@@ -663,7 +685,10 @@
     }
     if (session.phase === "watch_step_4") {
       var step4Stage = panel.querySelector(".step4-stage"); if (step4Stage) step4Stage.classList.toggle("is-paused", watchSession.paused);
-      backBtn.disabled = watchSession.paused; replayBtn.disabled = watchSession.paused; nextBtn.disabled = watchSession.paused || !session.watchStep4Complete || watchFinished; pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause"; return;
+      backBtn.disabled = watchSession.paused; replayBtn.disabled = watchSession.paused;
+      if (watchSession.paused) nextBtn.disabled = true;
+      else if (!session.watchStep4Complete || watchFinished) nextBtn.disabled = true;
+      pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause"; return;
     }
     renderWatch();
   });
