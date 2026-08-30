@@ -1,6 +1,6 @@
 /*
  * U1-01 Bond-Line incremental runtime.
- * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-3
+ * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-4
  *
  * Pure lesson logic. No DOM. No timers. No mastery shortcuts.
  */
@@ -109,6 +109,23 @@
     occupiedSlots: 1
   });
 
+  var STEP_4_PREDICTION = Object.freeze({
+    prompt: "The letter C disappeared from this corner. Did the carbon atom disappear?",
+    choices: Object.freeze([
+      Object.freeze({ id: "yes", label: "Yes" }),
+      Object.freeze({ id: "no_corner_carbon", label: "No, the corner now stands for the carbon" }),
+      Object.freeze({ id: "unsure", label: "I am not sure yet" })
+    ]),
+    answer: "no_corner_carbon"
+  });
+
+  var STEP_4_REPAIR = Object.freeze({
+    representation: "label_toggle_same_vertex",
+    toggleCarbonId: "C2",
+    toggleCount: 3,
+    narration: "Same position, same bonds, same carbon. Only the label is being abbreviated."
+  });
+
   var WATCH_SEQUENCE = Object.freeze({
     id: "watch_bond_line_butane_step1_v1",
     skillId: SKILL_ID,
@@ -165,6 +182,27 @@
           banner: "Same molecule. Fewer written labels."
         }),
         notebookFacts: Object.freeze([])
+      }),
+      Object.freeze({
+        id: "bl_watch_4",
+        narration: "Now we are shortening the carbon labels too. Watch carefully. A carbon at the end of the chain becomes a line end. A carbon where two bond lines meet becomes a vertex, which just means a corner.",
+        vocabulary: Object.freeze({
+          vertex: "This corner where two lines meet is called a vertex. In a bond-line structure, an unlabeled vertex represents carbon."
+        }),
+        prediction: STEP_4_PREDICTION,
+        repair: STEP_4_REPAIR,
+        visual: Object.freeze({
+          representation: "carbon_labels_collapsing",
+          atoms: BUTANE_ATOMS,
+          bonds: BUTANE_BONDS,
+          lonePairs: Object.freeze([]),
+          collapseOrder: Object.freeze(["C1", "C2", "C3", "C4"]),
+          predictionAfterCollapsed: 2,
+          visibility: Object.freeze({
+            carbonHydrogenLabels: "hidden"
+          })
+        }),
+        notebookFacts: Object.freeze([])
       })
     ])
   });
@@ -188,7 +226,10 @@
       watchStep2Complete: false,
       watchStep3Response: null,
       watchStep3RepairActive: false,
-      watchStep3Complete: false
+      watchStep3Complete: false,
+      watchStep4Prediction: null,
+      watchStep4RepairActive: false,
+      watchStep4Complete: false
     };
   }
 
@@ -287,6 +328,7 @@
     if (stepIndex === 0) session.phase = "watch_step_1";
     else if (stepIndex === 1) session.phase = "watch_step_2";
     else if (stepIndex === 2) session.phase = "watch_step_3";
+    else if (stepIndex === 3) session.phase = "watch_step_4";
     else return { accepted: false, reason: "unknown_watch_step", phase: session.phase };
     return { accepted: true, reason: null, phase: session.phase };
   }
@@ -392,8 +434,44 @@
     };
   }
 
+  function submitWatchStep4Prediction(session, choiceId) {
+    if (session.phase !== "watch_step_4") {
+      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    }
+    if (session.watchStep4Complete) {
+      return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
+    }
+    var known = STEP_4_PREDICTION.choices.some(function (choice) { return choice.id === choiceId; });
+    if (!known) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+
+    session.watchStep4Prediction = choiceId;
+    var correct = choiceId === STEP_4_PREDICTION.answer;
+    session.repairLog.push({ gateId: "WATCH_STEP_4", correct: correct, response: choiceId });
+    if (correct) {
+      session.watchStep4RepairActive = false;
+      session.watchStep4Complete = true;
+      return {
+        accepted: true,
+        correct: true,
+        reason: null,
+        nextPhase: session.phase,
+        feedback: "Right. The corner now stands for the same carbon; only the label changed."
+      };
+    }
+
+    session.watchStep4RepairActive = true;
+    return {
+      accepted: true,
+      correct: false,
+      repairRequired: true,
+      reason: null,
+      nextPhase: session.phase,
+      feedback: STEP_4_REPAIR.narration
+    };
+  }
+
   function canEnterWatch(session) {
-    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3";
+    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4";
   }
 
   if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) {
@@ -416,6 +494,7 @@
     submitWatchStep2Prediction: submitWatchStep2Prediction,
     submitWatchStep3Hydrogen: submitWatchStep3Hydrogen,
     submitWatchStep3Repair: submitWatchStep3Repair,
+    submitWatchStep4Prediction: submitWatchStep4Prediction,
     canEnterWatch: canEnterWatch
   });
 });

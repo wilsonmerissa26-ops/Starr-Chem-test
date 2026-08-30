@@ -4,6 +4,7 @@
 var fs = require("fs");
 var path = require("path");
 var JSDOM = require("jsdom").JSDOM;
+var Slice = require("./course-units/unit1/bond-line/bond-line-slice1.js");
 var failed = 0;
 
 function check(label, condition) {
@@ -109,7 +110,7 @@ if (h && hBond && skeletonBond) {
 }
 contrastDom.window.close();
 
-console.log("\n=== COMPLETION BACK MUST REVERT ONE WATCH STEP ===");
+console.log("\n=== STEP 2 COMPLETION-NAVIGATION REGRESSION SURVIVES LATER SLICES ===");
 var completionDom = buildApp();
 var completionDoc = reachStep2(completionDom);
 byText(completionDoc, "No").click();
@@ -119,11 +120,19 @@ check("extended sequence moves from Step 2 into Step 3", /Watch · I Do · Step 
 byText(completionDoc, "3").click();
 check("precondition: Step 3 interaction enables Next", completionDoc.getElementById("nextBtn").disabled === false);
 completionDoc.getElementById("nextBtn").click();
-check("precondition: learner reaches the current final Watch completion screen", /Step 3 complete/i.test(completionDoc.getElementById("phaseLabel").textContent));
-completionDoc.getElementById("backBtn").click();
-check("Back from completion returns exactly one Watch step to Step 2",
-  /Watch · I Do · Step 2/i.test(completionDoc.getElementById("phaseLabel").textContent) &&
-  completionDoc.body.textContent.indexOf("See the carbon skeleton") !== -1);
+if (Slice.WATCH_SEQUENCE.steps.length === 3) {
+  check("three-step sequence reaches its final completion screen", /Step 3 complete/i.test(completionDoc.getElementById("phaseLabel").textContent));
+  completionDoc.getElementById("backBtn").click();
+  check("Back from completion returns exactly one Watch step to Step 2",
+    /Watch · I Do · Step 2/i.test(completionDoc.getElementById("phaseLabel").textContent) &&
+    completionDoc.body.textContent.indexOf("See the carbon skeleton") !== -1);
+} else {
+  check("when later Watch slices exist, Step 3 advances forward instead of falsely completing",
+    /Watch · I Do · Step 4/i.test(completionDoc.getElementById("phaseLabel").textContent));
+  completionDoc.getElementById("backBtn").click();
+  check("Back from the appended step still returns exactly one Watch step to Step 3",
+    /Watch · I Do · Step 3/i.test(completionDoc.getElementById("phaseLabel").textContent));
+}
 completionDom.window.close();
 
 console.log("\n=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
