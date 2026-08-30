@@ -41,6 +41,9 @@ function unlockStep4Prediction(doc) {
 function unlockStep4Repair(doc) {
   dispatchAnimationEnd(doc.querySelector('[data-step4-toggle-carbon="C2"]'), "step4ToggleCarbon");
 }
+function finishStep4Collapse(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-label="C4"]'), "step4HideCarbon");
+}
 function buildApp() {
   var dom = new JSDOM(read("course-units/unit1/bond-line/index.html"), {
     runScripts: "outside-only",
@@ -163,7 +166,9 @@ if (correctChoice) {
   correctChoice.click();
   check("correct prediction collapses all four carbon labels into bond-line positions",
     docA.querySelectorAll('[data-step4-carbon][data-collapsed="true"]').length === 4);
-  check("correct prediction enables learner-controlled Next", docA.getElementById("nextBtn").disabled === false);
+  check("correct prediction keeps Next gated until the final C4 collapse finishes", docA.getElementById("nextBtn").disabled === true);
+  finishStep4Collapse(docA);
+  check("final C4 collapse enables learner-controlled Next", docA.getElementById("nextBtn").disabled === false);
 }
 
 console.log("\n=== WRONG ANSWER MUST TOGGLE THE SAME VERTEX ===");
@@ -184,7 +189,9 @@ if (yes) {
   var corrected = byText(docB, "No, the corner now stands for the carbon");
   if (corrected) {
     corrected.click();
-    check("corrected prediction completes Step 4", docB.getElementById("nextBtn").disabled === false);
+    check("corrected prediction still waits for the final C4 collapse", docB.getElementById("nextBtn").disabled === true);
+    finishStep4Collapse(docB);
+    check("corrected prediction completes Step 4 after C4 finishes", docB.getElementById("nextBtn").disabled === false);
   }
 }
 
@@ -208,7 +215,8 @@ var appD = buildApp();
 var docD = reachStep4(appD);
 unlockStep4Prediction(docD);
 byText(docD, "No, the corner now stands for the carbon").click();
-check("precondition: completed Step 4 enables Next", docD.getElementById("nextBtn").disabled === false);
+finishStep4Collapse(docD);
+check("precondition: completed Step 4 enables Next after final visual finishes", docD.getElementById("nextBtn").disabled === false);
 docD.getElementById("nextBtn").click();
 check("current four-step sequence reaches the Step 4 completion screen",
   /Watch · Step 4 complete/i.test(docD.getElementById("phaseLabel").textContent));
