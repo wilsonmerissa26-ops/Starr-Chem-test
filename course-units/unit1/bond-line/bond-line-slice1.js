@@ -1,6 +1,6 @@
 /*
  * U1-01 Bond-Line incremental runtime.
- * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-6
+ * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-7
  *
  * Pure lesson logic. No DOM. No timers. No mastery shortcuts.
  */
@@ -136,24 +136,25 @@
   });
 
   var STEP_6_INTERACTIONS = Object.freeze({
-    carbon3: Object.freeze({
-      targetId: "C3",
-      visibleBondOrder: 2,
-      prompt: "Carbon 3 also has two visible single bonds. How many hydrogens are implied?",
-      choices: Object.freeze([0, 1, 2, 3, 4]),
-      answer: 2
-    }),
-    carbon4: Object.freeze({
-      targetId: "C4",
-      visibleBondOrder: 1,
-      prompt: "This end carbon has one visible single bond. How many hydrogens are implied?",
-      choices: Object.freeze([0, 1, 2, 3, 4]),
-      answer: 3
-    })
+    carbon3: Object.freeze({ targetId: "C3", visibleBondOrder: 2, prompt: "Carbon 3 also has two visible single bonds. How many hydrogens are implied?", choices: Object.freeze([0, 1, 2, 3, 4]), answer: 2 }),
+    carbon4: Object.freeze({ targetId: "C4", visibleBondOrder: 1, prompt: "This end carbon has one visible single bond. How many hydrogens are implied?", choices: Object.freeze([0, 1, 2, 3, 4]), answer: 3 })
   });
-
   var STEP_6_WRONG_HIGH = "Count the bond order already visible first. Carbon is not getting four new hydrogens. It is reaching four total bonds.";
   var STEP_6_WRONG_LOW_FORMULA = "visible bond order + implied C—H bonds = 4";
+
+  var STEP_7_PREDICTION = Object.freeze({
+    prompt: "If this oxygen label disappeared completely, would the bond-line drawing still tell us an oxygen is there?",
+    choices: Object.freeze([
+      Object.freeze({ id: "yes", label: "Yes" }),
+      Object.freeze({ id: "no", label: "No" }),
+      Object.freeze({ id: "unsure", label: "I am not sure yet" })
+    ]),
+    answer: "no",
+    feedback: "Right. Unlabeled ends and corners default to carbon. An oxygen must be labeled O.",
+    correctionFeedback: "Unlabeled ends and corners default to carbon. An oxygen must be labeled O."
+  });
+  var STEP_7_DEFINITION = "Heteroatom just means an atom in the organic structure that is not carbon or hydrogen.";
+  var STEP_7_MISCONCEPTION_GUARD = "Hydrogens attached to carbon are usually omitted in bond-line notation. Hydrogens attached to heteroatoms are often shown because they can change the functional group and chemical behavior.";
 
   var WATCH_SEQUENCE = Object.freeze({
     id: "watch_bond_line_butane_step1_v1",
@@ -174,10 +175,7 @@
         narration: "This connected chain of carbon atoms is the carbon skeleton. The hydrogens are still part of the molecule, but the carbon-to-carbon pattern is the part chemists usually sketch first.",
         vocabulary: Object.freeze({ term: "carbon skeleton", definition: "the connected pattern of carbon atoms in the molecule" }),
         prediction: STEP_2_PREDICTION,
-        visual: Object.freeze({
-          representation: "carbon_skeleton_emphasis", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]),
-          emphasis: Object.freeze({ carbonSkeleton: "strong", carbonHydrogens: "light" })
-        }),
+        visual: Object.freeze({ representation: "carbon_skeleton_emphasis", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]), emphasis: Object.freeze({ carbonSkeleton: "strong", carbonHydrogens: "light" }) }),
         notebookFacts: Object.freeze([])
       }),
       Object.freeze({
@@ -185,11 +183,7 @@
         narration: "The hydrogens attached to carbon are no longer written, but they are still implied. If I want to know how many hydrogens belong on a carbon, I look at the bonds already drawn to that carbon and ask how many more bonds it needs to reach four.",
         interaction: STEP_3_INTERACTION,
         repair: STEP_3_REPAIR,
-        visual: Object.freeze({
-          representation: "carbon_hydrogens_implied", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]),
-          visibility: Object.freeze({ carbonLabels: "visible", carbonHydrogenLabels: "hidden" }),
-          banner: "Same molecule. Fewer written labels."
-        }),
+        visual: Object.freeze({ representation: "carbon_hydrogens_implied", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]), visibility: Object.freeze({ carbonLabels: "visible", carbonHydrogenLabels: "hidden" }), banner: "Same molecule. Fewer written labels." }),
         notebookFacts: Object.freeze([])
       }),
       Object.freeze({
@@ -198,11 +192,7 @@
         vocabulary: Object.freeze({ vertex: "This corner where two lines meet is called a vertex. In a bond-line structure, an unlabeled vertex represents carbon." }),
         prediction: STEP_4_PREDICTION,
         repair: STEP_4_REPAIR,
-        visual: Object.freeze({
-          representation: "carbon_labels_collapsing", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]),
-          collapseOrder: Object.freeze(["C1", "C2", "C3", "C4"]), predictionAfterCollapsed: 2,
-          visibility: Object.freeze({ carbonHydrogenLabels: "hidden" })
-        }),
+        visual: Object.freeze({ representation: "carbon_labels_collapsing", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]), collapseOrder: Object.freeze(["C1", "C2", "C3", "C4"]), predictionAfterCollapsed: 2, visibility: Object.freeze({ carbonHydrogenLabels: "hidden" }) }),
         notebookFacts: Object.freeze([])
       }),
       Object.freeze({
@@ -228,22 +218,28 @@
         interactions: STEP_6_INTERACTIONS,
         wrongHighFeedback: STEP_6_WRONG_HIGH,
         wrongLowFormula: STEP_6_WRONG_LOW_FORMULA,
+        visual: Object.freeze({ representation: "bond_line_implied_hydrogens", atoms: BUTANE_ATOMS, bonds: BUTANE_BONDS, lonePairs: Object.freeze([]), selectedTeachingCarbon: "C2", learnerTargets: Object.freeze(["C3", "C4"]) }),
+        notebookFacts: Object.freeze([])
+      }),
+      Object.freeze({
+        id: "bl_watch_7",
+        narration: "Carbon gets special shorthand in bond-line notation. Other elements are normally written with their symbols. Chemists often call a non-carbon atom in an organic structure a heteroatom. Oxygen is a heteroatom, so we write O. Nitrogen would be written N. Halogens such as Cl or Br are written too.",
+        definition: STEP_7_DEFINITION,
+        prediction: STEP_7_PREDICTION,
+        misconceptionGuard: STEP_7_MISCONCEPTION_GUARD,
         visual: Object.freeze({
-          representation: "bond_line_implied_hydrogens",
-          atoms: BUTANE_ATOMS,
-          bonds: BUTANE_BONDS,
-          lonePairs: Object.freeze([]),
-          selectedTeachingCarbon: "C2",
-          learnerTargets: Object.freeze(["C3", "C4"])
+          representation: "heteroatom_explicit",
+          example: "1-propanol",
+          explicitAtoms: Object.freeze(["O", "H"]),
+          carbonCount: 3,
+          terminalGroup: "O—H"
         }),
         notebookFacts: Object.freeze([])
       })
     ])
   });
 
-  function normalize(value) {
-    return String(value == null ? "" : value).trim().toLowerCase();
-  }
+  function normalize(value) { return String(value == null ? "" : value).trim().toLowerCase(); }
 
   function createSession() {
     return {
@@ -270,7 +266,9 @@
       watchStep6Target: "C3",
       watchStep6Carbon3Answer: null,
       watchStep6Carbon4Answer: null,
-      watchStep6Complete: false
+      watchStep6Complete: false,
+      watchStep7Prediction: null,
+      watchStep7Complete: false
     };
   }
 
@@ -280,13 +278,7 @@
     if (!known) return { accepted: false, reason: "unknown_choice", nextPhase: session.phase };
     session.orientationChoice = choiceId;
     session.phase = "gate_p1";
-    return {
-      accepted: true,
-      nextPhase: session.phase,
-      feedback: choiceId === "shortcut"
-        ? "Exactly. That is the idea we are going to make precise."
-        : "Good place to start. In bond-line notation, some atoms are still part of the molecule even when their letter is not written. We are going to make every hidden atom visible first, then learn the shortcut."
-    };
+    return { accepted: true, nextPhase: session.phase, feedback: choiceId === "shortcut" ? "Exactly. That is the idea we are going to make precise." : "Good place to start. In bond-line notation, some atoms are still part of the molecule even when their letter is not written. We are going to make every hidden atom visible first, then learn the shortcut." };
   }
 
   function gateCorrect(gateId, value) {
@@ -296,16 +288,7 @@
   }
 
   function recordProbe(session, gate, correct, timestamp) {
-    var record = {
-      lessonId: LESSON_ID,
-      skillId: gate.skillId,
-      itemId: "BL-" + gate.id,
-      evidenceKind: Registry.EVIDENCE_KINDS.PROBE,
-      scaffoldLevel: 0,
-      supported: false,
-      correct: !!correct,
-      timestamp: typeof timestamp === "number" ? timestamp : Date.now()
-    };
+    var record = { lessonId: LESSON_ID, skillId: gate.skillId, itemId: "BL-" + gate.id, evidenceKind: Registry.EVIDENCE_KINDS.PROBE, scaffoldLevel: 0, supported: false, correct: !!correct, timestamp: typeof timestamp === "number" ? timestamp : Date.now() };
     var validation = Registry.validateEvidenceRecord(record);
     if (!validation.valid) throw new Error("Invalid prerequisite evidence: " + validation.reason);
     session.evidence.push(record);
@@ -333,14 +316,7 @@
     var correct = Number(value) === repair.answer;
     session.repairLog.push({ gateId: gateId, correct: correct, response: value });
     if (correct) session.phase = gateId === "P1" ? "gate_p2" : "watch_step_1";
-    return {
-      accepted: true,
-      correct: correct,
-      nextPhase: session.phase,
-      feedback: correct
-        ? (gateId === "P1" ? "Yes. One visible bond leaves three bond slots for hydrogen." : "Yes. Three carbon atoms in a row need two connections between them.")
-        : (gateId === "P1" ? repair.wrongPrompt : "Keep the atoms separate from the connections. Count the lines connecting carbon 1 to 2 and carbon 2 to 3.")
-    };
+    return { accepted: true, correct: correct, nextPhase: session.phase, feedback: correct ? (gateId === "P1" ? "Yes. One visible bond leaves three bond slots for hydrogen." : "Yes. Three carbon atoms in a row need two connections between them.") : (gateId === "P1" ? repair.wrongPrompt : "Keep the atoms separate from the connections. Count the lines connecting carbon 1 to 2 and carbon 2 to 3.") };
   }
 
   function tapWatchCarbon(session, carbonId) {
@@ -359,6 +335,7 @@
     else if (stepIndex === 3) session.phase = "watch_step_4";
     else if (stepIndex === 4) session.phase = "watch_step_5";
     else if (stepIndex === 5) session.phase = "watch_step_6";
+    else if (stepIndex === 6) session.phase = "watch_step_7";
     else return { accepted: false, reason: "unknown_watch_step", phase: session.phase };
     return { accepted: true, reason: null, phase: session.phase };
   }
@@ -382,10 +359,7 @@
     if (STEP_3_INTERACTION.choices.indexOf(numeric) === -1) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
     session.watchStep3Response = numeric;
     var correct = numeric === STEP_3_INTERACTION.answer;
-    if (correct) {
-      session.watchStep3Complete = true;
-      return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Yes. One visible C—C bond leaves three C—H bonds implied on this terminal carbon." };
-    }
+    if (correct) { session.watchStep3Complete = true; return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Yes. One visible C—C bond leaves three C—H bonds implied on this terminal carbon." }; }
     session.watchStep3RepairActive = true;
     return { accepted: true, correct: false, repairRequired: true, reason: null, nextPhase: session.phase, feedback: "Let's switch views and count the bond slots that are still open." };
   }
@@ -411,11 +385,7 @@
     session.watchStep4Prediction = choiceId;
     var correct = choiceId === STEP_4_PREDICTION.answer;
     session.repairLog.push({ gateId: "WATCH_STEP_4", correct: correct, response: choiceId });
-    if (correct) {
-      session.watchStep4RepairActive = false;
-      session.watchStep4Complete = true;
-      return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Right. The corner now stands for the same carbon; only the label changed." };
-    }
+    if (correct) { session.watchStep4RepairActive = false; session.watchStep4Complete = true; return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Right. The corner now stands for the same carbon; only the label changed." }; }
     session.watchStep4RepairActive = true;
     return { accepted: true, correct: false, repairRequired: true, reason: null, nextPhase: session.phase, feedback: STEP_4_REPAIR.narration };
   }
@@ -429,14 +399,7 @@
     session.watchStep5Complete = session.watchStep5CarbonIds.length === STEP_5_INTERACTION.carbonTargets.length;
     var remaining = STEP_5_INTERACTION.carbonTargets.filter(function (id) { return session.watchStep5CarbonIds.indexOf(id) === -1; });
     var endpointMissing = remaining.length === 1 && (remaining[0] === "C1" || remaining[0] === "C4");
-    return {
-      accepted: true,
-      reason: null,
-      count: session.watchStep5CarbonIds.length,
-      remaining: remaining.length,
-      stepComplete: session.watchStep5Complete,
-      feedback: session.watchStep5Complete ? STEP_5_INTERACTION.completeFeedback : (endpointMissing ? STEP_5_INTERACTION.endpointFeedback : session.watchStep5CarbonIds.length + " of 4 carbons found.")
-    };
+    return { accepted: true, reason: null, count: session.watchStep5CarbonIds.length, remaining: remaining.length, stepComplete: session.watchStep5Complete, feedback: session.watchStep5Complete ? STEP_5_INTERACTION.completeFeedback : (endpointMissing ? STEP_5_INTERACTION.endpointFeedback : session.watchStep5CarbonIds.length + " of 4 carbons found.") };
   }
 
   function toggleWatchStep5View(session) {
@@ -450,58 +413,32 @@
     if (session.phase !== "watch_step_6") return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
     if (session.watchStep6Complete) return { accepted: false, correct: true, reason: "already_complete", nextPhase: session.phase };
     var numeric = Number(value);
-    if ([0, 1, 2, 3, 4].indexOf(numeric) === -1) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+    if ([0,1,2,3,4].indexOf(numeric) === -1) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
     var target = session.watchStep6Target === "C4" ? STEP_6_INTERACTIONS.carbon4 : STEP_6_INTERACTIONS.carbon3;
     var correct = numeric === target.answer;
-    if (session.watchStep6Target === "C3") session.watchStep6Carbon3Answer = numeric;
-    else session.watchStep6Carbon4Answer = numeric;
-
-    if (!correct) {
-      return {
-        accepted: true,
-        correct: false,
-        reason: null,
-        targetId: target.targetId,
-        nextPhase: session.phase,
-        feedback: numeric > target.answer ? STEP_6_WRONG_HIGH : "Use the running count to see what is still missing.",
-        formula: numeric < target.answer ? STEP_6_WRONG_LOW_FORMULA : null,
-        visibleBondOrder: target.visibleBondOrder
-      };
-    }
-
-    if (session.watchStep6Target === "C3") {
-      session.watchStep6Target = "C4";
-      return {
-        accepted: true,
-        correct: true,
-        reason: null,
-        targetId: "C3",
-        nextTargetId: "C4",
-        nextPhase: session.phase,
-        feedback: "Right. Carbon 3 has two visible single bonds, so two hydrogens are implied."
-      };
-    }
-
+    if (session.watchStep6Target === "C3") session.watchStep6Carbon3Answer = numeric; else session.watchStep6Carbon4Answer = numeric;
+    if (!correct) return { accepted: true, correct: false, reason: null, targetId: target.targetId, nextPhase: session.phase, feedback: numeric > target.answer ? STEP_6_WRONG_HIGH : "Use the running count to see what is still missing.", formula: numeric < target.answer ? STEP_6_WRONG_LOW_FORMULA : null, visibleBondOrder: target.visibleBondOrder };
+    if (session.watchStep6Target === "C3") { session.watchStep6Target = "C4"; return { accepted: true, correct: true, reason: null, targetId: "C3", nextTargetId: "C4", nextPhase: session.phase, feedback: "Right. Carbon 3 has two visible single bonds, so two hydrogens are implied." }; }
     session.watchStep6Complete = true;
-    return {
-      accepted: true,
-      correct: true,
-      reason: null,
-      targetId: "C4",
-      nextTargetId: null,
-      nextPhase: session.phase,
-      stepComplete: true,
-      feedback: "Right. The end carbon has one visible single bond, so three hydrogens are implied."
-    };
+    return { accepted: true, correct: true, reason: null, targetId: "C4", nextTargetId: null, nextPhase: session.phase, stepComplete: true, feedback: "Right. The end carbon has one visible single bond, so three hydrogens are implied." };
+  }
+
+  function submitWatchStep7Prediction(session, choiceId) {
+    if (session.phase !== "watch_step_7") return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    if (session.watchStep7Complete) return { accepted: false, correct: session.watchStep7Prediction === STEP_7_PREDICTION.answer, reason: "already_answered", nextPhase: session.phase };
+    var known = STEP_7_PREDICTION.choices.some(function (choice) { return choice.id === choiceId; });
+    if (!known) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+    session.watchStep7Prediction = choiceId;
+    session.watchStep7Complete = true;
+    var correct = choiceId === STEP_7_PREDICTION.answer;
+    return { accepted: true, correct: correct, reason: null, nextPhase: session.phase, feedback: correct ? STEP_7_PREDICTION.feedback : STEP_7_PREDICTION.correctionFeedback };
   }
 
   function canEnterWatch(session) {
-    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4" || session.phase === "watch_step_5" || session.phase === "watch_step_6";
+    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4" || session.phase === "watch_step_5" || session.phase === "watch_step_6" || session.phase === "watch_step_7";
   }
 
-  if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) {
-    throw new Error("Bond-Line Watch sequence failed shared Watch validation");
-  }
+  if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) throw new Error("Bond-Line Watch sequence failed shared Watch validation");
 
   return Object.freeze({
     LESSON_ID: LESSON_ID,
@@ -523,6 +460,7 @@
     tapWatchStep5Carbon: tapWatchStep5Carbon,
     toggleWatchStep5View: toggleWatchStep5View,
     submitWatchStep6Hydrogens: submitWatchStep6Hydrogens,
+    submitWatchStep7Prediction: submitWatchStep7Prediction,
     canEnterWatch: canEnterWatch
   });
 });
