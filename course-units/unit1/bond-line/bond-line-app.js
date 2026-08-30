@@ -500,6 +500,8 @@
       speak(result.feedback);
     });
     repairChoices.querySelectorAll("button").forEach(function (button) { button.classList.add("step3-repair-choice"); });
+    repairChoices.setAttribute("role", "group");
+    repairChoices.setAttribute("aria-labelledby", "step3RepairPrompt");
     panel.appendChild(repairChoices);
     backBtn.disabled = watchSession.paused;
     replayBtn.disabled = watchSession.paused;
@@ -510,18 +512,19 @@
     if (prompt) prompt.focus();
   }
 
-  function renderWatchStep3() {
+  function renderWatchStep3(options) {
     if (session.watchStep3RepairActive) {
       renderWatchStep3Repair();
       return;
     }
     var step = Slice.WATCH_SEQUENCE.steps[2];
+    var suppressCompletionGhosts = !!(options && options.suppressCompletionGhosts);
     setPhase("Watch · I Do · Step 3", session.watchStep3Complete ? "Three implied hydrogens recovered. You control when to move on." : "The H labels are omitted, but the atoms are still implied.");
     panel.innerHTML =
       '<h1>Hide the carbon-bound H labels</h1>' +
       teacher(step.narration) +
       '<div class="same-molecule-banner">' + escapeHtml(step.visual.banner) + '</div>' +
-      '<div class="watch-stage">' + butaneImpliedHydrogensSvg(session.watchStep3Complete) + '</div>' +
+      '<div class="watch-stage">' + butaneImpliedHydrogensSvg(session.watchStep3Complete && !suppressCompletionGhosts) + '</div>' +
       '<div class="prompt-card"><div class="eyebrow">Recover what is hidden</div><h2 id="step3HydrogenPrompt">' + escapeHtml(step.interaction.prompt) + '</h2></div>';
 
     var choices = choiceButtons(step.interaction.choices, function (value, button) {
@@ -666,7 +669,9 @@
       renderWatch();
     }
     Watch.replay(watchSession, Slice.WATCH_SEQUENCE, Date.now());
-    if (session.phase === "watch_step_3" && !session.watchStep3RepairActive) renderWatchStep3();
+    if (session.phase === "watch_step_3" && !session.watchStep3RepairActive) {
+      renderWatchStep3({ suppressCompletionGhosts: true });
+    }
     announce("Replaying the current Watch step only.");
     speak(Slice.WATCH_SEQUENCE.steps[watchSession.currentIndex].narration);
   });
