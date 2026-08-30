@@ -84,13 +84,22 @@
   }
 
   function gateControlUntilAnimationEnd(control, node, animationName, readyMessage) {
-    if (!control || !node || prefersReducedMotion()) return;
+    if (!control || !node) return;
+    if (prefersReducedMotion()) {
+      node.setAttribute("data-animation-gate-complete", "true");
+      return;
+    }
     var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
-    if (!computed || !computed.animationName || computed.animationName === "none") return;
+    if (!computed || !computed.animationName || computed.animationName === "none") {
+      node.setAttribute("data-animation-gate-complete", "true");
+      return;
+    }
+    node.setAttribute("data-animation-gate-complete", "false");
     control.disabled = true;
     function release(event) {
       if (event && event.animationName && event.animationName !== animationName) return;
       node.removeEventListener("animationend", release);
+      node.setAttribute("data-animation-gate-complete", "true");
       control.disabled = !!(watchSession && watchSession.paused) || watchFinished || !session.watchStep4Complete;
       if (readyMessage) announce(readyMessage);
     }
@@ -688,6 +697,10 @@
       backBtn.disabled = watchSession.paused; replayBtn.disabled = watchSession.paused;
       if (watchSession.paused) nextBtn.disabled = true;
       else if (!session.watchStep4Complete || watchFinished) nextBtn.disabled = true;
+      else {
+        var finalCollapse = panel.querySelector('[data-step4-label="C4"]');
+        nextBtn.disabled = !finalCollapse || finalCollapse.getAttribute("data-animation-gate-complete") !== "true";
+      }
       pauseBtn.textContent = watchSession.paused ? "Resume" : "Pause"; return;
     }
     renderWatch();
