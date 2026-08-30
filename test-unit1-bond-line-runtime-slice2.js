@@ -19,7 +19,7 @@ console.log("=== SLICE 2 PURE LESSON CONTRACT ===");
 var sequence = Slice.WATCH_SEQUENCE;
 var step1 = sequence.steps[0];
 var step2 = sequence.steps[1] || null;
-check("Watch sequence contains exactly two steps", sequence.steps.length === 2);
+check("Watch sequence preserves at least the locked first two steps", sequence.steps.length >= 2);
 check("locked Step 1 identity and representation remain unchanged",
   !!step1 && step1.id === "bl_watch_1" && step1.visual.representation === "fully_expanded");
 check("Step 2 has stable identity", !!step2 && step2.id === "bl_watch_2");

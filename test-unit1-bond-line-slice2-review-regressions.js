@@ -115,11 +115,15 @@ var completionDoc = reachStep2(completionDom);
 byText(completionDoc, "No").click();
 check("precondition: Step 2 prediction enables Next", completionDoc.getElementById("nextBtn").disabled === false);
 completionDoc.getElementById("nextBtn").click();
-check("precondition: learner reaches the Slice 2 completion screen", /Step 2 complete/i.test(completionDoc.getElementById("phaseLabel").textContent));
+check("extended sequence moves from Step 2 into Step 3", /Watch · I Do · Step 3/i.test(completionDoc.getElementById("phaseLabel").textContent));
+byText(completionDoc, "3").click();
+check("precondition: Step 3 interaction enables Next", completionDoc.getElementById("nextBtn").disabled === false);
+completionDoc.getElementById("nextBtn").click();
+check("precondition: learner reaches the current final Watch completion screen", /Step 3 complete/i.test(completionDoc.getElementById("phaseLabel").textContent));
 completionDoc.getElementById("backBtn").click();
-check("Back from completion returns exactly one Watch step to Step 1",
-  /Watch · I Do · Step 1/i.test(completionDoc.getElementById("phaseLabel").textContent) &&
-  completionDoc.body.textContent.indexOf("Start with everything visible") !== -1);
+check("Back from completion returns exactly one Watch step to Step 2",
+  /Watch · I Do · Step 2/i.test(completionDoc.getElementById("phaseLabel").textContent) &&
+  completionDoc.body.textContent.indexOf("See the carbon skeleton") !== -1);
 completionDom.window.close();
 
 console.log("\n=== SUMMARY: " + (failed ? "FAIL" : "PASS") + " ===");
