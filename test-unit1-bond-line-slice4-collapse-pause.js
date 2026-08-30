@@ -19,6 +19,19 @@ function activate(node) {
   var win = node.ownerDocument.defaultView;
   node.dispatchEvent(new win.MouseEvent("click", { bubbles: true, cancelable: true }));
 }
+function dispatchAnimationEnd(node, animationName) {
+  if (!node) return;
+  var win = node.ownerDocument.defaultView;
+  var event = new win.Event("animationend", { bubbles: true, cancelable: false });
+  Object.defineProperty(event, "animationName", { value: animationName });
+  node.dispatchEvent(event);
+}
+function unlockStep4Prediction(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-label="C2"]'), "step4HideCarbon");
+}
+function unlockStep4Repair(doc) {
+  dispatchAnimationEnd(doc.querySelector('[data-step4-toggle-carbon="C2"]'), "step4ToggleCarbon");
+}
 function buildApp() {
   var dom = new JSDOM(read("course-units/unit1/bond-line/index.html"), {
     runScripts: "outside-only", pretendToBeVisual: true,
@@ -96,6 +109,7 @@ console.log("\n=== WRONG PREDICTION TOGGLES THE SAME C2 LABEL THREE TIMES ===");
 var domB = buildApp();
 var docB = reachStep4(domB);
 var bondsBefore = lineSignature(docB);
+unlockStep4Prediction(docB);
 byText(docB, "Yes").click();
 var toggle = docB.querySelector('[data-step4-toggle-carbon="C2"][data-toggle-count="3"]');
 check("same-position C2 repair overlay is rendered", !!toggle);
@@ -107,6 +121,7 @@ if (toggle) {
 }
 
 console.log("\n=== CORRECTED PREDICTION CONTINUES C3 THEN C4 WITHOUT RESTARTING C1/C2 ===");
+unlockStep4Repair(docB);
 byText(docB, "No, the corner now stands for the carbon").click();
 var rc1 = label(docB,"C1"), rc2 = label(docB,"C2"), rc3 = label(docB,"C3"), rc4 = label(docB,"C4");
 if (rc1 && rc2 && rc3 && rc4) {
