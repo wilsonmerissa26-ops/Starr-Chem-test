@@ -63,29 +63,68 @@
 
   function hideWatchControls() { controls.hidden = true; }
 
+  function reducedMotionQuery() {
+    return typeof window.matchMedia === "function" ?
+      window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+  }
+
   function prefersReducedMotion() {
-    return typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var query = reducedMotionQuery();
+    return !!(query && query.matches);
+  }
+
+  function addMediaChangeListener(query, handler) {
+    if (!query) return function () {};
+    if (typeof query.addEventListener === "function") {
+      query.addEventListener("change", handler);
+      return function () {
+        if (typeof query.removeEventListener === "function") query.removeEventListener("change", handler);
+      };
+    }
+    if (typeof query.addListener === "function") {
+      query.addListener(handler);
+      return function () {
+        if (typeof query.removeListener === "function") query.removeListener(handler);
+      };
+    }
+    return function () {};
   }
 
   function gateChoiceGridUntilAnimationEnd(grid, node, animationName, readyMessage) {
     var buttons = Array.prototype.slice.call(grid.querySelectorAll("button"));
-    if (!buttons.length || !node || prefersReducedMotion()) return;
+    if (!buttons.length || !node) return;
+    var motionQuery = reducedMotionQuery();
+    if (motionQuery && motionQuery.matches) return;
     var computed = typeof window.getComputedStyle === "function" ? window.getComputedStyle(node) : null;
     if (!computed || !computed.animationName || computed.animationName === "none") return;
     buttons.forEach(function (button) { button.disabled = true; });
-    function release(event) {
-      if (event && event.animationName && event.animationName !== animationName) return;
+    var released = false;
+    var removeMotionListener = function () {};
+    function cleanup() {
       node.removeEventListener("animationend", release);
+      node.removeEventListener("animationcancel", release);
+      removeMotionListener();
+    }
+    function release(event) {
+      if (released) return;
+      if (event && event.type === "change" && !event.matches) return;
+      if (event && (event.type === "animationend" || event.type === "animationcancel") &&
+          event.animationName && event.animationName !== animationName) return;
+      released = true;
+      cleanup();
+      if (!node.isConnected) return;
       buttons.forEach(function (button) { button.disabled = false; });
       if (readyMessage) announce(readyMessage);
     }
     node.addEventListener("animationend", release);
+    node.addEventListener("animationcancel", release);
+    removeMotionListener = addMediaChangeListener(motionQuery, release);
   }
 
   function gateControlUntilAnimationEnd(control, node, animationName, readyMessage) {
     if (!control || !node) return;
-    if (prefersReducedMotion()) {
+    var motionQuery = reducedMotionQuery();
+    if (motionQuery && motionQuery.matches) {
       node.setAttribute("data-animation-gate-complete", "true");
       return;
     }
@@ -96,14 +135,28 @@
     }
     node.setAttribute("data-animation-gate-complete", "false");
     control.disabled = true;
-    function release(event) {
-      if (event && event.animationName && event.animationName !== animationName) return;
+    var released = false;
+    var removeMotionListener = function () {};
+    function cleanup() {
       node.removeEventListener("animationend", release);
+      node.removeEventListener("animationcancel", release);
+      removeMotionListener();
+    }
+    function release(event) {
+      if (released) return;
+      if (event && event.type === "change" && !event.matches) return;
+      if (event && (event.type === "animationend" || event.type === "animationcancel") &&
+          event.animationName && event.animationName !== animationName) return;
+      released = true;
+      cleanup();
+      if (!node.isConnected) return;
       node.setAttribute("data-animation-gate-complete", "true");
       control.disabled = !!(watchSession && watchSession.paused) || watchFinished || !session.watchStep4Complete;
       if (readyMessage) announce(readyMessage);
     }
     node.addEventListener("animationend", release);
+    node.addEventListener("animationcancel", release);
+    removeMotionListener = addMediaChangeListener(motionQuery, release);
   }
 
   function updateRepairFeedbackInPlace(repairId, text) {
