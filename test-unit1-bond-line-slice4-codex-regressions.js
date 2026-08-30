@@ -4,7 +4,8 @@
  * 1) collapse animations cannot overlap,
  * 2) prediction choices stay gated until C2 finishes (reduced motion may enable immediately),
  * 3) Replay while the same-position repair is active restarts that repair visual,
- * 4) Next stays gated until the final C4 collapse finishes, including repair and completed Replay.
+ * 4) Next stays gated until the final C4 collapse finishes, including repair and completed Replay,
+ * 5) Pause/Resume restores Next only when the completed final visual is already ready.
  */
 "use strict";
 
@@ -121,6 +122,14 @@ check("reduced-motion path does not wait for an animation that will not run",
 byText(reducedDoc, "No, the corner now stands for the carbon").click();
 check("reduced-motion completion enables Next immediately",
   reducedDoc.getElementById("nextBtn").disabled === false);
+
+console.log("\n=== REDUCED-MOTION PAUSE/RESUME RESTORES READY NEXT ===");
+reducedDoc.getElementById("pauseBtn").click();
+check("reduced-motion completed Step 4 Pause disables Next",
+  reducedDoc.getElementById("nextBtn").disabled === true);
+reducedDoc.getElementById("pauseBtn").click();
+check("reduced-motion completed Step 4 Resume restores Next",
+  reducedDoc.getElementById("nextBtn").disabled === false);
 reducedDom.window.close();
 
 console.log("\n=== REPAIR REPLAY RESTARTS THE SAME C2 TOGGLE ===");
@@ -152,9 +161,21 @@ unlockInitialPrediction(directDoc);
 byText(directDoc, "No, the corner now stands for the carbon").click();
 check("direct correct answer starts the C3/C4 continuation but keeps Next disabled",
   !!directDoc.querySelector('[data-step4-label="C4"]') && directDoc.getElementById("nextBtn").disabled === true);
+
+console.log("\n=== PAUSE/RESUME BEFORE C4 FINISHES MUST STAY GATED ===");
+directDoc.getElementById("pauseBtn").click();
+check("Pause while C4 is pending keeps Next disabled", directDoc.getElementById("nextBtn").disabled === true);
+directDoc.getElementById("pauseBtn").click();
+check("Resume while C4 is still pending keeps Next disabled", directDoc.getElementById("nextBtn").disabled === true);
 finishFinalCollapse(directDoc);
 check("C4 animation end releases Next after direct correct",
   directDoc.getElementById("nextBtn").disabled === false);
+
+console.log("\n=== PAUSE/RESUME AFTER C4 FINISHES RESTORES READY NEXT ===");
+directDoc.getElementById("pauseBtn").click();
+check("Pause after completed final visual disables Next", directDoc.getElementById("nextBtn").disabled === true);
+directDoc.getElementById("pauseBtn").click();
+check("Resume after completed final visual re-enables Next", directDoc.getElementById("nextBtn").disabled === false);
 
 console.log("\n=== COMPLETED STEP 4 REPLAY REGATES NEXT UNTIL C4 ===");
 var completedStageBeforeReplay = directDoc.querySelector("[data-step4-visual]");
