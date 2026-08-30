@@ -210,7 +210,7 @@ check("Pause on Step 4 disables Next", docC.getElementById("nextBtn").disabled =
 docC.getElementById("pauseBtn").click();
 check("Resume keeps the exact Step 4 visual node mounted", svgBeforePause && svgBeforePause.isConnected && docC.querySelector("[data-step4-visual]") === svgBeforePause);
 
-console.log("\n=== CURRENT FINAL COMPLETION BACK RETURNS ONE STEP ===");
+console.log("\n=== STEP 4 FORWARD/BACK NAVIGATION SURVIVES LATER SLICES ===");
 var appD = buildApp();
 var docD = reachStep4(appD);
 unlockStep4Prediction(docD);
@@ -218,12 +218,22 @@ byText(docD, "No, the corner now stands for the carbon").click();
 finishStep4Collapse(docD);
 check("precondition: completed Step 4 enables Next after final visual finishes", docD.getElementById("nextBtn").disabled === false);
 docD.getElementById("nextBtn").click();
-check("current four-step sequence reaches the Step 4 completion screen",
-  /Watch · Step 4 complete/i.test(docD.getElementById("phaseLabel").textContent));
-docD.getElementById("backBtn").click();
-check("Back from current final completion returns exactly one Watch step to Step 3",
-  /Watch · I Do · Step 3/i.test(docD.getElementById("phaseLabel").textContent) &&
-  docD.body.textContent.indexOf("Hide the carbon-bound H labels") !== -1);
+if (Slice.WATCH_SEQUENCE.steps.length === 4) {
+  check("four-step sequence reaches the Step 4 completion screen",
+    /Watch · Step 4 complete/i.test(docD.getElementById("phaseLabel").textContent));
+  docD.getElementById("backBtn").click();
+  check("Back from Step 4 completion returns exactly one Watch step to Step 3",
+    /Watch · I Do · Step 3/i.test(docD.getElementById("phaseLabel").textContent) &&
+    docD.body.textContent.indexOf("Hide the carbon-bound H labels") !== -1);
+} else {
+  check("when a later Watch slice exists, Step 4 advances forward instead of falsely completing",
+    /Watch · I Do · Step 5/i.test(docD.getElementById("phaseLabel").textContent) &&
+    docD.body.textContent.indexOf("Finished bond-line structure") !== -1);
+  docD.getElementById("backBtn").click();
+  check("Back from the appended step returns exactly one Watch step to Step 4",
+    /Watch · I Do · Step 4/i.test(docD.getElementById("phaseLabel").textContent) &&
+    docD.body.textContent.indexOf("Hide the carbon letters one carbon at a time") !== -1);
+}
 
 check("Slice 4 adds no timer-driven instructional advancement",
   read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setTimeout(") === -1 &&
