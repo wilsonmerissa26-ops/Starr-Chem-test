@@ -374,15 +374,28 @@
     return svg;
   }
 
+  var butaneCarbonSkeletonGeometry = {
+    carbons: [["C1",100,220],["C2",260,120],["C3",420,220],["C4",580,120]],
+    bonds: [[100,220,260,120],[260,120,420,220],[420,220,580,120]]
+  };
+
+  function carbonSkeletonBonds(className) {
+    var svg = '<g class="' + className + '" aria-hidden="true">';
+    butaneCarbonSkeletonGeometry.bonds.forEach(function (bond) {
+      svg += '<line x1="' + bond[0] + '" y1="' + bond[1] + '" x2="' + bond[2] + '" y2="' + bond[3] + '"/>';
+    });
+    return svg + "</g>";
+  }
+
   function butaneImpliedHydrogensSvg(showGhosts) {
-    var carbons = [["C1",130,190],["C2",270,190],["C3",410,190],["C4",550,190]];
+    var carbons = butaneCarbonSkeletonGeometry.carbons;
     var hydrogens = [
-      [75,190,130,190],[130,105,130,158],[130,275,130,222],
-      [270,105,270,158],[270,275,270,222],[410,105,410,158],[410,275,410,222],
-      [550,105,550,158],[550,275,550,222],[605,190,550,190]
+      [45,220,68,220],[75,140,88,190],[75,300,88,250],
+      [240,45,254,88],[310,65,278,95],[390,295,410,252],[470,275,438,245],
+      [635,120,612,120],[555,45,570,88],[625,60,600,92]
     ];
     var svg = '<svg class="molecule-svg step3-stage" viewBox="0 0 680 330" role="group" aria-label="The same butane molecule. Four carbon labels and three carbon-carbon bonds are written. Ten carbon-bound hydrogens are still part of the molecular model but their labels are now omitted.">';
-    svg += '<g class="step3-cc-bonds" aria-hidden="true"><line x1="158" y1="190" x2="242" y2="190"/><line x1="298" y1="190" x2="382" y2="190"/><line x1="438" y1="190" x2="522" y2="190"/></g>';
+    svg += carbonSkeletonBonds("step3-cc-bonds");
     hydrogens.forEach(function (h, index) {
       var tx = h[0] + (h[0] < 100 ? -14 : h[0] > 590 ? 6 : -10);
       var ty = h[1] + (h[1] < 150 ? -3 : h[1] > 230 ? 18 : 7);
@@ -391,7 +404,7 @@
       svg += '<text data-step3-hydrogen="H' + (index + 1) + '" data-fade-order="' + (index + 1) + '" class="hydrogen step3-hydrogen-hidden" style="animation-delay:' + fadeDelay + 'ms" x="' + tx + '" y="' + ty + '" aria-hidden="true">H</text>';
     });
     carbons.forEach(function (c, index) {
-      svg += '<g data-step3-carbon="' + c[0] + '" class="step3-carbon' + (index === 0 ? " terminal-carbon-highlight" : "") + '" aria-hidden="true"><circle cx="' + c[1] + '" cy="' + c[2] + '" r="31"/><text x="' + (c[1]-12) + '" y="' + (c[2]+10) + '">C</text></g>';
+      svg += '<g data-step3-carbon="' + c[0] + '" data-carbon-x="' + c[1] + '" data-carbon-y="' + c[2] + '" class="step3-carbon' + (index === 0 ? " terminal-carbon-highlight" : "") + '" aria-hidden="true"><circle cx="' + c[1] + '" cy="' + c[2] + '" r="31"/><text x="' + (c[1]-12) + '" y="' + (c[2]+10) + '">C</text></g>';
     });
     if (showGhosts) {
       svg += '<text class="implied-h-ghost" x="70" y="197">H</text><text class="implied-h-ghost" x="118" y="105">H</text><text class="implied-h-ghost" x="118" y="287">H</text>';
@@ -401,12 +414,11 @@
   }
 
   function butaneCarbonCollapseSvg(allCollapsed, repairMode, replayVisual) {
-    var carbons = [
-      ["C1",100,220,"first"], ["C2",260,120,"second"], ["C3",420,220,"third"], ["C4",580,120,"fourth"]
-    ];
+    var phases = ["first", "second", "third", "fourth"];
+    var carbons = butaneCarbonSkeletonGeometry.carbons;
     var collapseSpacing = 320;
     var svg = '<svg data-step4-visual class="molecule-svg step4-stage' + (replayVisual ? ' replay-all' : '') + '" viewBox="0 0 680 340" role="group" aria-label="The same four-carbon butane skeleton. Carbon labels are being abbreviated into line ends and vertices while the carbon atoms and bonds remain.">';
-    svg += '<g class="step4-bonds" aria-hidden="true"><line x1="100" y1="220" x2="260" y2="120"/><line x1="260" y1="120" x2="420" y2="220"/><line x1="420" y1="220" x2="580" y2="120"/></g>';
+    svg += carbonSkeletonBonds("step4-bonds");
     carbons.forEach(function (c, index) {
       var collapsed = false;
       var labelClass = "step4-carbon-label";
@@ -434,7 +446,7 @@
         } else labelClass += " step4-visible-label";
       }
 
-      svg += '<g data-step4-carbon="' + c[0] + '" data-collapse-phase="' + c[3] + '" data-collapsed="' + String(collapsed) + '" class="step4-carbon-position">';
+      svg += '<g data-step4-carbon="' + c[0] + '" data-carbon-x="' + c[1] + '" data-carbon-y="' + c[2] + '" data-collapse-phase="' + phases[index] + '" data-collapsed="' + String(collapsed) + '" class="step4-carbon-position">';
       svg += '<text class="' + labelClass + '" data-step4-label="' + c[0] + '" style="animation-delay:' + delay + 'ms" x="' + (c[1]-13) + '" y="' + (c[2]+11) + '">C</text></g>';
     });
     if (repairMode) {
