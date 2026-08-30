@@ -247,10 +247,34 @@
     var svg = '<svg data-step4-visual class="molecule-svg step4-stage' + (replayVisual ? ' replay-all' : '') + '" viewBox="0 0 680 340" role="group" aria-label="The same four-carbon butane skeleton. Carbon labels are being abbreviated into line ends and vertices while the carbon atoms and bonds remain.">';
     svg += '<g class="step4-bonds" aria-hidden="true"><line x1="100" y1="220" x2="260" y2="120"/><line x1="260" y1="120" x2="420" y2="220"/><line x1="420" y1="220" x2="580" y2="120"/></g>';
     carbons.forEach(function (c, index) {
-      var collapsed = allCollapsed || index < 2;
-      var labelOpacity = collapsed ? "0" : "1";
+      var collapsed = false;
+      var labelClass = "step4-carbon-label";
+      var delay = 0;
+
+      if (replayVisual && allCollapsed) {
+        collapsed = true;
+        labelClass += " step4-collapse-now";
+        delay = index * 220;
+      } else if (repairMode) {
+        collapsed = index < 2;
+        labelClass += index < 2 ? " step4-collapsed-static" : " step4-visible-label";
+      } else if (allCollapsed) {
+        collapsed = true;
+        if (index < 2) labelClass += " step4-collapsed-static";
+        else {
+          labelClass += " step4-collapse-now";
+          delay = (index - 2) * 220;
+        }
+      } else {
+        collapsed = index < 2;
+        if (index < 2) {
+          labelClass += " step4-collapse-now";
+          delay = index * 220;
+        } else labelClass += " step4-visible-label";
+      }
+
       svg += '<g data-step4-carbon="' + c[0] + '" data-collapse-phase="' + c[3] + '" data-collapsed="' + String(collapsed) + '" class="step4-carbon-position">';
-      svg += '<text class="step4-carbon-label" data-step4-label="' + c[0] + '" x="' + (c[1]-13) + '" y="' + (c[2]+11) + '" opacity="' + labelOpacity + '">C</text></g>';
+      svg += '<text class="' + labelClass + '" data-step4-label="' + c[0] + '" style="animation-delay:' + delay + 'ms" x="' + (c[1]-13) + '" y="' + (c[2]+11) + '">C</text></g>';
     });
     if (repairMode) {
       svg += '<text data-step4-toggle-carbon="C2" data-toggle-count="3" class="step4-toggle-label" x="247" y="131">C</text>';
