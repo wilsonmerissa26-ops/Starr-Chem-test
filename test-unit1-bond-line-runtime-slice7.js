@@ -91,7 +91,7 @@ check("plain-language heteroatom definition is frozen",
 check("Step 7 prediction prompt is frozen",
   !!step7 && step7.prediction && step7.prediction.prompt === "If this oxygen label disappeared completely, would the bond-line drawing still tell us an oxygen is there?");
 check("Step 7 prediction answer is No", !!step7 && step7.prediction && step7.prediction.answer === "no");
-check("Step 7 feedback is frozen",
+check("Step 7 correct feedback is frozen",
   !!step7 && step7.prediction && step7.prediction.feedback === "Right. Unlabeled ends and corners default to carbon. An oxygen must be labeled O.");
 check("Step 7 avoids the false all-hydrogens-hidden rule",
   !!step7 && step7.misconceptionGuard === "Hydrogens attached to carbon are usually omitted in bond-line notation. Hydrogens attached to heteroatoms are often shown because they can change the functional group and chemical behavior.");
@@ -106,9 +106,16 @@ if (typeof Slice.submitWatchStep7Prediction === "function") {
   var wrong = Slice.submitWatchStep7Prediction(s, "yes");
   check("wrong Watch prediction is accepted as supported teaching, not mastery",
     wrong && wrong.accepted === true && wrong.correct === false && s.watchStep7Complete === true);
-  check("wrong Watch prediction receives explicit oxygen-label correction",
-    wrong && wrong.feedback === "Right. Unlabeled ends and corners default to carbon. An oxygen must be labeled O.");
-  check("Step 7 prediction creates no independent/mastery evidence", s.evidence.length === beforeEvidence);
+  check("wrong Watch prediction receives explicit oxygen-label correction without false praise",
+    wrong && wrong.feedback === "Unlabeled ends and corners default to carbon. An oxygen must be labeled O.");
+  check("Step 7 wrong prediction creates no independent/mastery evidence", s.evidence.length === beforeEvidence);
+
+  var clean = Slice.createSession();
+  clean.phase = "watch_step_7";
+  var right = Slice.submitWatchStep7Prediction(clean, "no");
+  check("correct Watch prediction receives the frozen correct feedback",
+    right && right.accepted === true && right.correct === true && right.feedback === "Right. Unlabeled ends and corners default to carbon. An oxygen must be labeled O." && clean.watchStep7Complete === true);
+  check("Step 7 correct prediction creates no independent/mastery evidence", clean.evidence.length === 0);
 }
 
 console.log("\n=== SLICE 7 REAL LEARNER PAGE ===");
