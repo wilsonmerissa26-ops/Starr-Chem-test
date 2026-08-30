@@ -17,6 +17,7 @@ on:
       - 'test-unit1-bond-line-runtime-slice4.js'
       - 'test-unit1-bond-line-slice4-collapse-pause.js'
       - 'test-unit1-bond-line-slice4-codex-regressions.js'
+      - 'test-unit1-bond-line-slice4-motion-rearm.js'
       - '.github/workflows/unit1-bond-line-runtime-slice4.yml'
   push:
     branches:
@@ -36,6 +37,7 @@ on:
       - 'test-unit1-bond-line-runtime-slice4.js'
       - 'test-unit1-bond-line-slice4-collapse-pause.js'
       - 'test-unit1-bond-line-slice4-codex-regressions.js'
+      - 'test-unit1-bond-line-slice4-motion-rearm.js'
       - '.github/workflows/unit1-bond-line-runtime-slice4.yml'
 
 jobs:
@@ -74,3 +76,5 @@ jobs:
         run: node test-unit1-bond-line-slice4-collapse-pause.js
       - name: Watch Step 4 Codex regressions
         run: node test-unit1-bond-line-slice4-codex-regressions.js
+      - name: Watch Step 4 reduced-motion re-arm regression
+        run: node test-unit1-bond-line-slice4-motion-rearm.js
