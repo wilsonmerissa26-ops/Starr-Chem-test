@@ -20,6 +20,7 @@ on:
       - 'test-unit1-bond-line-slice4-motion-rearm.js'
       - 'test-unit1-bond-line-slice4-geometry-continuity.js'
       - 'test-unit1-bond-line-runtime-slice5.js'
+      - 'test-unit1-bond-line-slice5-codex-visuals.js'
       - '.github/workflows/unit1-bond-line-runtime-slice5.yml'
   push:
     branches:
@@ -42,6 +43,7 @@ on:
       - 'test-unit1-bond-line-slice4-motion-rearm.js'
       - 'test-unit1-bond-line-slice4-geometry-continuity.js'
       - 'test-unit1-bond-line-runtime-slice5.js'
+      - 'test-unit1-bond-line-slice5-codex-visuals.js'
       - '.github/workflows/unit1-bond-line-runtime-slice5.yml'
 
 jobs:
@@ -86,3 +88,5 @@ jobs:
         run: node test-unit1-bond-line-slice4-geometry-continuity.js
       - name: Watch Step 5 contract
         run: node test-unit1-bond-line-runtime-slice5.js
+      - name: Step 5 Codex visual regressions
+        run: node test-unit1-bond-line-slice5-codex-visuals.js
