@@ -37,15 +37,12 @@ function createSkill(id) {
     notebookEntries: [],
     consecutiveWrong: 0,
     lastRepresentationIndex: -1,
-    atScaffoldCeiling: false,   // was only ever added dynamically before, now part of the real shape from creation
-    independentSuccesses: [],  // { scaffoldLevel, correctExplanation, itemId, timestamp }. NOTE: no sessionId yet,
-                                // the spec's "later in the same session" language needs one once session handling
-                                // exists at integration. Tracked here as a pending requirement, not silently dropped.
-    explanationAttempts: [],   // explanation evidence stays separate from answer-attempt history
-    masteryEvidenceValidAfter: 0, // cold successes at or before this timestamp no longer count toward mastery,
-                                   // bumped forward every time remediation opens, see handleIdk and handleWrongAttempt
-    remediation: null,         // active remediation gate, see Section 6/15 fix below
-    recentlySeenItemIds: [],   // rolling exclusion window, prevents A/B/A/B bouncing
+    atScaffoldCeiling: false,
+    independentSuccesses: [],
+    explanationAttempts: [],
+    masteryEvidenceValidAfter: 0,
+    remediation: null,
+    recentlySeenItemIds: [],
     reviewDue: null
   };
 }
@@ -62,18 +59,18 @@ function moveToGuided(skill) { skill.state = STATES.GUIDED; skill.scaffoldLevel 
 
 function recordAttempt(skill, itemId, correct, errorCode, timestamp, input) {
   skill.attempts.push({
-    itemId: itemId, input: input == null ? null : input, correct: !!correct, errorCode: errorCode || null,
-    scaffoldLevelAtAttempt: skill.scaffoldLevel, timestamp: timestamp || Date.now()
+    itemId: itemId,
+    input: input == null ? null : input,
+    correct: !!correct,
+    errorCode: errorCode || null,
+    scaffoldLevelAtAttempt: skill.scaffoldLevel,
+    timestamp: timestamp || Date.now()
   });
-  if (correct) {
-    skill.consecutiveWrong = 0;
-  } else {
-    skill.consecutiveWrong += 1;
-  }
+  if (correct) skill.consecutiveWrong = 0;
+  else skill.consecutiveWrong += 1;
   return skill;
 }
 
-// Section 4: two guided successes in a row -> INDEPENDENT
 function checkGuidedAdvance(skill) {
   var last2 = skill.attempts.slice(-2);
   if (skill.state === STATES.GUIDED && last2.length === 2 &&
@@ -99,10 +96,9 @@ function recordIndependentAttempt(skill, itemId, correct, correctExplanation, ti
   return skill;
 }
 
-// Explanation is evidence about a cold success, not a replacement for one.
-// It may upgrade the explanation flag on an existing current cold success, but
-// it cannot create a success, change that success's retrieval timestamp, or
-// revive evidence invalidated by later remediation.
+// Explanation evidence upgrades a real current cold success. It never creates
+// an Independent success, changes its retrieval timestamp, or revives evidence
+// invalidated by later remediation.
 function recordIndependentExplanation(skill, itemId, correct, timestamp, input) {
   if (!Array.isArray(skill.explanationAttempts)) skill.explanationAttempts = [];
   var at = timestamp || Date.now();
@@ -123,74 +119,58 @@ function recordIndependentExplanation(skill, itemId, correct, timestamp, input) 
   });
   skill.state = STATES.EXPLAIN_WHY;
 
-  if (!target) {
-    return { accepted: false, attached: false, reason: "no_matching_cold_success" };
-  }
-  if (!correct) {
-    return { accepted: true, attached: false, reason: "explanation_incorrect" };
-  }
-
+  if (!target) return { accepted: false, attached: false, reason: "no_matching_cold_success" };
+  if (!correct) return { accepted: true, attached: false, reason: "explanation_incorrect" };
   target.correctExplanation = true;
   return { accepted: true, attached: true, reason: null };
 }
 
-// Small shared invariant check. Not the full transition-guard system, that's
-// explicitly a later pass once integration exists, this is just the one check
-// both fixes below need, factored out so it can't drift out of sync between them.
 function isRemediationActive(skill) {
   return !!(skill.remediation && skill.remediation.active);
 }
 
-// Section 2: MASTERED requires all three conditions, not one correct answer.
-// The second success must be a DIFFERENT item AND at least MIN_RETRIEVAL_DELAY_MS
-// later, per the spec's own "a few minutes later" language. Two back-to-back
-// correct answers are not retrieval evidence, they're one long attempt.
-// Also: mastery can never be claimed while remediation is actively open, even
-// if older qualifying evidence exists, AND once remediation has opened at all,
-// evidence from before that point stops qualifying, even after remediation
-// closes successfully. Confusion serious enough to open remediation is itself
-// a signal the earlier evidence may no longer describe her, and the model
-// should not hand back an old verdict just because remediation later resolved
-// cleanly. Nothing is deleted, independentSuccesses keeps full history, this
-// only changes what counts as CURRENT evidence.
+// MASTERED requires three distinct facts:
+// 1) a current cold success with correct-shaped explanation evidence,
+// 2) a second DIFFERENT current cold success,
+// 3) that second success occurs at least MIN_RETRIEVAL_DELAY_MS later.
+//
+// The second retrieval success does NOT need a second explanation of its own.
+// The contract requires explanation evidence once plus later retrieval, not an
+// extra essay on every confirming item. Remediation still invalidates all
+// earlier evidence by advancing masteryEvidenceValidAfter.
 function evaluateMastery(skill) {
   if (isRemediationActive(skill)) {
     return { mastered: false, reason: "mastery evaluation blocked while remediation is active" };
   }
 
   var cutoff = skill.masteryEvidenceValidAfter || 0;
-  var coldSuccess = skill.independentSuccesses.find(function(s){
-    return s.scaffoldLevel === SCAFFOLD.COLD && s.correctExplanation && s.timestamp > cutoff;
+  var explainedColdSuccess = skill.independentSuccesses.find(function(s){
+    return s.scaffoldLevel === SCAFFOLD.COLD &&
+           s.correctExplanation &&
+           s.timestamp > cutoff;
   });
-  if (!coldSuccess) return { mastered: false, reason: "no cold success with valid explanation since the last time remediation opened" };
+  if (!explainedColdSuccess) {
+    return { mastered: false, reason: "no cold success with valid explanation since the last time remediation opened" };
+  }
 
   var distinctItemLater = skill.independentSuccesses.find(function(s){
     return s.scaffoldLevel === SCAFFOLD.COLD &&
-           s.correctExplanation &&
            s.timestamp > cutoff &&
-           s.itemId !== coldSuccess.itemId &&
-           s.timestamp >= coldSuccess.timestamp + MIN_RETRIEVAL_DELAY_MS;
+           s.itemId !== explainedColdSuccess.itemId &&
+           s.timestamp >= explainedColdSuccess.timestamp + MIN_RETRIEVAL_DELAY_MS;
   });
-  if (!distinctItemLater) return { mastered: false, reason: "no second distinct cold success at least " + (MIN_RETRIEVAL_DELAY_MS/60000) + " minutes later yet" };
+  if (!distinctItemLater) {
+    return { mastered: false, reason: "no second distinct cold success at least " + (MIN_RETRIEVAL_DELAY_MS/60000) + " minutes later yet" };
+  }
 
   skill.state = STATES.MASTERED;
-  return { mastered: true, reason: "cold success with explanation, confirmed on a second distinct item after a real retrieval delay" };
+  return { mastered: true, reason: "cold success with valid explanation, confirmed on a second distinct cold item after a real retrieval delay" };
 }
 
-// Section 4/7: IDK, or two wrong attempts in a row, means MORE support, not less.
-// The ladder is ascending by support: COLD(0) has the least, WORKED(4) the most.
-// "Regress" moves toward more support. If a skill is already at the ceiling (4),
-// there is no more same-skill scaffolding to add, that's the exact trigger for
-// Section 15's prerequisite regression to a DIFFERENT, earlier skill node, not
-// a same-skill bump. This function correctly signals that case rather than
-// silently doing nothing.
 var SCAFFOLD_ASCENDING_SUPPORT = [SCAFFOLD.COLD, SCAFFOLD.NOTEBOOK, SCAFFOLD.PARTIAL, SCAFFOLD.EXPLICIT, SCAFFOLD.WORKED];
 function regressOneLevel(skill) {
   var idx = SCAFFOLD_ASCENDING_SUPPORT.indexOf(skill.scaffoldLevel);
   if (idx >= SCAFFOLD_ASCENDING_SUPPORT.length - 1) {
-    // Already at maximum same-skill support. Cross-skill prerequisite
-    // regression (Section 15) is a later build step, dependency graph
-    // integration, not yet wired here. Flagged honestly, not silently ignored.
     skill.state = STATES.DEVELOPING;
     skill.atScaffoldCeiling = true;
     return skill;
@@ -202,16 +182,14 @@ function regressOneLevel(skill) {
 }
 
 /* ---------------- IDK Router (Section 6, six-way contract) ---------------- */
-// The original three stable values remain unchanged. Unit 1 adds the remaining
-// three meanings required by the frozen teaching contract.
 
 var IDK_REASONS = {
-  DONT_UNDERSTAND: "dont_understand_concept",   // -> concept reteach
-  DONT_KNOW_START: "dont_know_how_to_start",    // -> first-decision modeling
-  FORGOT_PREREQUISITE: "forgot_prerequisite",   // -> dependency-chain repair
-  STARTED_STUCK: "started_but_stuck",            // -> preserve work, repair stuck step
-  SHOW_EXAMPLE: "show_me_example",               // -> Watch mode worked example
-  EXPLANATION_NOT_MAKING_SENSE: "explanation_not_making_sense" // -> representation switch
+  DONT_UNDERSTAND: "dont_understand_concept",
+  DONT_KNOW_START: "dont_know_how_to_start",
+  FORGOT_PREREQUISITE: "forgot_prerequisite",
+  STARTED_STUCK: "started_but_stuck",
+  SHOW_EXAMPLE: "show_me_example",
+  EXPLANATION_NOT_MAKING_SENSE: "explanation_not_making_sense"
 };
 
 var IDK_ACTIONS = {};
@@ -222,14 +200,6 @@ IDK_ACTIONS[IDK_REASONS.STARTED_STUCK] = "RESUME_FROM_STUCK_STEP";
 IDK_ACTIONS[IDK_REASONS.SHOW_EXAMPLE] = "WATCH_MODE_EXAMPLE";
 IDK_ACTIONS[IDK_REASONS.EXPLANATION_NOT_MAKING_SENSE] = "SWITCH_REPRESENTATION";
 
-// Section 6: IDK -> teach/remediate -> confirm the smaller prerequisite -> THEN
-// select a fresh original-level item. Three separate events, not one synchronous
-// call. Handing back a next item at the moment IDK is pressed can reproduce the
-// exact "explanation, then next question" pattern this engine exists to prevent,
-// regardless of what the bookkeeping around it looks like.
-//
-// Item selection excludes a rolling window of recently seen items, not just the
-// immediately current one, so a small bank can't bounce A/B/A/B forever.
 function selectFreshItem(itemBank, excludedIds) {
   var candidates = itemBank.filter(function(it){ return excludedIds.indexOf(it.id) === -1; });
   if (candidates.length === 0) return null;
@@ -241,22 +211,14 @@ function trackRecentlySeen(skill, itemId) {
   if (skill.recentlySeenItemIds.length > 4) skill.recentlySeenItemIds.shift();
 }
 
-// STEP 1: opens a remediation gate. Deliberately returns no next item.
 function handleIdk(skill, reason, currentItemId, requiredSkillId, timestamp) {
-  if (!IDK_ACTIONS[reason]) {
-    throw new Error("Unknown IDK reason: " + reason);
-  }
+  if (!IDK_ACTIONS[reason]) throw new Error("Unknown IDK reason: " + reason);
   skill.idkSelections.push({ reason: reason, timestamp: timestamp || Date.now() });
   regressOneLevel(skill);
-  trackRecentlySeen(skill, currentItemId); // she is leaving this item, it counts as recently seen NOW,
-                                            // not only if and when something later happens to hand it back out
+  trackRecentlySeen(skill, currentItemId);
   var confusionAt = timestamp || Date.now();
   skill.masteryEvidenceValidAfter = Math.max(skill.masteryEvidenceValidAfter || 0, confusionAt);
 
-  // Preserve the original ceiling behavior for the three legacy reasons so
-  // existing callers/tests keep their contract. The three newly shipped reason
-  // types keep their semantic action at the ceiling: prerequisite repair, stuck
-  // step repair, or a modality/representation switch.
   var isNewReason = reason === IDK_REASONS.FORGOT_PREREQUISITE ||
                     reason === IDK_REASONS.STARTED_STUCK ||
                     reason === IDK_REASONS.EXPLANATION_NOT_MAKING_SENSE;
@@ -278,16 +240,12 @@ function handleIdk(skill, reason, currentItemId, requiredSkillId, timestamp) {
   return { action: interventionType, remediationActive: true };
 }
 
-// STEP 2: the smaller prerequisite check. This has to have a real failure path,
-// not just a success path. A wrong answer here previously did nothing at all,
-// the remediation object came out byte-identical to how it went in, no
-// escalation, no representation change, nothing for the caller to act on.
 function recordRemediationCheck(skill, correct, checkItemId, timestamp) {
-  if (!isRemediationActive(skill)) {
-    throw new Error("recordRemediationCheck called with no active remediation");
-  }
+  if (!isRemediationActive(skill)) throw new Error("recordRemediationCheck called with no active remediation");
   skill.remediation.prerequisiteAttempts.push({
-    itemId: checkItemId || null, correct: !!correct, timestamp: timestamp || Date.now()
+    itemId: checkItemId || null,
+    correct: !!correct,
+    timestamp: timestamp || Date.now()
   });
 
   if (correct) {
@@ -296,24 +254,15 @@ function recordRemediationCheck(skill, correct, checkItemId, timestamp) {
     return { passed: true, needsEscalation: false, representation: null };
   }
 
-  // Wrong on the prerequisite check itself. Remediation stays open, nothing
-  // exits. Section 6's modality rule applies at this level too, don't just
-  // ask the same smaller question again, switch how it's being taught.
   trackRecentlySeen(skill, checkItemId);
   var rep = nextRepresentation(skill);
   skill.remediation.representationHistory.push(rep);
-  skill.remediation.prerequisiteCheckPassed = false; // stays false, set explicitly, not just left alone
-
+  skill.remediation.prerequisiteCheckPassed = false;
   var wrongCount = skill.remediation.prerequisiteAttempts.filter(function(a){ return !a.correct; }).length;
   skill.remediation.needsEscalation = wrongCount >= 2;
-
   return { passed: false, needsEscalation: skill.remediation.needsEscalation, representation: rep };
 }
 
-// Companion to recordRemediationCheck's failure path: get a genuinely
-// different item to retry the prerequisite check itself, not the parent
-// skill. Same exclusion discipline as everywhere else, explicit null on
-// exhaustion, never a silent recycle.
 function nextRemediationCheckItem(skill, prerequisiteBank) {
   if (!isRemediationActive(skill)) return { item: null, reason: "no_active_remediation" };
   var fresh = selectFreshItem(prerequisiteBank, skill.recentlySeenItemIds);
@@ -321,43 +270,23 @@ function nextRemediationCheckItem(skill, prerequisiteBank) {
   return { item: fresh, reason: null };
 }
 
-// STEP 3: only callable, and only successful, once the gate is actually open.
-// Three distinct outcomes now, not two: still gated, genuinely exited, or
-// exhausted. Exhaustion does NOT close the gate on nothing and does NOT
-// recycle a stale item to fake variety, the caller has to actually decide
-// what happens next, exactly as it should.
 function exitRemediation(skill, itemBank) {
-  if (!isRemediationActive(skill)) {
-    return { allowed: false, nextItem: null, reason: "no_active_remediation" };
-  }
-  if (!skill.remediation.prerequisiteCheckPassed) {
-    return { allowed: false, nextItem: null, reason: "prerequisite_not_yet_passed" };
-  }
+  if (!isRemediationActive(skill)) return { allowed: false, nextItem: null, reason: "no_active_remediation" };
+  if (!skill.remediation.prerequisiteCheckPassed) return { allowed: false, nextItem: null, reason: "prerequisite_not_yet_passed" };
   var fresh = selectFreshItem(itemBank, skill.recentlySeenItemIds);
-  if (!fresh) {
-    return { allowed: false, nextItem: null, reason: "bank_exhausted" };
-  }
+  if (!fresh) return { allowed: false, nextItem: null, reason: "bank_exhausted" };
   skill.remediation.returnItemId = fresh.id;
   skill.remediation.active = false;
   trackRecentlySeen(skill, fresh.id);
   return { allowed: true, nextItem: fresh, reason: null };
 }
 
-// Section 6 modality rule, generalized to Section 4's "two wrong in a row" trigger.
-// "restated_explanation" is deliberately absent, not just deprioritized: the spec
-// says never repeat the same explanation reworded, and leaving it anywhere in a
-// rotating list means it eventually gets selected again on a later cycle no
-// matter where it starts.
 var REPRESENTATIONS = ["diagram", "worked_example", "concrete_analogy", "build_together"];
 function nextRepresentation(skill) {
   skill.lastRepresentationIndex = (skill.lastRepresentationIndex + 1) % REPRESENTATIONS.length;
   return REPRESENTATIONS[skill.lastRepresentationIndex];
 }
 
-// Same gated remediation cycle as IDK, triggered by two wrong attempts in a row.
-// consecutiveWrong resets the moment a switch fires, so the new representation
-// gets a real attempt before anything escalates again, instead of switching on
-// every subsequent wrong answer regardless of whether the new approach worked.
 function handleWrongAttempt(skill, itemId, errorCode, currentItemId, timestamp, input) {
   recordAttempt(skill, itemId, false, errorCode, timestamp, input);
   if (skill.consecutiveWrong >= 2) {
@@ -386,20 +315,31 @@ function handleWrongAttempt(skill, itemId, errorCode, currentItemId, timestamp, 
   return { action: "TARGETED_FEEDBACK", errorCode: errorCode };
 }
 
-/* Exported for the test harness */
 var StudentModelIdkRouter = {
-    STATES: STATES, SCAFFOLD: SCAFFOLD, MIN_RETRIEVAL_DELAY_MS: MIN_RETRIEVAL_DELAY_MS,
-    createSkill: createSkill, startTeaching: startTeaching,
-    moveToWatch: moveToWatch, moveToBuildTogether: moveToBuildTogether, moveToGuided: moveToGuided,
-    recordAttempt: recordAttempt, checkGuidedAdvance: checkGuidedAdvance,
-    recordIndependentAttempt: recordIndependentAttempt, recordIndependentExplanation: recordIndependentExplanation,
-    evaluateMastery: evaluateMastery,
-    regressOneLevel: regressOneLevel,
-    IDK_REASONS: IDK_REASONS, handleIdk: handleIdk, recordRemediationCheck: recordRemediationCheck,
-    exitRemediation: exitRemediation, nextRemediationCheckItem: nextRemediationCheckItem,
-    selectFreshItem: selectFreshItem, isRemediationActive: isRemediationActive,
-    handleWrongAttempt: handleWrongAttempt, nextRepresentation: nextRepresentation,
-    REPRESENTATIONS: REPRESENTATIONS
-  };
+  STATES: STATES,
+  SCAFFOLD: SCAFFOLD,
+  MIN_RETRIEVAL_DELAY_MS: MIN_RETRIEVAL_DELAY_MS,
+  createSkill: createSkill,
+  startTeaching: startTeaching,
+  moveToWatch: moveToWatch,
+  moveToBuildTogether: moveToBuildTogether,
+  moveToGuided: moveToGuided,
+  recordAttempt: recordAttempt,
+  checkGuidedAdvance: checkGuidedAdvance,
+  recordIndependentAttempt: recordIndependentAttempt,
+  recordIndependentExplanation: recordIndependentExplanation,
+  evaluateMastery: evaluateMastery,
+  regressOneLevel: regressOneLevel,
+  IDK_REASONS: IDK_REASONS,
+  handleIdk: handleIdk,
+  recordRemediationCheck: recordRemediationCheck,
+  exitRemediation: exitRemediation,
+  nextRemediationCheckItem: nextRemediationCheckItem,
+  selectFreshItem: selectFreshItem,
+  isRemediationActive: isRemediationActive,
+  handleWrongAttempt: handleWrongAttempt,
+  nextRepresentation: nextRepresentation,
+  REPRESENTATIONS: REPRESENTATIONS
+};
 if (typeof module !== "undefined" && module.exports) module.exports = StudentModelIdkRouter;
 if (typeof globalThis !== "undefined") globalThis.StudentModelIdkRouter = StudentModelIdkRouter;
