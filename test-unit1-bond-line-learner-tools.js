@@ -35,8 +35,8 @@ const {JSDOM}=require("jsdom");
   d.getElementById("phaseLabel").textContent="Watch · I Do · Step 6";
   d.querySelector("[data-help-tool]").click();
   const helpText=d.querySelector("[data-tool-body]").textContent;
-  ok(helpText.includes("Visible bond order + implied C–H bonds = 4"),"Watch Step 6 Help gives the exact hydrogen rule");
-  ok(helpText.includes("two implied C–H bonds"),"Watch Step 6 Help addresses the current teaching step");
+  ok(helpText.includes("Two visible single bonds give bond order 2"),"Watch Step 6 Help starts from the two visible bonds on the selected carbon");
+  ok(helpText.includes("two implied C–H bonds"),"Watch Step 6 Help connects bond order 2 to two implied hydrogens");
   d.querySelector("[data-tool-close]").click();
 
   let coldHelpClicks=0;
