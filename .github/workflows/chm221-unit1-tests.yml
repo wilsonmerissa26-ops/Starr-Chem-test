@@ -39,3 +39,5 @@ jobs:
         run: node test-unit1-idk-teaching.js
       - name: Run Chapter 1 teaching engine regression
         run: node test-unit1-chapter1-teaching-engine.js
+      - name: Run Chapter 1 six-way IDK routing regression
+        run: node test-unit1-chapter1-idk-routing.js
