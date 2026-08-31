@@ -40,7 +40,7 @@
       check:{prompt:'A terminal carbon in a bond-line structure has one single bond drawn to another carbon. How many hydrogens are implied on that terminal carbon?',accepted:['3','three'],success:'Exactly. One visible bond plus three C-H bonds gives carbon four bonds.',correction:'Carbon needs four total bonds. With one bond already drawn, three bond positions remain for H.'}
     },
     F1:{
-      hint:'Do not count four nonbonding electrons as four lone pairs. A lone pair contains two electrons.',
+      hint:'Do not count four nonbonding electrons as four lone pairs. A lone pair contains two electrons, so four nonbonding electrons make two lone pairs.',
       concept:'Neutral oxygen has six valence electrons and commonly appears with two bonds and two lone pairs. With two single bonds already drawn, the remaining four nonbonding electrons are grouped into two pairs. So the answer is two lone pairs, not four.',
       start:'Use only three facts. The atom is oxygen. It is neutral. It already has two single bonds. Neutral oxygen with two bonds has two lone pairs.',
       prerequisite:'The prerequisite is the difference between electrons and electron pairs. Four nonbonding electrons make two lone pairs. Day 2 reviews valence electrons, lone pairs, and formal charge if you need that piece rebuilt.',
