@@ -40,7 +40,7 @@ const {JSDOM}=require("jsdom");
   d.querySelector("[data-tool-close]").click();
 
   let coldHelpClicks=0;
-  const cold=document.createElement("button");
+  const cold=d.createElement("button");
   cold.setAttribute("data-independent-help","");
   cold.addEventListener("click",()=>coldHelpClicks++);
   d.body.appendChild(cold);
