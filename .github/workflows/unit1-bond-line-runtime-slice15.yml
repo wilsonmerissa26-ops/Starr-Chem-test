@@ -13,6 +13,7 @@ on:
       - 'test-build-together.js'
       - 'test-chm221-unit1.js'
       - 'test-unit1-bond-line-pilot-readiness.js'
+      - 'test-unit1-bond-line-full-production-order.js'
       - 'test-unit1-bond-line-runtime-slice*.js'
       - 'test-unit1-bond-line-slice*.js'
       - '.github/workflows/unit1-bond-line-runtime-slice15.yml'
@@ -30,6 +31,7 @@ on:
       - 'test-build-together.js'
       - 'test-chm221-unit1.js'
       - 'test-unit1-bond-line-pilot-readiness.js'
+      - 'test-unit1-bond-line-full-production-order.js'
       - 'test-unit1-bond-line-runtime-slice*.js'
       - 'test-unit1-bond-line-slice*.js'
       - '.github/workflows/unit1-bond-line-runtime-slice15.yml'
@@ -149,5 +151,7 @@ jobs:
         run: node test-unit1-bond-line-runtime-slice15-handoff.js
       - name: Real Later Retrieval learner page
         run: node test-unit1-bond-line-runtime-slice15-page.js
+      - name: Full production script-order learner page
+        run: node test-unit1-bond-line-full-production-order.js
       - name: Pilot readiness regression
         run: node test-unit1-bond-line-pilot-readiness.js
