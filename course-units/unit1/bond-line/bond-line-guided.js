@@ -145,3 +145,18 @@
   }
   load(0);
 })();
+
+/* Shared learner shell: navigation, Periodic Table, and help. */
+(function(){
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  if(globalThis.LearnerTools||document.querySelector('script[data-bond-line-learner-tools]'))return;
+  var script=document.createElement("script");
+  script.src="../../../learner-tools.js";
+  script.async=false;
+  script.setAttribute("data-bond-line-learner-tools","");
+  script.setAttribute("data-unit-href","../");
+  script.setAttribute("data-home-href","../../../course-hub/");
+  script.setAttribute("data-periodic-href","../../../periodic-table.html");
+  script.onerror=function(){console.error("Unable to load Bond-Line learner tools");};
+  document.head.appendChild(script);
+})();
