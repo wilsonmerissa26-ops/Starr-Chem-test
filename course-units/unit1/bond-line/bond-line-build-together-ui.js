@@ -96,10 +96,16 @@
   function renderComplete() {
     controls.hidden = false;
     Array.prototype.forEach.call(controls.querySelectorAll("button"),function(b){b.hidden=false;b.disabled=true;});
-    document.getElementById("nextBtn").textContent="Guided practice next";
+    var nextBtn=document.getElementById("nextBtn");
+    var guidedReady=!!(globalThis.BondLineGuidedUI&&typeof globalThis.BondLineGuidedUI.start==="function");
+    nextBtn.textContent=guidedReady?"Start Guided Practice":"Guided practice next";
+    nextBtn.disabled=!guidedReady;
     phaseLabel.textContent="Build Together · complete";
     status.textContent="Supported Build Together success. This is not independent or mastery evidence.";
     panel.innerHTML = '<h1>You built the shortcut yourself.</h1>' + teacher("You just built a bond-line structure from a condensed formula. The important move was not drawing a zig-zag. It was preserving the carbon connectivity while removing labels the notation allows us to omit.") + '<div class="success-box">BUILD_TOGETHER_SUCCESS recorded as supported practice only. Next comes Guided Practice with 2-methylbutane.</div>';
+    if(guidedReady){
+      nextBtn.addEventListener("click",function launchGuided(event){event.preventDefault();event.stopImmediatePropagation();nextBtn.removeEventListener("click",launchGuided,true);globalThis.BondLineGuidedUI.start();},true);
+    }
     announce("Build Together complete. Guided Practice is next.");
   }
 
