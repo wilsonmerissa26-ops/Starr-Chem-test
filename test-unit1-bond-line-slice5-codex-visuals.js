@@ -66,6 +66,7 @@ function reachStep5(dom) {
 
 var dom = buildApp();
 var doc = reachStep5(dom);
+var pageSource = read("course-units/unit1/bond-line/index.html");
 console.log("=== STEP 5 CODEX VISUAL REGRESSIONS ===");
 var bondLines = doc.querySelectorAll(".step5-visible-bonds line");
 check("Step 5 renders three structural bond lines", bondLines.length === 3);
@@ -82,16 +83,13 @@ var bondHit = doc.querySelector('[data-step5-bond="BOND_2"] line');
 check("bond misconception hit stroke is mobile-sized in SVG units", !!bondHit && Number(bondHit.getAttribute("stroke-width") || (bondHit.style && bondHit.style.strokeWidth) || 0) >= 90);
 
 if (carbon) activate(carbon);
-check("selected carbon target receives a visible selected class", !!carbon && carbon.classList.contains("selected"));
-if (hit) {
-  var selectedStyle = dom.window.getComputedStyle(hit);
-  check("selected carbon target has a visible fill or stroke", (selectedStyle.fill && selectedStyle.fill !== "transparent" && selectedStyle.fill !== "none") || (selectedStyle.stroke && selectedStyle.stroke !== "transparent" && selectedStyle.stroke !== "none"));
-}
+check("selected carbon target receives a selected state in the DOM", !!carbon && carbon.classList.contains("selected") && carbon.getAttribute("aria-pressed") === "true");
+check("selected carbon state has an explicit visible fill/stroke rule",
+  /\.step5-carbon-target\.selected\s+\.step5-hit-area\s*\{[^}]*fill\s*:\s*var\(--good-bg\)\s*!important[^}]*stroke\s*:\s*var\(--good\)\s*!important/i.test(pageSource));
 var selectedMarker = doc.querySelector('[data-step5-marker="C2"]');
-if (selectedMarker) {
-  var markerStyle = dom.window.getComputedStyle(selectedMarker);
-  check("selected numbered marker has a distinct selected fill", selectedMarker.classList.contains("selected") && markerStyle.fill && markerStyle.fill !== "#174f59" && markerStyle.fill !== "rgb(23, 79, 89)");
-}
+check("selected numbered marker receives a selected class", !!selectedMarker && selectedMarker.classList.contains("selected"));
+check("selected numbered marker has an explicit distinct fill rule",
+  /\.step5-marker\.selected\s*\{[^}]*fill\s*:\s*var\(--good\)\s*!important/i.test(pageSource));
 
 ["C1","C3","C4"].forEach(function (id) {
   var node = doc.querySelector('[data-step5-carbon="' + id + '"]');
