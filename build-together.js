@@ -94,7 +94,11 @@ function validInstanceLabelsOf(plan){
 // not fabricated ones, and that whichever real instance she picked hasn't
 // already been used, rather than requiring the exact instance label the
 // plan happened to write down for this step.
-function samePayload(expected, actual, type, usedInstanceLabels, central, validLabels){
+//
+// Some skills, such as producing a carbon skeleton from a condensed formula,
+// are role-preserving rather than symmetric. A plan can opt into
+// strictBondInstances so C2-C5 cannot satisfy a step that requires C2-C3.
+function samePayload(expected, actual, type, usedInstanceLabels, central, validLabels, strictBondInstances){
   actual = actual || {};
   if(type===ACTION.PLACE_ATOM) return actual.element===expected.element;
 
@@ -105,6 +109,12 @@ function samePayload(expected, actual, type, usedInstanceLabels, central, validL
     if (validLabels) {
       var allReal = actual.between.every(function(l){ return !!validLabels[l]; });
       if (!allReal) return false;
+    }
+
+    if (strictBondInstances) {
+      var expectedLabels = expected.between.slice().sort();
+      var actualLabels = actual.between.slice().sort();
+      return expectedLabels[0] === actualLabels[0] && expectedLabels[1] === actualLabels[1];
     }
 
     var expEl = expected.between.map(elementOfLabel).sort();
@@ -190,7 +200,7 @@ function submitAction(session,plan,studentAction,timestamp){
   var actualType=studentAction&&studentAction.type;
   var central=centralLabelsOf(plan);
   var validLabels=validInstanceLabelsOf(plan);
-  var correct=actualType===expected.type && samePayload(expected.payload,studentAction.payload,expected.type,session.usedBondInstanceLabels,central,validLabels);
+  var correct=actualType===expected.type && samePayload(expected.payload,studentAction.payload,expected.type,session.usedBondInstanceLabels,central,validLabels,!!plan.strictBondInstances);
 
   session.attempts.push({
     actionId:expected.id,

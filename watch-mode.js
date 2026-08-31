@@ -170,7 +170,11 @@ function validateSequence(sequence) {
     if (!step.id || ids[step.id]) return { valid: false, reason: "duplicate_or_missing_step_id" };
     ids[step.id] = true;
 
-    if (!step.visual || !step.visual.counter) return { valid: false, reason: "missing_counter" };
+    if (!step.visual) return { valid: false, reason: "missing_visual" };
+    if (!step.visual.counter) {
+      if (sequence.requiresCounter === false) continue;
+      return { valid: false, reason: "missing_counter" };
+    }
     var c = step.visual.counter;
     if (c.available < 0 || c.placed < 0 || c.remaining < 0) return { valid: false, reason: "negative_counter" };
     if (c.available - c.placed !== c.remaining) return { valid: false, reason: "counter_mismatch" };
