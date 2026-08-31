@@ -29,6 +29,8 @@ jobs:
         run: node --check course-units/unit1/chapter1/chapter1-data.js
       - name: Syntax-check Chapter 1 teaching engine
         run: node --check course-units/unit1/chapter1/chapter1-engine.js
+      - name: Syntax-check Chapter 1 evidence policy
+        run: node --check course-units/unit1/chapter1/chapter1-policy.js
       - name: Syntax-check Chapter 1 IDK support
         run: node --check course-units/unit1/chapter1/chapter1-support.js && node --check course-units/unit1/chapter1/chapter1-support-hook.js
       - name: Syntax-check Chapter 1 learner runtime
@@ -41,5 +43,7 @@ jobs:
         run: node test-unit1-chapter1-teaching-engine.js
       - name: Run Chapter 1 six-way IDK routing regression
         run: node test-unit1-chapter1-idk-routing.js
+      - name: Run Chapter 1 production evidence policy regression
+        run: node test-unit1-chapter1-production-policy.js
       - name: Run Chapter 1 learner entry regression
         run: node test-unit1-chapter1-entry.js
