@@ -24,3 +24,17 @@
   var observer=new MutationObserver(sync);observer.observe(phaseLabel,{childList:true,subtree:true,characterData:true});sync();
   globalThis.BondLineTransferHandoff=Object.freeze({sync:sync});
 })();
+
+/* Slice 15 browser continuation: delayed retrieval loads after Transfer. */
+(function(){
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  var sources=["bond-line-retrieval.js","bond-line-retrieval-ui.js","bond-line-retrieval-handoff.js"];
+  function load(index){
+    if(index>=sources.length)return;
+    var script=document.createElement("script");script.src=sources[index];script.async=false;
+    script.onload=function(){load(index+1);};
+    script.onerror=function(){console.error("Unable to load Bond-Line Slice 15 runtime:",sources[index]);};
+    document.head.appendChild(script);
+  }
+  load(0);
+})();
