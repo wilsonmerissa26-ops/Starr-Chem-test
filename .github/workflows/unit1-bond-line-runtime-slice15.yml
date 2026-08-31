@@ -39,6 +39,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Publish exact branch source for independent review
+        uses: actions/upload-artifact@v4
+        with:
+          name: astarryia-bond-line-slice15-source
+          path: |
+            .
+            !.git/**
+            !node_modules/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
       - uses: actions/setup-node@v4
         with:
           node-version: 20
