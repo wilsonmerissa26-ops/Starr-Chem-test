@@ -17,9 +17,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install DOM-test dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
       - name: Syntax-check Unit 1 data
         run: node --check course-units/unit1/unit1-data.js
+      - name: Syntax-check Unit 1 support router
+        run: node --check course-units/unit1/unit1-support.js
       - name: Syntax-check Unit 1 runtime
         run: node --check course-units/unit1/unit1-app.js
       - name: Run CHM 221 Unit 1 behavioral regressions
         run: node test-chm221-unit1.js
+      - name: Run Unit 1 IDK teaching regression
+        run: node test-unit1-idk-teaching.js
