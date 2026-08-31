@@ -69,6 +69,7 @@
   function renderCurrent(){shell();var id=state.currentItemId;if(id==="BL-I1")renderI1(false);else if(id==="BL-I2")renderI2(false);else if(id==="BL-I3")renderI3();else if(id==="BL-I4")renderI4();else if(id==="BL-I5"){drawNodes=[];drawEdges=[];selectedNode=null;renderI5();}else if(id==="BL-I6")renderI6();}
   function renderBankComplete(){controls.hidden=false;Array.prototype.forEach.call(controls.querySelectorAll("button"),function(b){b.hidden=false;b.disabled=true;});var next=document.getElementById("nextBtn");next.textContent="Explain Why next";phaseLabel.textContent="Independent bank · attempted";status.textContent="Cold bank complete. No Mastery verdict is issued here.";panel.innerHTML='<h1>Cold bank complete.</h1><div class="cold-feedback">The Student Model now has actual unsupported attempts to work with. Correct cold responses are evidence; wrong responses remain diagnostic evidence; helped items were excluded. The next phase is <b>Explain Why</b>, not Mastery.</div>';announce("Cold Independent bank complete. Explain Why is next.");}
   function start(){state=Independent.createSession();i3Carbon=i3Atom=null;drawNodes=[];drawEdges=[];selectedNode=null;renderCurrent();}
+  function getSession(){return state;}
 
-  globalThis.BondLineIndependentUI=Object.freeze({start:start});
+  globalThis.BondLineIndependentUI=Object.freeze({start:start,getSession:getSession});
 })();
