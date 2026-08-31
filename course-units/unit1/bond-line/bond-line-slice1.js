@@ -1,6 +1,6 @@
 /*
  * U1-01 Bond-Line incremental runtime.
- * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-4
+ * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-5
  *
  * Pure lesson logic. No DOM. No timers. No mastery shortcuts.
  */
@@ -126,6 +126,15 @@
     narration: "Same position, same bonds, same carbon. Only the label is being abbreviated."
   });
 
+  var STEP_5_INTERACTION = Object.freeze({
+    prompt: "Tap every carbon in the bond-line structure.",
+    carbonTargets: Object.freeze(["C1", "C2", "C3", "C4"]),
+    bondTargets: Object.freeze(["BOND_1", "BOND_2", "BOND_3"]),
+    bondSegmentFeedback: "That is a bond between carbons, not another carbon. Look for an end or a corner.",
+    endpointFeedback: "A line end counts too. Endpoints are carbon unless another atom is explicitly labeled there.",
+    completeFeedback: "Exactly four, just like the fully written structure we started with."
+  });
+
   var WATCH_SEQUENCE = Object.freeze({
     id: "watch_bond_line_butane_step1_v1",
     skillId: SKILL_ID,
@@ -198,9 +207,27 @@
           lonePairs: Object.freeze([]),
           collapseOrder: Object.freeze(["C1", "C2", "C3", "C4"]),
           predictionAfterCollapsed: 2,
-          visibility: Object.freeze({
-            carbonHydrogenLabels: "hidden"
-          })
+          visibility: Object.freeze({ carbonHydrogenLabels: "hidden" })
+        }),
+        notebookFacts: Object.freeze([])
+      }),
+      Object.freeze({
+        id: "bl_watch_5",
+        narration: "This drawing has three visible bond lines, but it represents four carbon atoms. That is one of the first traps beginners hit: lines are bonds. Carbons are at unlabeled line ends and unlabeled vertices.",
+        interaction: STEP_5_INTERACTION,
+        visual: Object.freeze({
+          representation: "finished_bond_line",
+          atoms: BUTANE_ATOMS,
+          bonds: BUTANE_BONDS,
+          lonePairs: Object.freeze([]),
+          carbonPositions: Object.freeze([
+            Object.freeze({ id: "C1", role: "left_line_end", marker: 1 }),
+            Object.freeze({ id: "C2", role: "first_vertex", marker: 2 }),
+            Object.freeze({ id: "C3", role: "second_vertex", marker: 3 }),
+            Object.freeze({ id: "C4", role: "right_line_end", marker: 4 })
+          ]),
+          visibleBondSegments: 3,
+          compareViews: Object.freeze(["bond_line", "expanded"])
         }),
         notebookFacts: Object.freeze([])
       })
@@ -229,7 +256,10 @@
       watchStep3Complete: false,
       watchStep4Prediction: null,
       watchStep4RepairActive: false,
-      watchStep4Complete: false
+      watchStep4Complete: false,
+      watchStep5CarbonIds: [],
+      watchStep5Complete: false,
+      watchStep5View: "bond_line"
     };
   }
 
@@ -329,6 +359,7 @@
     else if (stepIndex === 1) session.phase = "watch_step_2";
     else if (stepIndex === 2) session.phase = "watch_step_3";
     else if (stepIndex === 3) session.phase = "watch_step_4";
+    else if (stepIndex === 4) session.phase = "watch_step_5";
     else return { accepted: false, reason: "unknown_watch_step", phase: session.phase };
     return { accepted: true, reason: null, phase: session.phase };
   }
@@ -338,12 +369,7 @@
       return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
     }
     if (session.watchStep2Complete) {
-      return {
-        accepted: false,
-        correct: session.watchStep2Prediction === STEP_2_PREDICTION.answer,
-        reason: "already_answered",
-        nextPhase: session.phase
-      };
+      return { accepted: false, correct: session.watchStep2Prediction === STEP_2_PREDICTION.answer, reason: "already_answered", nextPhase: session.phase };
     }
     var known = STEP_2_PREDICTION.choices.some(function (choice) { return choice.id === choiceId; });
     if (!known) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
@@ -351,96 +377,47 @@
     session.watchStep2Prediction = choiceId;
     session.watchStep2Complete = true;
     var correct = choiceId === STEP_2_PREDICTION.answer;
-    return {
-      accepted: true,
-      correct: correct,
-      reason: null,
-      nextPhase: session.phase,
-      feedback: correct ? STEP_2_PREDICTION.correctFeedback : STEP_2_PREDICTION.repairFeedback
-    };
+    return { accepted: true, correct: correct, reason: null, nextPhase: session.phase, feedback: correct ? STEP_2_PREDICTION.correctFeedback : STEP_2_PREDICTION.repairFeedback };
   }
 
   function submitWatchStep3Hydrogen(session, value) {
-    if (session.phase !== "watch_step_3") {
-      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
-    }
-    if (session.watchStep3Complete) {
-      return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
-    }
-    if (session.watchStep3RepairActive) {
-      return { accepted: false, correct: false, reason: "repair_in_progress", nextPhase: session.phase };
-    }
+    if (session.phase !== "watch_step_3") return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    if (session.watchStep3Complete) return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
+    if (session.watchStep3RepairActive) return { accepted: false, correct: false, reason: "repair_in_progress", nextPhase: session.phase };
     var numeric = Number(value);
-    if (STEP_3_INTERACTION.choices.indexOf(numeric) === -1) {
-      return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
-    }
+    if (STEP_3_INTERACTION.choices.indexOf(numeric) === -1) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
 
     session.watchStep3Response = numeric;
     var correct = numeric === STEP_3_INTERACTION.answer;
     if (correct) {
       session.watchStep3Complete = true;
-      return {
-        accepted: true,
-        correct: true,
-        reason: null,
-        nextPhase: session.phase,
-        feedback: "Yes. One visible C—C bond leaves three C—H bonds implied on this terminal carbon."
-      };
+      return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Yes. One visible C—C bond leaves three C—H bonds implied on this terminal carbon." };
     }
 
     session.watchStep3RepairActive = true;
-    return {
-      accepted: true,
-      correct: false,
-      repairRequired: true,
-      reason: null,
-      nextPhase: session.phase,
-      feedback: "Let's switch views and count the bond slots that are still open."
-    };
+    return { accepted: true, correct: false, repairRequired: true, reason: null, nextPhase: session.phase, feedback: "Let's switch views and count the bond slots that are still open." };
   }
 
   function submitWatchStep3Repair(session, value) {
-    if (session.phase !== "watch_step_3") {
-      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
-    }
-    if (!session.watchStep3RepairActive) {
-      return { accepted: false, correct: false, reason: "repair_not_active", nextPhase: session.phase };
-    }
+    if (session.phase !== "watch_step_3") return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    if (!session.watchStep3RepairActive) return { accepted: false, correct: false, reason: "repair_not_active", nextPhase: session.phase };
     var numeric = Number(value);
-    if (STEP_3_REPAIR.choices.indexOf(numeric) === -1) {
-      return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
-    }
+    if (STEP_3_REPAIR.choices.indexOf(numeric) === -1) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
 
     var correct = numeric === STEP_3_REPAIR.answer;
     session.repairLog.push({ gateId: "WATCH_STEP_3", correct: correct, response: numeric });
     if (!correct) {
-      return {
-        accepted: true,
-        correct: false,
-        reason: null,
-        nextPhase: session.phase,
-        feedback: "Count the four bond slots again and notice that one is already occupied by the C—C bond."
-      };
+      return { accepted: true, correct: false, reason: null, nextPhase: session.phase, feedback: "Count the four bond slots again and notice that one is already occupied by the C—C bond." };
     }
 
     session.watchStep3RepairActive = false;
     session.watchStep3Complete = true;
-    return {
-      accepted: true,
-      correct: true,
-      reason: null,
-      nextPhase: session.phase,
-      feedback: "Yes. The three remaining bond slots reconnect to three implied hydrogens."
-    };
+    return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Yes. The three remaining bond slots reconnect to three implied hydrogens." };
   }
 
   function submitWatchStep4Prediction(session, choiceId) {
-    if (session.phase !== "watch_step_4") {
-      return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
-    }
-    if (session.watchStep4Complete) {
-      return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
-    }
+    if (session.phase !== "watch_step_4") return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    if (session.watchStep4Complete) return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
     var known = STEP_4_PREDICTION.choices.some(function (choice) { return choice.id === choiceId; });
     if (!known) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
 
@@ -450,28 +427,48 @@
     if (correct) {
       session.watchStep4RepairActive = false;
       session.watchStep4Complete = true;
-      return {
-        accepted: true,
-        correct: true,
-        reason: null,
-        nextPhase: session.phase,
-        feedback: "Right. The corner now stands for the same carbon; only the label changed."
-      };
+      return { accepted: true, correct: true, reason: null, nextPhase: session.phase, feedback: "Right. The corner now stands for the same carbon; only the label changed." };
     }
 
     session.watchStep4RepairActive = true;
+    return { accepted: true, correct: false, repairRequired: true, reason: null, nextPhase: session.phase, feedback: STEP_4_REPAIR.narration };
+  }
+
+  function tapWatchStep5Carbon(session, targetId) {
+    if (session.phase !== "watch_step_5") return { accepted: false, reason: "wrong_phase", stepComplete: false };
+    if (STEP_5_INTERACTION.bondTargets.indexOf(targetId) !== -1) {
+      return { accepted: false, reason: "bond_segment", stepComplete: session.watchStep5Complete, feedback: STEP_5_INTERACTION.bondSegmentFeedback };
+    }
+    if (STEP_5_INTERACTION.carbonTargets.indexOf(targetId) === -1) {
+      return { accepted: false, reason: "not_a_carbon_target", stepComplete: session.watchStep5Complete };
+    }
+    if (session.watchStep5CarbonIds.indexOf(targetId) !== -1) {
+      return { accepted: false, reason: "already_tapped", stepComplete: session.watchStep5Complete };
+    }
+
+    session.watchStep5CarbonIds.push(targetId);
+    session.watchStep5Complete = session.watchStep5CarbonIds.length === STEP_5_INTERACTION.carbonTargets.length;
+    var remaining = STEP_5_INTERACTION.carbonTargets.filter(function (id) { return session.watchStep5CarbonIds.indexOf(id) === -1; });
+    var endpointMissing = remaining.length === 1 && (remaining[0] === "C1" || remaining[0] === "C4");
     return {
       accepted: true,
-      correct: false,
-      repairRequired: true,
       reason: null,
-      nextPhase: session.phase,
-      feedback: STEP_4_REPAIR.narration
+      count: session.watchStep5CarbonIds.length,
+      remaining: remaining.length,
+      stepComplete: session.watchStep5Complete,
+      feedback: session.watchStep5Complete ? STEP_5_INTERACTION.completeFeedback : (endpointMissing ? STEP_5_INTERACTION.endpointFeedback : session.watchStep5CarbonIds.length + " of 4 carbons found.")
     };
   }
 
+  function toggleWatchStep5View(session) {
+    if (session.phase !== "watch_step_5") return { accepted: false, reason: "wrong_phase", view: session.watchStep5View };
+    if (!session.watchStep5Complete) return { accepted: false, reason: "step_incomplete", view: session.watchStep5View };
+    session.watchStep5View = session.watchStep5View === "bond_line" ? "expanded" : "bond_line";
+    return { accepted: true, reason: null, view: session.watchStep5View };
+  }
+
   function canEnterWatch(session) {
-    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4";
+    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4" || session.phase === "watch_step_5";
   }
 
   if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) {
@@ -495,6 +492,8 @@
     submitWatchStep3Hydrogen: submitWatchStep3Hydrogen,
     submitWatchStep3Repair: submitWatchStep3Repair,
     submitWatchStep4Prediction: submitWatchStep4Prediction,
+    tapWatchStep5Carbon: tapWatchStep5Carbon,
+    toggleWatchStep5View: toggleWatchStep5View,
     canEnterWatch: canEnterWatch
   });
 });
