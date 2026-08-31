@@ -1,6 +1,6 @@
 /*
  * U1-01 Bond-Line incremental runtime.
- * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-7
+ * orientation -> P1/P2 prerequisite gates -> narrow repairs -> Watch Steps 1-8
  *
  * Pure lesson logic. No DOM. No timers. No mastery shortcuts.
  */
@@ -156,10 +156,18 @@
   var STEP_7_DEFINITION = "Heteroatom just means an atom in the organic structure that is not carbon or hydrogen.";
   var STEP_7_MISCONCEPTION_GUARD = "Hydrogens attached to carbon are usually omitted in bond-line notation. Hydrogens attached to heteroatoms are often shown because they can change the functional group and chemical behavior.";
 
+  var STEP_8_INTERACTION = Object.freeze({
+    prompt: "This carbon already has bond order 3: one single bond plus one double bond. How many C—H bonds are implied?",
+    choices: Object.freeze([0, 1, 2, 3, 4]),
+    answer: 1,
+    neighborCountFeedback: "You counted two neighboring atoms, which is useful, but hydrogen counting depends on bond order. The double bond contributes 2 and the single bond contributes 1. That gives 3 already, leaving room for only one hydrogen.",
+    otherWrongFeedback: "Count the visible bond order first. The double bond contributes 2 and the single bond contributes 1, so this carbon already has bond order 3."
+  });
+
   var WATCH_SEQUENCE = Object.freeze({
     id: "watch_bond_line_butane_step1_v1",
     skillId: SKILL_ID,
-    title: "Watch — butane from expanded structure toward bond-line notation",
+    title: "Watch — bond-line notation from explicit atoms to hidden information",
     molecule: "butane",
     requiresCounter: false,
     carbonTargets: Object.freeze(["C1", "C2", "C3", "C4"]),
@@ -235,6 +243,22 @@
           terminalGroup: "O—H"
         }),
         notebookFacts: Object.freeze([])
+      }),
+      Object.freeze({
+        id: "bl_watch_8",
+        narration: "The shortcut does not erase bond order. A double bond is still drawn as a double bond, and a triple bond is still drawn as a triple bond. That matters when we infer hydrogens.",
+        interaction: STEP_8_INTERACTION,
+        visual: Object.freeze({
+          representation: "multiple_bond_visible",
+          example: "1-butene",
+          carbonCount: 4,
+          doubleBondOrder: 2,
+          doubleBond: Object.freeze(["C1", "C2"]),
+          selectedCarbon: "C2",
+          selectedCarbonVisibleBondOrder: 3,
+          labeledThenCollapsed: true
+        }),
+        notebookFacts: Object.freeze([])
       })
     ])
   });
@@ -268,7 +292,9 @@
       watchStep6Carbon4Answer: null,
       watchStep6Complete: false,
       watchStep7Prediction: null,
-      watchStep7Complete: false
+      watchStep7Complete: false,
+      watchStep8Response: null,
+      watchStep8Complete: false
     };
   }
 
@@ -336,6 +362,7 @@
     else if (stepIndex === 4) session.phase = "watch_step_5";
     else if (stepIndex === 5) session.phase = "watch_step_6";
     else if (stepIndex === 6) session.phase = "watch_step_7";
+    else if (stepIndex === 7) session.phase = "watch_step_8";
     else return { accepted: false, reason: "unknown_watch_step", phase: session.phase };
     return { accepted: true, reason: null, phase: session.phase };
   }
@@ -434,8 +461,22 @@
     return { accepted: true, correct: correct, reason: null, nextPhase: session.phase, feedback: correct ? STEP_7_PREDICTION.feedback : STEP_7_PREDICTION.correctionFeedback };
   }
 
+  function submitWatchStep8Hydrogen(session, value) {
+    if (session.phase !== "watch_step_8") return { accepted: false, correct: false, reason: "wrong_phase", nextPhase: session.phase };
+    if (session.watchStep8Complete) return { accepted: false, correct: true, reason: "already_answered", nextPhase: session.phase };
+    var numeric = Number(value);
+    if (STEP_8_INTERACTION.choices.indexOf(numeric) === -1) return { accepted: false, correct: false, reason: "unknown_choice", nextPhase: session.phase };
+    session.watchStep8Response = numeric;
+    var correct = numeric === STEP_8_INTERACTION.answer;
+    if (correct) {
+      session.watchStep8Complete = true;
+      return { accepted: true, correct: true, reason: null, nextPhase: session.phase, stepComplete: true, feedback: "Right. Bond order 3 leaves room for one C—H bond so carbon reaches four total bonds." };
+    }
+    return { accepted: true, correct: false, reason: null, nextPhase: session.phase, stepComplete: false, feedback: numeric === 2 ? STEP_8_INTERACTION.neighborCountFeedback : STEP_8_INTERACTION.otherWrongFeedback };
+  }
+
   function canEnterWatch(session) {
-    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4" || session.phase === "watch_step_5" || session.phase === "watch_step_6" || session.phase === "watch_step_7";
+    return session.phase === "watch_step_1" || session.phase === "watch_step_2" || session.phase === "watch_step_3" || session.phase === "watch_step_4" || session.phase === "watch_step_5" || session.phase === "watch_step_6" || session.phase === "watch_step_7" || session.phase === "watch_step_8";
   }
 
   if (!WatchMode.validateSequence(WATCH_SEQUENCE).valid) throw new Error("Bond-Line Watch sequence failed shared Watch validation");
@@ -461,6 +502,7 @@
     toggleWatchStep5View: toggleWatchStep5View,
     submitWatchStep6Hydrogens: submitWatchStep6Hydrogens,
     submitWatchStep7Prediction: submitWatchStep7Prediction,
+    submitWatchStep8Hydrogen: submitWatchStep8Hydrogen,
     canEnterWatch: canEnterWatch
   });
 });
