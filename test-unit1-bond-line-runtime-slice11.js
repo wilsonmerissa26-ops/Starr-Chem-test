@@ -50,7 +50,7 @@ if(fs.existsSync(path.join(__dirname,uiPath))){
   var src=read(uiPath);
   check("Guided UI has no timer-driven advancement",src.indexOf("setTimeout(")===-1&&src.indexOf("setInterval(")===-1);
   check("Guided UI exposes learner-requested Hint control",/Hint/.test(src)&&/requestHint/.test(src));
-  check("Guided UI renders host and branch markers for connectivity repair",/host/i.test(src)&&/branch/i.test(src)&&/connectivity_repair/.test(src));
+  check("Guided UI renders host and branch markers for connectivity repair",/host/i.test(src)&&/branch/i.test(src)&&/renderRepair/.test(src)&&/submitRepairMapping/.test(src));
   check("Guided UI contains empty-stage branched skeleton builder",/data-guided-canvas/.test(src)&&/data-guided-carbon/.test(src));
   check("Guided UI ends at cold Independent boundary",/Independent/.test(src)&&/cold/i.test(src));
 }
