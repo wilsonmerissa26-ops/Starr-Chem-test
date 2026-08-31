@@ -45,5 +45,7 @@ jobs:
         run: node test-unit1-chapter1-idk-routing.js
       - name: Run Chapter 1 production evidence policy regression
         run: node test-unit1-chapter1-production-policy.js
+      - name: Run real Chapter 1 learner page regression
+        run: node test-unit1-chapter1-real-page.js
       - name: Run Chapter 1 learner entry regression
         run: node test-unit1-chapter1-entry.js
