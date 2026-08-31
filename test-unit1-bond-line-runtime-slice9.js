@@ -1,7 +1,7 @@
 "use strict";
 
 var fs=require("fs"),path=require("path"),JSDOM=require("jsdom").JSDOM;
-var Slice=require("./course-units/unit1/bond-line/bond-line-slice1.js");
+var Concept=require("./course-units/unit1/bond-line/bond-line-concept-check.js");
 var failed=0;
 function check(label,condition){if(condition)console.log("PASS  "+label);else{console.log("FAIL  "+label);failed++;}}
 function read(rel){return fs.readFileSync(path.join(__dirname,rel),"utf8");}
@@ -14,7 +14,7 @@ function buildApp(){
   dom.window.matchMedia=function(q){return{matches:false,media:q,addListener:function(){},removeListener:function(){},addEventListener:function(){},removeEventListener:function(){},dispatchEvent:function(){return true;}};};
   Object.defineProperty(dom.window,"speechSynthesis",{configurable:true,value:{cancel:function(){},speak:function(){}}});
   dom.window.SpeechSynthesisUtterance=function(t){this.text=t;};
-  evalFile(dom.window,"watch-mode.js");evalFile(dom.window,"unit1-skill-registry.js");evalFile(dom.window,"course-units/unit1/bond-line/bond-line-slice1.js");evalFile(dom.window,"course-units/unit1/bond-line/bond-line-app.js");
+  evalFile(dom.window,"watch-mode.js");evalFile(dom.window,"unit1-skill-registry.js");evalFile(dom.window,"course-units/unit1/bond-line/bond-line-slice1.js");evalFile(dom.window,"course-units/unit1/bond-line/bond-line-concept-check.js");evalFile(dom.window,"course-units/unit1/bond-line/bond-line-app.js");evalFile(dom.window,"course-units/unit1/bond-line/bond-line-concept-check-ui.js");
   return dom;
 }
 function reachStep8(dom){
@@ -27,11 +27,12 @@ function reachStep8(dom){
   byText(d,"2").click();byText(d,"3").click();d.getElementById("nextBtn").click();byText(d,"No").click();d.getElementById("nextBtn").click();
   return d;
 }
+function answerConcept(doc,index,value){var b=doc.querySelector('[data-concept-item="'+index+'"] [data-answer="'+String(value)+'"]');if(b)activate(b);return b;}
 
 console.log("=== SLICE 9 PURE CONTRACT ===");
-var concept=Slice.CONCEPT_CHECK||null;
+var concept=Concept.CONCEPT_CHECK||null;
 check("supported concept check exists",!!concept);
-check("concept check is explicitly supported, not independent",!!concept&&concept.supported===true&&concept.evidenceKind!=="independent");
+check("concept check is explicitly supported guided instruction",!!concept&&concept.supported===true&&concept.evidenceKind==="guided");
 check("concept check has exactly four frozen statements",!!concept&&Array.isArray(concept.items)&&concept.items.length===4);
 if(concept&&concept.items){
   check("item 1 freezes bond-line-is-not-carbon misconception",concept.items[0].statement==="Every bond line represents a carbon atom."&&concept.items[0].answer===false);
@@ -40,20 +41,17 @@ if(concept&&concept.items){
   check("item 4 freezes implied carbon-hydrogen rule",concept.items[3].statement==="Hydrogens attached to carbon may be implied rather than written."&&concept.items[3].answer===true);
   check("each item has one narrow Watch remediation target",concept.items.every(function(item){return /^watch_step_[1-8]$/.test(item.revisitPhase||"");}));
 }
-var s=Slice.createSession(),before=s.evidence.length;
-check("session initializes concept-check responses",Array.isArray(s.conceptCheckResponses)&&s.conceptCheckResponses.length===4);
-check("pure runtime exposes concept-check submission",typeof Slice.submitConceptCheck==="function");
-if(typeof Slice.submitConceptCheck==="function"&&concept){
-  s.phase="concept_check";
-  var wrong=Slice.submitConceptCheck(s,0,true);
-  check("wrong concept answer requests only targeted Watch revisit",wrong&&wrong.accepted&&wrong.correct===false&&wrong.revisitPhase===concept.items[0].revisitPhase);
-  check("wrong supported concept answer creates no mastery evidence",s.evidence.length===before);
-  var right=Slice.submitConceptCheck(s,0,false);
-  check("re-answering repaired statement is accepted",right&&right.accepted&&right.correct===true);
-  Slice.submitConceptCheck(s,1,true);Slice.submitConceptCheck(s,2,true);var final=Slice.submitConceptCheck(s,3,true);
-  check("4/4 correct completes concept check",final&&final.complete===true&&s.conceptCheckComplete===true);
-  check("4/4 supported success still creates no mastery evidence",s.evidence.length===before);
-}
+var s=Concept.createState();
+check("state initializes four concept-check responses",Array.isArray(s.conceptCheckResponses)&&s.conceptCheckResponses.length===4&&s.conceptCheckComplete===false);
+check("pure runtime exposes concept-check submission",typeof Concept.submitConceptCheck==="function");
+var wrong=Concept.submitConceptCheck(s,0,true);
+check("wrong concept answer requests only targeted Watch revisit",wrong&&wrong.accepted&&wrong.correct===false&&wrong.revisitPhase===concept.items[0].revisitPhase);
+check("supported attempt is recorded only as supported practice",s.attempts.length===1&&s.attempts[0].supported===true&&!Object.prototype.hasOwnProperty.call(s,"evidence"));
+var right=Concept.submitConceptCheck(s,0,false);
+check("re-answering repaired statement is accepted",right&&right.accepted&&right.correct===true);
+Concept.submitConceptCheck(s,1,true);Concept.submitConceptCheck(s,2,true);var final=Concept.submitConceptCheck(s,3,true);
+check("4/4 correct completes concept check",final&&final.complete===true&&s.conceptCheckComplete===true);
+check("4/4 supported success still creates no mastery evidence",!Object.prototype.hasOwnProperty.call(s,"evidence")&&s.attempts.every(function(a){return a.supported===true;}));
 
 console.log("\n=== SLICE 9 REAL LEARNER PAGE ===");
 var dom=buildApp(),doc=reachStep8(dom);
@@ -67,8 +65,14 @@ check("all four frozen statements are visible",[
 ].every(function(text){return doc.getElementById("lessonPanel").textContent.indexOf(text)!==-1;}));
 check("concept check identifies itself as supported instruction",/supported/i.test(doc.getElementById("statusText").textContent+" "+doc.getElementById("lessonPanel").textContent));
 check("Build Together cannot start before 4\/4 correct",doc.getElementById("nextBtn").disabled===true);
-var firstTrue=doc.querySelector('[data-concept-item="0"] [data-answer="true"]');if(firstTrue)activate(firstTrue);
-check("wrong statement routes to a narrow Watch revisit instead of replaying all Watch",/^Watch/i.test(doc.getElementById("phaseLabel").textContent)&&!/Step 1\b/.test(doc.getElementById("phaseLabel").textContent));
-check("concept check adds no timer-driven advancement",read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setTimeout(")===-1&&read("course-units/unit1/bond-line/bond-line-app.js").indexOf("setInterval(")===-1);
+answerConcept(doc,0,true);
+check("wrong bond-line statement routes only to relevant Watch Step 5",/Step 5/i.test(doc.getElementById("phaseLabel").textContent));
+doc.getElementById("nextBtn").click();
+check("one targeted Watch review returns directly to concept check",/concept check/i.test(doc.getElementById("phaseLabel").textContent));
+answerConcept(doc,0,false);answerConcept(doc,1,true);answerConcept(doc,2,true);answerConcept(doc,3,true);
+check("4\/4 correct unlocks learner-controlled Build Together transition",doc.getElementById("nextBtn").disabled===false&&/Start Build Together/i.test(doc.getElementById("nextBtn").textContent));
+doc.getElementById("nextBtn").click();
+check("Slice 9 ends at explicit blank-canvas Build Together boundary",/blank canvas with pentane/i.test(doc.getElementById("lessonPanel").textContent)&&/Build Together next/i.test(doc.getElementById("nextBtn").textContent));
+check("Slice 9 adds no timer-driven advancement",["course-units/unit1/bond-line/bond-line-app.js","course-units/unit1/bond-line/bond-line-concept-check-ui.js"].every(function(file){return read(file).indexOf("setTimeout(")===-1&&read(file).indexOf("setInterval(")===-1;}));
 dom.window.close();
 console.log("\n=== SUMMARY: "+(failed?"FAIL":"PASS")+" ===");if(failed)process.exit(1);
