@@ -41,6 +41,7 @@ function createSkill(id) {
     independentSuccesses: [],  // { scaffoldLevel, correctExplanation, itemId, timestamp }. NOTE: no sessionId yet,
                                 // the spec's "later in the same session" language needs one once session handling
                                 // exists at integration. Tracked here as a pending requirement, not silently dropped.
+    explanationAttempts: [],   // explanation evidence stays separate from answer-attempt history
     masteryEvidenceValidAfter: 0, // cold successes at or before this timestamp no longer count toward mastery,
                                    // bumped forward every time remediation opens, see handleIdk and handleWrongAttempt
     remediation: null,         // active remediation gate, see Section 6/15 fix below
@@ -96,6 +97,41 @@ function recordIndependentAttempt(skill, itemId, correct, correctExplanation, ti
     skill.state = STATES.INDEPENDENT_SUCCESS;
   }
   return skill;
+}
+
+// Explanation is evidence about a cold success, not a replacement for one.
+// It may upgrade the explanation flag on an existing current cold success, but
+// it cannot create a success, change that success's retrieval timestamp, or
+// revive evidence invalidated by later remediation.
+function recordIndependentExplanation(skill, itemId, correct, timestamp, input) {
+  if (!Array.isArray(skill.explanationAttempts)) skill.explanationAttempts = [];
+  var at = timestamp || Date.now();
+  var cutoff = skill.masteryEvidenceValidAfter || 0;
+  var matches = skill.independentSuccesses.filter(function(s){
+    return s.itemId === itemId &&
+           s.scaffoldLevel === SCAFFOLD.COLD &&
+           s.timestamp > cutoff;
+  });
+  var target = matches.length ? matches[matches.length - 1] : null;
+
+  skill.explanationAttempts.push({
+    itemId: itemId,
+    input: input == null ? null : input,
+    correct: !!correct,
+    timestamp: at,
+    matchedColdSuccess: !!target
+  });
+  skill.state = STATES.EXPLAIN_WHY;
+
+  if (!target) {
+    return { accepted: false, attached: false, reason: "no_matching_cold_success" };
+  }
+  if (!correct) {
+    return { accepted: true, attached: false, reason: "explanation_incorrect" };
+  }
+
+  target.correctExplanation = true;
+  return { accepted: true, attached: true, reason: null };
 }
 
 // Small shared invariant check. Not the full transition-guard system, that's
@@ -356,7 +392,8 @@ var StudentModelIdkRouter = {
     createSkill: createSkill, startTeaching: startTeaching,
     moveToWatch: moveToWatch, moveToBuildTogether: moveToBuildTogether, moveToGuided: moveToGuided,
     recordAttempt: recordAttempt, checkGuidedAdvance: checkGuidedAdvance,
-    recordIndependentAttempt: recordIndependentAttempt, evaluateMastery: evaluateMastery,
+    recordIndependentAttempt: recordIndependentAttempt, recordIndependentExplanation: recordIndependentExplanation,
+    evaluateMastery: evaluateMastery,
     regressOneLevel: regressOneLevel,
     IDK_REASONS: IDK_REASONS, handleIdk: handleIdk, recordRemediationCheck: recordRemediationCheck,
     exitRemediation: exitRemediation, nextRemediationCheckItem: nextRemediationCheckItem,
