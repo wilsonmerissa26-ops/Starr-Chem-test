@@ -28,7 +28,7 @@
 /* Slice 15 browser continuation: delayed retrieval loads after Transfer. */
 (function(){
   if(typeof document==="undefined"||typeof window==="undefined")return;
-  var sources=["bond-line-retrieval.js","bond-line-retrieval-ui.js","bond-line-retrieval-handoff.js"];
+  var sources=["bond-line-retrieval.js","bond-line-retrieval-ui.js","bond-line-retrieval-handoff.js","bond-line-intervening-activity.js"];
   function load(index){
     if(index>=sources.length)return;
     var script=document.createElement("script");script.src=sources[index];script.async=false;
