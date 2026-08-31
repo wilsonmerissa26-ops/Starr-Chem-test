@@ -111,11 +111,7 @@
     var motionQuery = reducedMotionQuery();
     var cleaned = false;
     var removeMotionListener = function () {};
-
-    function setEnabled(enabled) {
-      buttons.forEach(function (button) { button.disabled = !enabled; });
-    }
-
+    function setEnabled(enabled) { buttons.forEach(function (button) { button.disabled = !enabled; }); }
     function cleanup() {
       if (cleaned) return;
       cleaned = true;
@@ -123,34 +119,26 @@
       node.removeEventListener("animationcancel", onAnimationFinished);
       removeMotionListener();
     }
-
     function release() {
       if (cleaned || !node.isConnected) { cleanup(); return; }
       setEnabled(true);
       if (readyMessage) announce(readyMessage);
     }
-
     function armForCurrentMotion() {
       if (cleaned || !node.isConnected) { cleanup(); return; }
-      if (motionQuery && motionQuery.matches) {
-        setEnabled(true);
-        return;
-      }
+      if (motionQuery && motionQuery.matches) { setEnabled(true); return; }
       if (hasNamedAnimation(node, animationName)) setEnabled(false);
       else setEnabled(true);
     }
-
     function onAnimationFinished(event) {
       if (event && event.animationName && event.animationName !== animationName) return;
       release();
     }
-
     function onMotionChange(event) {
       if (cleaned || !node.isConnected) { cleanup(); return; }
       if (event && event.matches) release();
       else armForCurrentMotion();
     }
-
     node.addEventListener("animationend", onAnimationFinished);
     node.addEventListener("animationcancel", onAnimationFinished);
     removeMotionListener = addMediaChangeListener(motionQuery, onMotionChange);
@@ -163,11 +151,7 @@
     var motionQuery = reducedMotionQuery();
     var cleaned = false;
     var removeMotionListener = function () {};
-
-    function controlReady() {
-      return !(watchSession && watchSession.paused) && !watchFinished && session.watchStep4Complete;
-    }
-
+    function controlReady() { return !(watchSession && watchSession.paused) && !watchFinished && session.watchStep4Complete; }
     function cleanup() {
       if (cleaned) return;
       cleaned = true;
@@ -175,37 +159,29 @@
       node.removeEventListener("animationcancel", onAnimationFinished);
       removeMotionListener();
     }
-
     function markComplete() {
       if (cleaned || !node.isConnected) { cleanup(); return; }
       node.setAttribute("data-animation-gate-complete", "true");
       control.disabled = !controlReady();
       if (readyMessage) announce(readyMessage);
     }
-
     function armForCurrentMotion() {
       if (cleaned || !node.isConnected) { cleanup(); return; }
-      if (motionQuery && motionQuery.matches) {
-        markComplete();
-        return;
-      }
+      if (motionQuery && motionQuery.matches) { markComplete(); return; }
       if (hasNamedAnimation(node, animationName)) {
         node.setAttribute("data-animation-gate-complete", "false");
         control.disabled = true;
       } else markComplete();
     }
-
     function onAnimationFinished(event) {
       if (event && event.animationName && event.animationName !== animationName) return;
       markComplete();
     }
-
     function onMotionChange(event) {
       if (cleaned || !node.isConnected) { cleanup(); return; }
       if (event && event.matches) markComplete();
       else armForCurrentMotion();
     }
-
     node.addEventListener("animationend", onAnimationFinished);
     node.addEventListener("animationcancel", onAnimationFinished);
     removeMotionListener = addMediaChangeListener(motionQuery, onMotionChange);
@@ -228,15 +204,11 @@
   }
 
   function renderOrientation() {
-    clearStep4GateListeners();
-    hideWatchControls();
+    clearStep4GateListeners(); hideWatchControls();
     setPhase("Orient", "No score. We are setting up the mental model.");
-    panel.innerHTML =
-      '<h1>' + escapeHtml(Slice.ORIENTATION.title) + "</h1>" + teacher(Slice.ORIENTATION.narration) +
-      '<div class="prompt-card"><div class="eyebrow">Before we start</div><h2>' + escapeHtml(Slice.ORIENTATION.prompt) + "</h2></div>";
+    panel.innerHTML = '<h1>' + escapeHtml(Slice.ORIENTATION.title) + "</h1>" + teacher(Slice.ORIENTATION.narration) + '<div class="prompt-card"><div class="eyebrow">Before we start</div><h2>' + escapeHtml(Slice.ORIENTATION.prompt) + "</h2></div>";
     panel.appendChild(choiceButtons(Slice.ORIENTATION.choices, function (choiceId) {
-      var result = Slice.answerOrientation(session, choiceId);
-      announce(result.feedback); speak(result.feedback); render();
+      var result = Slice.answerOrientation(session, choiceId); announce(result.feedback); speak(result.feedback); render();
     }));
   }
 
@@ -255,10 +227,7 @@
     clearStep4GateListeners(); hideWatchControls();
     setPhase("Teach · tiny prerequisite repair", "Only the missing carbon-bond idea is being repaired.");
     var repair = Slice.REPAIRS.P1;
-    panel.innerHTML = '<h1>' + escapeHtml(repair.title) + "</h1>" + teacher(repair.narration) +
-      '<div class="slot-visual" aria-label="Carbon with four bond slots; one slot is already occupied by a carbon-carbon bond"><div class="slot top">?</div><div class="slot left">?</div><div class="carbon-core">C</div><div class="bond-right"></div><div class="neighbor-c">C</div><div class="slot bottom">?</div></div>' +
-      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + '</h2><p class="support-note">One bond slot is already occupied by C—C. Count what remains.</p></div>' +
-      (repairFeedback.P1 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P1) + "</div>" : "");
+    panel.innerHTML = '<h1>' + escapeHtml(repair.title) + "</h1>" + teacher(repair.narration) + '<div class="slot-visual" aria-label="Carbon with four bond slots; one slot is already occupied by a carbon-carbon bond"><div class="slot top">?</div><div class="slot left">?</div><div class="carbon-core">C</div><div class="bond-right"></div><div class="neighbor-c">C</div><div class="slot bottom">?</div></div>' + '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + '</h2><p class="support-note">One bond slot is already occupied by C—C. Count what remains.</p></div>' + (repairFeedback.P1 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P1) + "</div>" : "");
     panel.appendChild(choiceButtons([1,2,3,4], function (value) {
       var result = Slice.submitRepair(session, "P1", value); announce(result.feedback);
       if (!result.correct) { updateRepairFeedbackInPlace("P1", result.feedback); return; }
@@ -270,9 +239,7 @@
     clearStep4GateListeners(); hideWatchControls();
     setPhase("Diagnose · prerequisite 2 of 2", "One last tiny check before teaching begins.");
     var gate = Slice.GATES.P2;
-    panel.innerHTML = '<h1>What is the line doing?</h1>' + teacher("Now separate the atoms from the connection between them. That distinction will matter when carbon letters disappear.") +
-      '<div class="cc-visual" aria-label="Carbon single bonded to carbon"><span>C</span><span class="cc-line" aria-hidden="true"></span><span>C</span></div>' +
-      '<div class="prompt-card"><h2>' + escapeHtml(gate.prompt) + "</h2></div>";
+    panel.innerHTML = '<h1>What is the line doing?</h1>' + teacher("Now separate the atoms from the connection between them. That distinction will matter when carbon letters disappear.") + '<div class="cc-visual" aria-label="Carbon single bonded to carbon"><span>C</span><span class="cc-line" aria-hidden="true"></span><span>C</span></div>' + '<div class="prompt-card"><h2>' + escapeHtml(gate.prompt) + "</h2></div>";
     panel.appendChild(choiceButtons(gate.choices, function (value) {
       var result = Slice.submitGate(session, "P2", value, Date.now()); repairFeedback.P2 = "";
       announce(result.correct ? "Right. The line is the bond connecting the atoms." : "Good. We found the exact distinction to repair before the shortcut starts."); render();
@@ -283,10 +250,7 @@
     clearStep4GateListeners(); hideWatchControls();
     setPhase("Teach · tiny prerequisite repair", "Atoms are positions. Lines are connections.");
     var repair = Slice.REPAIRS.P2;
-    panel.innerHTML = '<h1>' + escapeHtml(repair.title) + "</h1>" + teacher(repair.narration) +
-      '<div class="three-carbon" aria-label="Three carbon atoms connected by two single bonds"><span>C</span><span class="mini-line"></span><span>C</span><span class="mini-line"></span><span>C</span></div>' +
-      '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2></div>" +
-      (repairFeedback.P2 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P2) + "</div>" : "");
+    panel.innerHTML = '<h1>' + escapeHtml(repair.title) + "</h1>" + teacher(repair.narration) + '<div class="three-carbon" aria-label="Three carbon atoms connected by two single bonds"><span>C</span><span class="mini-line"></span><span>C</span><span class="mini-line"></span><span>C</span></div>' + '<div class="prompt-card"><h2>' + escapeHtml(repair.prompt) + "</h2></div>" + (repairFeedback.P2 ? '<div class="repair-feedback" role="status"><strong>Try this:</strong> ' + escapeHtml(repairFeedback.P2) + "</div>" : "");
     panel.appendChild(choiceButtons([1,2,3,4], function (value) {
       var result = Slice.submitRepair(session, "P2", value); announce(result.feedback);
       if (!result.correct) { updateRepairFeedbackInPlace("P2", result.feedback); return; }
@@ -378,6 +342,19 @@
     return svg+'</svg>';
   }
 
+  function butaneStep6Svg() {
+    var target=session.watchStep6Target;
+    var svg='<svg data-step6-visual class="molecule-svg step6-stage" viewBox="0 0 680 340" role="group" aria-label="Finished butane bond-line structure. Carbon 2 is the worked example and '+target+' is selected for the learner hydrogen count.">';
+    svg+=carbonSkeletonBonds("step6-visible-bonds");
+    butaneCarbonSkeletonGeometry.carbons.forEach(function(c,index){
+      var teaching=c[0]==="C2", active=c[0]===target;
+      svg+='<g data-step6-carbon="'+c[0]+'" class="step6-carbon'+(teaching?' teaching':'')+(active?' active':'')+'" aria-label="Carbon '+(index+1)+(teaching?', worked example':'')+(active?', selected question':'')+'">';
+      if(teaching||active) svg+='<circle cx="'+c[1]+'" cy="'+c[2]+'" r="34" style="fill:none;stroke:currentColor;stroke-width:'+(active?'6':'3')+'"/>';
+      svg+='<text x="'+(c[1]-6)+'" y="'+(c[2] < 170 ? c[2]-40 : c[2]+52)+'" style="font-weight:900">'+(index+1)+'</text></g>';
+    });
+    return svg+'</svg>';
+  }
+
   function updateCarbonSelectionInPlace(node,result) {
     var carbonId=node.getAttribute("data-carbon-id"); node.classList.add("selected"); node.setAttribute("aria-label","Carbon "+carbonId.slice(1)+", selected");
     var progress=document.getElementById("carbonProgress"); if(progress)progress.textContent=result.count+" of 4 carbons found";
@@ -406,31 +383,67 @@
   function renderWatchStep4(options){clearStep4GateListeners();var step=Slice.WATCH_SEQUENCE.steps[3],replayVisual=!!(options&&options.replayVisual),repairMode=session.watchStep4RepairActive,allCollapsed=session.watchStep4Complete;setPhase(repairMode?"Watch · I Do · Step 4 · same-position repair":"Watch · I Do · Step 4",allCollapsed?"All four carbon labels are now abbreviated. The carbon atoms and bonds are still there.":repairMode?"Same position, same bonds, same carbon. Watch the label change without moving the atom.":"Watch the first two carbon labels become bond-line positions, then make the prediction.");panel.innerHTML='<h1>Hide the carbon letters one carbon at a time</h1>'+teacher(step.narration)+'<div class="prompt-card vocabulary-card"><div class="eyebrow">New term</div><h2>Line ends and vertices</h2><p>'+escapeHtml(step.vocabulary.vertex)+'</p></div><div class="watch-stage">'+butaneCarbonCollapseSvg(allCollapsed,repairMode,replayVisual)+'</div>'+(repairMode?'<div id="step4RepairFocus" tabindex="-1" class="prediction-feedback"><strong>Look at the same corner:</strong> '+escapeHtml(step.repair.narration)+'</div>':'')+'<div class="prompt-card"><div class="eyebrow">Prediction pause</div><h2 id="step4PredictionPrompt">'+escapeHtml(step.prediction.prompt)+'</h2></div>';var predictionChoices=choiceButtons(step.prediction.choices,function(choiceId){if(watchSession.paused){announce("Watch is paused. Resume before answering.");return;}var result=Slice.submitWatchStep4Prediction(session,choiceId);if(!result.accepted){if(result.reason==="already_answered")announce("This prediction is already complete. Use Next when you are ready.");return;}announce(result.feedback);speak(result.feedback);renderWatchStep4();if(result.correct){var doneFocus=document.getElementById("step4CompleteFocus");if(doneFocus)doneFocus.focus();}else{var repairFocus=document.getElementById("step4RepairFocus");if(repairFocus)repairFocus.focus();}});predictionChoices.classList.add("step4-prediction-grid");predictionChoices.setAttribute("role","group");predictionChoices.setAttribute("aria-labelledby","step4PredictionPrompt");predictionChoices.querySelectorAll("button").forEach(function(button){button.setAttribute("aria-pressed","false");var label=button.textContent.trim(),selected=(session.watchStep4Prediction==="yes"&&label==="Yes")||(session.watchStep4Prediction==="no_corner_carbon"&&label==="No, the corner now stands for the carbon")||(session.watchStep4Prediction==="unsure"&&label==="I am not sure yet");if(selected){button.classList.add("selected");button.setAttribute("aria-pressed","true");}});panel.appendChild(predictionChoices);if(!allCollapsed){if(repairMode)gateChoiceGridUntilAnimationEnd(predictionChoices,panel.querySelector('[data-step4-toggle-carbon="C2"]'),"step4ToggleCarbon","Same position, same bonds, same carbon. Now answer the prediction again.");else gateChoiceGridUntilAnimationEnd(predictionChoices,panel.querySelector('[data-step4-label="C2"]'),"step4HideCarbon","The first two carbon labels are now abbreviated. Make your prediction.");}if(allCollapsed){var success=document.createElement("div");success.id="step4CompleteFocus";success.tabIndex=-1;success.className="success-box";success.setAttribute("role","status");success.textContent="Same positions, same bonds, same four carbons. The labels are abbreviated into two line ends and two vertices.";panel.appendChild(success);}var stage=panel.querySelector(".step4-stage");if(stage&&watchSession.paused)stage.classList.add("is-paused");backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;pauseBtn.disabled=false;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";nextBtn.disabled=!session.watchStep4Complete||watchSession.paused||watchFinished;if(allCollapsed&&session.watchStep4Complete)gateControlUntilAnimationEnd(nextBtn,panel.querySelector('[data-step4-label="C4"]'),"step4HideCarbon","All four carbon labels are now abbreviated. You control when to move on.");}
 
   function setStep5Feedback(text,success){var feedback=document.getElementById("step5Feedback");if(!feedback){feedback=document.createElement("div");feedback.id="step5Feedback";feedback.setAttribute("role","status");panel.appendChild(feedback);}feedback.className=success?"success-box":"prediction-feedback";feedback.textContent=text;}
-
   function updateStep5SelectionInPlace(node,result){var id=node.getAttribute("data-step5-carbon");node.classList.add("selected");node.setAttribute("aria-pressed","true");node.setAttribute("aria-label",node.getAttribute("aria-label").replace(/, selected$/,"") + ", selected");var marker=panel.querySelector('[data-step5-marker="'+id+'"]');if(marker)marker.classList.add("selected");var progress=document.getElementById("step5Progress");if(progress)progress.textContent=result.count+" of 4 carbons found";if(result.feedback)setStep5Feedback(result.feedback,result.stepComplete);status.textContent=result.stepComplete?"All four carbon positions found. Compare the two notations or move on.":result.count+" of 4 carbon positions found.";nextBtn.disabled=!session.watchStep5Complete||watchSession.paused||watchFinished;if(result.stepComplete){var compare=document.getElementById("step5CompareButton");if(!compare){compare=document.createElement("button");compare.type="button";compare.id="step5CompareButton";compare.className="choice-btn";compare.textContent="Show expanded view";compare.addEventListener("click",toggleStep5Comparison);panel.appendChild(compare);}}}
-
   function updateStep5FeedbackInPlace(text){setStep5Feedback(text,false);}
-
   function bindStep5Targets(){panel.querySelectorAll("[data-step5-carbon]").forEach(function(node){function choose(){if(watchSession.paused){announce("Watch is paused. Resume before tapping carbon positions.");return;}var result=Slice.tapWatchStep5Carbon(session,node.getAttribute("data-step5-carbon"));if(result.accepted){announce(result.feedback||result.count+" of 4 carbons found.");updateStep5SelectionInPlace(node,result);}else if(result.reason==="already_tapped")announce("You already found that carbon position.");}node.addEventListener("click",choose);node.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();choose();}});});panel.querySelectorAll("[data-step5-bond]").forEach(function(node){function chooseBond(){if(watchSession.paused){announce("Watch is paused. Resume before answering.");return;}var result=Slice.tapWatchStep5Carbon(session,node.getAttribute("data-step5-bond"));if(result&&result.feedback){announce(result.feedback);updateStep5FeedbackInPlace(result.feedback);}}node.addEventListener("click",chooseBond);node.addEventListener("keydown",function(event){if(event.key==="Enter"||event.key===" "){event.preventDefault();chooseBond();}});});}
-
   function toggleStep5Comparison(){if(watchSession.paused)return;var result=Slice.toggleWatchStep5View(session);if(!result.accepted)return;renderWatchStep5();var compare=document.getElementById("step5CompareButton");if(compare)compare.focus();}
+  function renderWatchStep5(){clearStep4GateListeners();var step=Slice.WATCH_SEQUENCE.steps[4],expanded=session.watchStep5View==="expanded";setPhase(expanded?"Watch · I Do · Step 5 · expanded comparison":"Watch · I Do · Step 5",session.watchStep5Complete?"Exactly four carbon positions found. Compare the same numbered carbons across views.":"Find every unlabeled carbon position: both line ends and both vertices.");panel.innerHTML='<h1>Finished bond-line structure</h1>'+teacher(step.narration)+'<div class="watch-stage">'+butaneStep5Svg(expanded)+'</div><div class="prompt-card"><div class="eyebrow">Immediate interaction</div><h2 id="step5TapPrompt">'+escapeHtml(step.interaction.prompt)+'</h2><p id="step5Progress" class="progress-copy">'+session.watchStep5CarbonIds.length+' of 4 carbons found</p></div>';if(session.watchStep5Complete){setStep5Feedback(step.interaction.completeFeedback,true);var compare=document.createElement("button");compare.type="button";compare.id="step5CompareButton";compare.className="choice-btn";compare.textContent=expanded?"Show bond-line view":"Show expanded view";compare.addEventListener("click",toggleStep5Comparison);panel.appendChild(compare);}bindStep5Targets();backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;pauseBtn.disabled=false;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";nextBtn.disabled=!session.watchStep5Complete||watchSession.paused||watchFinished;}
 
-  function renderWatchStep5(){clearStep4GateListeners();var step=Slice.WATCH_SEQUENCE.steps[4],expanded=session.watchStep5View==="expanded";setPhase(expanded?"Watch · I Do · Step 5 · expanded comparison":"Watch · I Do · Step 5",session.watchStep5Complete?"Exactly four carbon positions found. Compare the same numbered carbons across views.":"Find every unlabeled carbon position: both line ends and both vertices.");panel.innerHTML='<h1>Finished bond-line structure</h1>'+teacher(step.narration)+'<div class="watch-stage">'+butaneStep5Svg(expanded)+'</div><div class="prompt-card"><div class="eyebrow">Immediate interaction</div><h2 id="step5TapPrompt">'+escapeHtml(step.interaction.prompt)+'</h2><p id="step5Progress" class="progress-copy">'+session.watchStep5CarbonIds.length+' of 4 carbons found</p></div>';
-    if(session.watchStep5Complete){setStep5Feedback(step.interaction.completeFeedback,true);var compare=document.createElement("button");compare.type="button";compare.id="step5CompareButton";compare.className="choice-btn";compare.textContent=expanded?"Show bond-line view":"Show expanded view";compare.addEventListener("click",toggleStep5Comparison);panel.appendChild(compare);}bindStep5Targets();backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;pauseBtn.disabled=false;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";nextBtn.disabled=!session.watchStep5Complete||watchSession.paused||watchFinished;}
+  function setStep6Feedback(result) {
+    var feedback=document.getElementById("step6Feedback");
+    if(!feedback){feedback=document.createElement("div");feedback.id="step6Feedback";feedback.setAttribute("role","status");panel.appendChild(feedback);}
+    feedback.className=result.correct?"success-box":"prediction-feedback";
+    feedback.innerHTML=escapeHtml(result.feedback||"");
+    if(result.formula) feedback.innerHTML += '<div class="support-note"><strong>'+escapeHtml(result.formula)+'</strong></div>';
+  }
 
-  function renderWatch(){ensureWatchSession();controls.hidden=false;if(watchSession.currentIndex===4||session.phase==="watch_step_5")renderWatchStep5();else if(watchSession.currentIndex===3||session.phase==="watch_step_4")renderWatchStep4();else if(watchSession.currentIndex===2||session.phase==="watch_step_3")renderWatchStep3();else if(watchSession.currentIndex===1||session.phase==="watch_step_2")renderWatchStep2();else renderWatchStep1();}
+  function renderWatchStep6() {
+    clearStep4GateListeners();
+    var step=Slice.WATCH_SEQUENCE.steps[5];
+    var targetKey=session.watchStep6Target==="C4"?"carbon4":"carbon3";
+    var interaction=step.interactions[targetKey];
+    setPhase("Watch · I Do · Step 6",session.watchStep6Complete?"Both hidden-hydrogen counts recovered. You control when to move on.":session.watchStep6Target==="C3"?"Use visible bond order to recover the hidden hydrogens on carbon 3.":"Now apply the same total-bond count to the terminal carbon 4.");
+    panel.innerHTML='<h1>Recover the hydrogens that are not written</h1>'+teacher(step.narration)+'<div class="watch-stage">'+butaneStep6Svg()+'</div><div class="prompt-card"><div class="eyebrow">Visible bond order + implied H = 4</div><h2 id="step6Prompt" tabindex="-1">'+escapeHtml(interaction.prompt)+'</h2></div>';
+    var choices=choiceButtons(interaction.choices,function(value,button){
+      if(watchSession.paused){announce("Watch is paused. Resume before answering.");return;}
+      var previousTarget=session.watchStep6Target;
+      var result=Slice.submitWatchStep6Hydrogens(session,value);
+      if(!result.accepted)return;
+      announce(result.feedback);
+      if(!result.correct){setStep6Feedback(result);return;}
+      speak(result.feedback);
+      if(previousTarget==="C3"&&!session.watchStep6Complete){renderWatchStep6();var prompt=document.getElementById("step6Prompt");if(prompt)prompt.focus();return;}
+      panel.querySelectorAll(".choice-grid button").forEach(function(choice){choice.classList.toggle("selected",choice===button);});
+      setStep6Feedback(result);
+      status.textContent="Carbon 3 is CH2 and carbon 4 is CH3. You control when to move on.";
+      nextBtn.disabled=watchSession.paused||watchFinished;
+    });
+    choices.setAttribute("role","group");choices.setAttribute("aria-labelledby","step6Prompt");panel.appendChild(choices);
+    if(session.watchStep6Complete){var complete={correct:true,feedback:"Carbon 3 has two implied hydrogens. Carbon 4 has three implied hydrogens. Both counts come from reaching four total bonds."};setStep6Feedback(complete);}
+    backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;pauseBtn.disabled=false;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";nextBtn.disabled=!session.watchStep6Complete||watchSession.paused||watchFinished;
+  }
 
-  function renderSliceComplete(){clearStep4GateListeners();controls.hidden=false;setPhase("Watch · Step 5 complete","Slice 5 stops here. No mastery claim has been made.");panel.innerHTML='<h1>Step 5 is working.</h1>'+teacher("You found all four carbon positions in a three-segment bond-line drawing and mapped those same numbered carbons back to the expanded molecule. Nothing here counts as independent mastery evidence.")+'<div class="success-box">Runtime Slice 5 complete: line ends and vertices are mapped back to the same four carbons.</div>';nextBtn.disabled=true;backBtn.disabled=false;replayBtn.disabled=false;pauseBtn.disabled=true;}
+  function renderWatch(){ensureWatchSession();controls.hidden=false;if(watchSession.currentIndex===5||session.phase==="watch_step_6")renderWatchStep6();else if(watchSession.currentIndex===4||session.phase==="watch_step_5")renderWatchStep5();else if(watchSession.currentIndex===3||session.phase==="watch_step_4")renderWatchStep4();else if(watchSession.currentIndex===2||session.phase==="watch_step_3")renderWatchStep3();else if(watchSession.currentIndex===1||session.phase==="watch_step_2")renderWatchStep2();else renderWatchStep1();}
 
-  function render(){if(watchFinished){renderSliceComplete();return;}if(session.phase==="orientation")renderOrientation();else if(session.phase==="gate_p1")renderGateP1();else if(session.phase==="repair_p1")renderRepairP1();else if(session.phase==="gate_p2")renderGateP2();else if(session.phase==="repair_p2")renderRepairP2();else if(/^watch_step_[1-5]$/.test(session.phase))renderWatch();}
+  function renderSliceComplete(){clearStep4GateListeners();controls.hidden=false;setPhase("Watch · Step 6 complete","Slice 6 stops here. No mastery claim has been made.");panel.innerHTML='<h1>Step 6 is working.</h1>'+teacher("You recovered hidden hydrogens from the visible bond order on an internal carbon and a terminal carbon. Nothing here counts as independent mastery evidence.")+'<div class="success-box">Runtime Slice 6 complete: visible bond order was used to recover implied hydrogens.</div>';nextBtn.disabled=true;backBtn.disabled=false;replayBtn.disabled=false;pauseBtn.disabled=true;}
 
-  nextBtn.addEventListener("click",function(){if(!watchSession||watchSession.paused)return;if(watchSession.currentIndex===0){if(!session.watchStep1Complete)return;var r1=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r1.changed&&watchSession.currentIndex===1){Slice.syncWatchPhase(session,1);announce("Watch Step 2. The carbon skeleton is now emphasized while the hydrogens remain present.");renderWatch();}return;}if(watchSession.currentIndex===1){if(!session.watchStep2Complete)return;var r2=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r2.changed&&watchSession.currentIndex===2){Slice.syncWatchPhase(session,2);announce("Watch Step 3. The carbon-bound hydrogen labels are no longer written, but the hydrogens are still implied.");renderWatch();}return;}if(watchSession.currentIndex===2){if(!session.watchStep3Complete)return;var r3=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r3.changed&&watchSession.currentIndex===3){Slice.syncWatchPhase(session,3);announce("Watch Step 4. Carbon labels are shortening into line ends and vertices without removing any carbon atoms.");renderWatch();}return;}if(watchSession.currentIndex===3){if(!session.watchStep4Complete||nextBtn.disabled)return;var r4=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r4.changed&&watchSession.currentIndex===4){Slice.syncWatchPhase(session,4);announce("Watch Step 5. The finished zig-zag has three bond lines but four carbon positions. Find the two ends and two vertices.");renderWatch();}return;}if(watchSession.currentIndex===4){if(!session.watchStep5Complete||nextBtn.disabled)return;var r5=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r5.reason==="completed"){watchFinished=true;announce("Watch Step 5 complete.");render();}}});
+  function render(){if(watchFinished){renderSliceComplete();return;}if(session.phase==="orientation")renderOrientation();else if(session.phase==="gate_p1")renderGateP1();else if(session.phase==="repair_p1")renderRepairP1();else if(session.phase==="gate_p2")renderGateP2();else if(session.phase==="repair_p2")renderRepairP2();else if(/^watch_step_[1-6]$/.test(session.phase))renderWatch();}
+
+  nextBtn.addEventListener("click",function(){
+    if(!watchSession||watchSession.paused)return;
+    if(watchSession.currentIndex===0){if(!session.watchStep1Complete)return;var r1=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r1.changed&&watchSession.currentIndex===1){Slice.syncWatchPhase(session,1);announce("Watch Step 2. The carbon skeleton is now emphasized while the hydrogens remain present.");renderWatch();}return;}
+    if(watchSession.currentIndex===1){if(!session.watchStep2Complete)return;var r2=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r2.changed&&watchSession.currentIndex===2){Slice.syncWatchPhase(session,2);announce("Watch Step 3. The carbon-bound hydrogen labels are no longer written, but the hydrogens are still implied.");renderWatch();}return;}
+    if(watchSession.currentIndex===2){if(!session.watchStep3Complete)return;var r3=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r3.changed&&watchSession.currentIndex===3){Slice.syncWatchPhase(session,3);announce("Watch Step 4. Carbon labels are shortening into line ends and vertices without removing any carbon atoms.");renderWatch();}return;}
+    if(watchSession.currentIndex===3){if(!session.watchStep4Complete||nextBtn.disabled)return;var r4=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r4.changed&&watchSession.currentIndex===4){Slice.syncWatchPhase(session,4);announce("Watch Step 5. The finished zig-zag has three bond lines but four carbon positions. Find the two ends and two vertices.");renderWatch();}return;}
+    if(watchSession.currentIndex===4){if(!session.watchStep5Complete||nextBtn.disabled)return;var r5=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r5.changed&&watchSession.currentIndex===5){Slice.syncWatchPhase(session,5);announce("Watch Step 6. Recover the hydrogens that are implied by carbon's visible bond order.");renderWatch();}return;}
+    if(watchSession.currentIndex===5){if(!session.watchStep6Complete||nextBtn.disabled)return;var r6=Watch.next(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(r6.reason==="completed"){watchFinished=true;announce("Watch Step 6 complete.");render();}}
+  });
 
   backBtn.addEventListener("click",function(){if(watchFinished){reopenCompletedWatch();var completionBack=Watch.back(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(completionBack.changed)Slice.syncWatchPhase(session,watchSession.currentIndex);announce("Back one Watch step.");renderWatch();return;}if(!watchSession||watchSession.paused||watchSession.currentIndex===0)return;var result=Watch.back(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(result.changed){Slice.syncWatchPhase(session,watchSession.currentIndex);announce("Back one Watch step.");renderWatch();}});
 
-  replayBtn.addEventListener("click",function(){if(!watchSession)return;if(watchSession.paused){announce("Watch is paused. Resume before replaying this step.");return;}if(watchFinished){reopenCompletedWatch();renderWatch();}Watch.replay(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(session.phase==="watch_step_3"&&!session.watchStep3RepairActive)renderWatchStep3({suppressCompletionGhosts:true});if(session.phase==="watch_step_4")renderWatchStep4({replayVisual:!session.watchStep4RepairActive});if(session.phase==="watch_step_5")renderWatchStep5();announce("Replaying the current Watch step only.");speak(Slice.WATCH_SEQUENCE.steps[watchSession.currentIndex].narration);});
+  replayBtn.addEventListener("click",function(){if(!watchSession)return;if(watchSession.paused){announce("Watch is paused. Resume before replaying this step.");return;}if(watchFinished){reopenCompletedWatch();renderWatch();}Watch.replay(watchSession,Slice.WATCH_SEQUENCE,Date.now());if(session.phase==="watch_step_3"&&!session.watchStep3RepairActive)renderWatchStep3({suppressCompletionGhosts:true});if(session.phase==="watch_step_4")renderWatchStep4({replayVisual:!session.watchStep4RepairActive});if(session.phase==="watch_step_5")renderWatchStep5();if(session.phase==="watch_step_6")renderWatchStep6();announce("Replaying the current Watch step only.");speak(Slice.WATCH_SEQUENCE.steps[watchSession.currentIndex].narration);});
 
-  pauseBtn.addEventListener("click",function(){if(!watchSession||watchFinished)return;var result=Watch.pause(watchSession,Slice.WATCH_SEQUENCE,Date.now());announce(result.reason==="paused"?"Watch paused. The visual will stay exactly here.":"Watch resumed.");if(session.phase==="watch_step_3"){var step3Stage=panel.querySelector(".step3-stage");if(step3Stage)step3Stage.classList.toggle("is-paused",watchSession.paused);backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;nextBtn.disabled=watchSession.paused||!session.watchStep3Complete||watchFinished;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}if(session.phase==="watch_step_4"){var step4Stage=panel.querySelector(".step4-stage");if(step4Stage)step4Stage.classList.toggle("is-paused",watchSession.paused);backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;if(watchSession.paused)nextBtn.disabled=true;else if(!session.watchStep4Complete||watchFinished)nextBtn.disabled=true;else{var finalCollapse=panel.querySelector('[data-step4-label="C4"]');nextBtn.disabled=!finalCollapse||finalCollapse.getAttribute("data-animation-gate-complete")!=="true";}pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}if(session.phase==="watch_step_5"){backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;nextBtn.disabled=watchSession.paused||!session.watchStep5Complete||watchFinished;var compare=document.getElementById("step5CompareButton");if(compare)compare.disabled=watchSession.paused;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}renderWatch();});
+  pauseBtn.addEventListener("click",function(){if(!watchSession||watchFinished)return;var result=Watch.pause(watchSession,Slice.WATCH_SEQUENCE,Date.now());announce(result.reason==="paused"?"Watch paused. The visual will stay exactly here.":"Watch resumed.");if(session.phase==="watch_step_3"){var step3Stage=panel.querySelector(".step3-stage");if(step3Stage)step3Stage.classList.toggle("is-paused",watchSession.paused);backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;nextBtn.disabled=watchSession.paused||!session.watchStep3Complete||watchFinished;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}if(session.phase==="watch_step_4"){var step4Stage=panel.querySelector(".step4-stage");if(step4Stage)step4Stage.classList.toggle("is-paused",watchSession.paused);backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;if(watchSession.paused)nextBtn.disabled=true;else if(!session.watchStep4Complete||watchFinished)nextBtn.disabled=true;else{var finalCollapse=panel.querySelector('[data-step4-label="C4"]');nextBtn.disabled=!finalCollapse||finalCollapse.getAttribute("data-animation-gate-complete")!=="true";}pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}if(session.phase==="watch_step_5"){backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;nextBtn.disabled=watchSession.paused||!session.watchStep5Complete||watchFinished;var compare=document.getElementById("step5CompareButton");if(compare)compare.disabled=watchSession.paused;pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}if(session.phase==="watch_step_6"){backBtn.disabled=watchSession.paused;replayBtn.disabled=watchSession.paused;nextBtn.disabled=watchSession.paused||!session.watchStep6Complete||watchFinished;panel.querySelectorAll(".choice-grid button").forEach(function(button){button.disabled=watchSession.paused;});pauseBtn.textContent=watchSession.paused?"Resume":"Pause";return;}renderWatch();});
 
   render();
 })();
