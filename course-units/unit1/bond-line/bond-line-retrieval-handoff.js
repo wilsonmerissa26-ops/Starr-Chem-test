@@ -1,19 +1,29 @@
 /* U1-01 Slice 15 handoff: Transfer -> genuinely later retrieval. */
 (function(){
   "use strict";
-  var phaseLabel=document.getElementById("phaseLabel"),nextBtn=document.getElementById("nextBtn");
+  var phaseLabel=document.getElementById("phaseLabel"),nextBtn=document.getElementById("nextBtn"),controls=document.getElementById("watchControls");
   if(!phaseLabel||!nextBtn)return;
   var prepared=false,armed=false;
 
   function runtimeReady(){
     return !!(globalThis.BondLineRetrievalUI&&typeof globalThis.BondLineRetrievalUI.prepare==="function"&&globalThis.BondLineTransferUI&&typeof globalThis.BondLineTransferUI.getSession==="function");
   }
+  function hideControls(){if(controls)controls.hidden=true;}
+  function showStartControl(){
+    if(!controls)return;
+    controls.hidden=false;
+    Array.prototype.forEach.call(controls.querySelectorAll("button"),function(button){
+      button.hidden=button!==nextBtn;
+      if(button!==nextBtn)button.disabled=true;
+    });
+    nextBtn.hidden=false;
+  }
   function prepareIfNeeded(createdAt){
     if(prepared)return true;
     if(!/^Transfer\s*·\s*complete/i.test(phaseLabel.textContent||""))return false;
-    if(!runtimeReady()){nextBtn.textContent="Later Retrieval loading";nextBtn.disabled=true;return false;}
+    if(!runtimeReady()){nextBtn.textContent="Later Retrieval loading";nextBtn.disabled=true;hideControls();return false;}
     var transferSession=globalThis.BondLineTransferUI.getSession();
-    if(!transferSession||!transferSession.skill){nextBtn.disabled=true;return false;}
+    if(!transferSession||!transferSession.skill){nextBtn.disabled=true;hideControls();return false;}
     globalThis.BondLineRetrievalUI.prepare(transferSession,createdAt||Date.now());
     prepared=true;
     return true;
@@ -31,9 +41,11 @@
     if(!readiness.ready){
       nextBtn.textContent=readiness.reason==="intervening_activity_required"?"Later Retrieval after another activity":"Later Retrieval not due yet";
       nextBtn.disabled=true;
+      hideControls();
       return;
     }
     nextBtn.textContent="Start Later Retrieval";nextBtn.disabled=false;
+    showStartControl();
     if(!armed){armed=true;nextBtn.addEventListener("click",launch,true);}
   }
   function registerInterveningActivity(activityId,timestamp){
