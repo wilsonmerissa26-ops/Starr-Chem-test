@@ -72,7 +72,7 @@ var uiPath="course-units/unit1/bond-line/bond-line-explain-why-ui.js";
 check("Explain Why learner UI exists",fs.existsSync(path.join(__dirname,uiPath)));
 if(fs.existsSync(path.join(__dirname,uiPath))){
   var src=fs.readFileSync(path.join(__dirname,uiPath),"utf8");
-  check("Explain Why UI contains all three frozen prompt IDs",["E-W1","E-W2","E-W3"].every(function(id){return src.indexOf(id)!==-1;}));
+  check("Explain Why UI renders prompts from the frozen adapter instead of duplicating them",/Explain\.PROMPTS/.test(src)&&/Explain\.promptById/.test(src));
   check("Explain Why UI has no keyword checklist or token-count grader",!/keyword checklist/i.test(src)&&!/requiredWords/.test(src)&&!/containsAll/.test(src));
   check("Explain Why UI has no timer-driven advancement",src.indexOf("setTimeout(")===-1&&src.indexOf("setInterval(")===-1);
   check("Explain Why UI ends at Transfer rather than Mastered",/Transfer/.test(src)&&!/Mastered/.test(src));
