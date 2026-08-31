@@ -25,7 +25,15 @@ jobs:
         run: node --check course-units/unit1/unit1-support.js
       - name: Syntax-check Unit 1 runtime
         run: node --check course-units/unit1/unit1-app.js
+      - name: Syntax-check Chapter 1 teaching data
+        run: node --check course-units/unit1/chapter1/chapter1-data.js
+      - name: Syntax-check Chapter 1 teaching engine
+        run: node --check course-units/unit1/chapter1/chapter1-engine.js
+      - name: Syntax-check Chapter 1 learner runtime
+        run: node --check course-units/unit1/chapter1/chapter1-app.js
       - name: Run CHM 221 Unit 1 behavioral regressions
         run: node test-chm221-unit1.js
       - name: Run Unit 1 IDK teaching regression
         run: node test-unit1-idk-teaching.js
+      - name: Run Chapter 1 teaching engine regression
+        run: node test-unit1-chapter1-teaching-engine.js
