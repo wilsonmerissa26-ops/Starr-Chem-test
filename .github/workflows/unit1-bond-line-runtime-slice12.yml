@@ -98,3 +98,5 @@ jobs:
         run: node test-unit1-bond-line-runtime-slice12.js
       - name: Guided to cold handoff contract
         run: node test-unit1-bond-line-runtime-slice12-handoff.js
+      - name: Real cold learner page
+        run: node test-unit1-bond-line-runtime-slice12-page.js
