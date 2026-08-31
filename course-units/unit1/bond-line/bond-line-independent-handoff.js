@@ -41,3 +41,17 @@
   sync();
   globalThis.BondLineIndependentHandoff=Object.freeze({sync:sync});
 })();
+
+/* Slice 13 browser continuation: Explain Why loads after cold runtime is ready. */
+(function(){
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  var sources=["bond-line-explain-why.js","bond-line-explain-why-ui.js","bond-line-explain-why-handoff.js"];
+  function load(index){
+    if(index>=sources.length)return;
+    var script=document.createElement("script");script.src=sources[index];script.async=false;
+    script.onload=function(){load(index+1);};
+    script.onerror=function(){console.error("Unable to load Bond-Line Slice 13 runtime:",sources[index]);};
+    document.head.appendChild(script);
+  }
+  load(0);
+})();
