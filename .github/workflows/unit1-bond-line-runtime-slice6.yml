@@ -21,6 +21,7 @@ on:
       - 'test-unit1-bond-line-slice4-geometry-continuity.js'
       - 'test-unit1-bond-line-runtime-slice5.js'
       - 'test-unit1-bond-line-runtime-slice6.js'
+      - 'test-unit1-bond-line-slice6-visible-bonds.js'
       - '.github/workflows/unit1-bond-line-runtime-slice6.yml'
   push:
     branches:
@@ -44,6 +45,7 @@ on:
       - 'test-unit1-bond-line-slice4-geometry-continuity.js'
       - 'test-unit1-bond-line-runtime-slice5.js'
       - 'test-unit1-bond-line-runtime-slice6.js'
+      - 'test-unit1-bond-line-slice6-visible-bonds.js'
       - '.github/workflows/unit1-bond-line-runtime-slice6.yml'
 
 jobs:
@@ -90,3 +92,5 @@ jobs:
         run: node test-unit1-bond-line-runtime-slice5.js
       - name: Watch Step 6 contract
         run: node test-unit1-bond-line-runtime-slice6.js
+      - name: Step 6 visible bond rendering
+        run: node test-unit1-bond-line-slice6-visible-bonds.js
