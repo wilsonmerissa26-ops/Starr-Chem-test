@@ -120,3 +120,28 @@
 
   return Object.freeze({GUIDED_TASK:GUIDED_TASK,createSession:createSession,viewPolicy:viewPolicy,requestHint:requestHint,connectivityRepair:connectivityRepair,submitAtomCount:submitAtomCount,submitBranchHost:submitBranchHost,submitRepairMapping:submitRepairMapping,submitSkeleton:submitSkeleton,submitBranchedHydrogen:submitBranchedHydrogen});
 });
+
+/*
+ * Browser bootstrap for Slice 12. Keeping this here avoids modifying the
+ * already-green Guided UI just to add the next rung. Node/pure-logic callers
+ * never execute this block.
+ */
+(function(){
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  var sources=[
+    "../../../student-model-idk-router.js",
+    "bond-line-independent.js",
+    "bond-line-independent-ui.js",
+    "bond-line-independent-handoff.js"
+  ];
+  function load(index){
+    if(index>=sources.length)return;
+    var script=document.createElement("script");
+    script.src=sources[index];
+    script.async=false;
+    script.onload=function(){load(index+1);};
+    script.onerror=function(){console.error("Unable to load Bond-Line Slice 12 runtime:",sources[index]);};
+    document.head.appendChild(script);
+  }
+  load(0);
+})();
