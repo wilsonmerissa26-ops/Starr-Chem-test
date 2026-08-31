@@ -7,9 +7,12 @@ on:
       - 'build-together.js'
       - 'student-model-idk-router.js'
       - 'unit1-skill-registry.js'
+      - 'course-units/unit1/unit1-app.js'
       - 'course-units/unit1/bond-line/**'
       - 'test-student-model.js'
       - 'test-build-together.js'
+      - 'test-chm221-unit1.js'
+      - 'test-unit1-bond-line-pilot-readiness.js'
       - 'test-unit1-bond-line-runtime-slice*.js'
       - 'test-unit1-bond-line-slice*.js'
       - '.github/workflows/unit1-bond-line-runtime-slice15.yml'
@@ -21,9 +24,12 @@ on:
       - 'build-together.js'
       - 'student-model-idk-router.js'
       - 'unit1-skill-registry.js'
+      - 'course-units/unit1/unit1-app.js'
       - 'course-units/unit1/bond-line/**'
       - 'test-student-model.js'
       - 'test-build-together.js'
+      - 'test-chm221-unit1.js'
+      - 'test-unit1-bond-line-pilot-readiness.js'
       - 'test-unit1-bond-line-runtime-slice*.js'
       - 'test-unit1-bond-line-slice*.js'
       - '.github/workflows/unit1-bond-line-runtime-slice15.yml'
@@ -46,6 +52,8 @@ jobs:
         run: node --check build-together.js
       - name: Existing Build Together contract
         run: node test-build-together.js
+      - name: Unit 1 course-support regression
+        run: node test-chm221-unit1.js
       - name: Independent adapter parses
         run: node --check course-units/unit1/bond-line/bond-line-independent.js
       - name: Explain Why adapter parses
@@ -62,6 +70,8 @@ jobs:
         run: node --check course-units/unit1/bond-line/bond-line-retrieval-ui.js
       - name: Retrieval handoff parses
         run: node --check course-units/unit1/bond-line/bond-line-retrieval-handoff.js
+      - name: Intervening activity bridge parses
+        run: node --check course-units/unit1/bond-line/bond-line-intervening-activity.js
       - name: Existing Watch Mode contract
         run: node test-watch-mode.js
       - name: Locked Slice 1 runtime contract
@@ -128,3 +138,5 @@ jobs:
         run: node test-unit1-bond-line-runtime-slice15-handoff.js
       - name: Real Later Retrieval learner page
         run: node test-unit1-bond-line-runtime-slice15-page.js
+      - name: Pilot readiness regression
+        run: node test-unit1-bond-line-pilot-readiness.js
