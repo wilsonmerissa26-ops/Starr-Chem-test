@@ -136,7 +136,11 @@
     if (conceptActive) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (state.conceptCheckComplete) renderSliceComplete();
+      if (state.conceptCheckComplete) {
+        conceptActive = false;
+        if (globalThis.BondLineBuildTogetherUI && typeof globalThis.BondLineBuildTogetherUI.start === "function") globalThis.BondLineBuildTogetherUI.start();
+        else renderSliceComplete();
+      }
       return;
     }
     if (/Watch\s*·\s*I Do\s*·\s*Step 8/i.test(phaseLabel.textContent) && !nextBtn.disabled) {
