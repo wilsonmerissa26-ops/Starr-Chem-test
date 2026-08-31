@@ -4,6 +4,7 @@ const fs=require("fs");
 const Engine=require("./readiness-day-engine.js");
 const Data=require("./course-units/unit1/unit1-data.js");
 const App=require("./course-units/unit1/unit1-app.js");
+const Support=require("./course-units/unit1/unit1-support.js");
 let n=0;
 function ok(v,m){assert(v,m);n++;}
 function eq(a,b,m){assert.equal(a,b,m);n++;}
@@ -30,6 +31,14 @@ ok(App.checkAnswer(Data.item("nomenclature","N1"),"2-methylpentane").correct,"co
 ok(!App.checkAnswer(Data.item("nomenclature","N1"),"3-methylpentane").correct,"wrong locant rejected");
 ok(App.checkAnswer(Data.item("formal_charge","F1"),"two").correct,"oxygen lone-pair count accepted");
 ok(App.checkAnswer(Data.item("cycloalkanes","Y1"),"equatorial").correct,"chair stability production accepted");
+
+// IDK teaching uses the shared six-way contract and item-specific repair content.
+eq(Support.REASONS.length,6,"Unit 1 exposes all six shared IDK reasons");
+const f1Support=Support.planFor("F1");
+ok(f1Support,"formal-charge F1 has a targeted repair plan");
+ok(Support.textFor(f1Support,"dont_know_how_to_start").includes("Use only three facts"),"F1 start repair isolates the first decision");
+ok(!Support.textFor(f1Support,"dont_know_how_to_start").includes("positively charged carbon"),"F1 repair does not dump unrelated carbocation teaching");
+ok(f1Support.check&&f1Support.check.accepted.includes("2"),"F1 repair includes a targeted supported check before fresh evidence");
 
 // Help contamination never becomes independent evidence.
 const s=App.newState();
