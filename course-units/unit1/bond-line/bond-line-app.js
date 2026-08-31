@@ -352,7 +352,7 @@
     var label="Carbon position "+(index+1)+", "+roles[index]+(selected?", selected":"");
     var markerY=c[2] < 170 ? c[2]-36 : c[2]+48;
     var svg='<g data-step5-carbon="'+c[0]+'" role="button" tabindex="0" aria-pressed="'+String(selected)+'" aria-label="'+label+'" class="step5-carbon-target'+(selected?' selected':'')+'">';
-    svg+='<circle class="step5-hit-area" cx="'+c[1]+'" cy="'+c[2]+'" r="34" style="fill:transparent;stroke:transparent;pointer-events:all"/>';
+    svg+='<circle class="step5-hit-area" cx="'+c[1]+'" cy="'+c[2]+'" r="56" style="fill:transparent;stroke:transparent;pointer-events:all"/>';
     if(expanded) svg+='<text class="step5-carbon-label" x="'+(c[1]-12)+'" y="'+(c[2]+10)+'" style="font-weight:800">C</text>';
     svg+='<text data-step5-marker="'+c[0]+'" class="step5-marker'+(selected?' selected':'')+'" x="'+(c[1]-6)+'" y="'+markerY+'" style="font-weight:900;fill:#174f59">'+(index+1)+'</text></g>';
     return svg;
@@ -360,7 +360,7 @@
 
   function step5BondOverlays() {
     var svg="";
-    butaneCarbonSkeletonGeometry.bonds.forEach(function(bond,index){ svg+='<g data-step5-bond="BOND_'+(index+1)+'" role="button" tabindex="0" aria-label="Bond segment '+(index+1)+', not a carbon"><line x1="'+bond[0]+'" y1="'+bond[1]+'" x2="'+bond[2]+'" y2="'+bond[3]+'" style="stroke:transparent;stroke-width:34;pointer-events:stroke"/></g>'; });
+    butaneCarbonSkeletonGeometry.bonds.forEach(function(bond,index){ svg+='<g data-step5-bond="BOND_'+(index+1)+'" role="button" tabindex="0" aria-label="Bond segment '+(index+1)+', not a carbon"><line x1="'+bond[0]+'" y1="'+bond[1]+'" x2="'+bond[2]+'" y2="'+bond[3]+'" style="stroke:transparent;stroke-width:96;pointer-events:stroke"/></g>'; });
     return svg;
   }
 
