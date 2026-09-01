@@ -53,6 +53,8 @@ jobs:
         run: node test-unit1-chapter1-entry.js
       - name: Run Test 1 chemistry accuracy regression
         run: node test-unit1-test1-chemistry.js
+      - name: Run Test 1 bank coverage audit
+        run: node test-unit1-test1-bank-coverage.js
       - name: Run Test 1 adaptive behavior regression
         run: node test-unit1-test1-adaptive.js
       - name: Run real Test 1 learner page regression
