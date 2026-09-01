@@ -1,0 +1,101 @@
+name: Temporary PR96 explanation repair
+
+on:
+  push:
+    branches:
+      - feature/test1-adaptive-tutor
+    paths:
+      - .github/workflows/pr96-explanation-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/test1-adaptive-tutor
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Apply scoped Explain Why repair
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          engine = Path('course-units/unit1/test1/test1-engine.js')
+          text = engine.read_text()
+
+          old_action = r"|redraw(?:s|n|ing)?|has|have|is|are)\b/;function structured"
+          new_action = r"|redraw(?:s|n|ing)?|produc(?:e|es|ed|ing)|adopt(?:s|ed|ing)?|hybridi[sz](?:e|es|ed|ing)|strengthen(?:s|ed|ing)?|weaken(?:s|ed|ing)?|contain(?:s|ed|ing)?|show(?:s|ed|ing)?|lack(?:s|ed|ing)?)\b/;var relation=/\b(same|different|identical|unchanged|greater|stronger|weaker|higher|lower|compact|branched|broad|strong|absent|present|far|near|close)\b/;function structured"
+          if old_action not in text:
+              raise SystemExit('expected action anchor not found')
+          text = text.replace(old_action, new_action, 1)
+
+          old_structured = "if(uids.length&&action.test(unit)){"
+          new_structured = "if(uids.length&&(action.test(unit)||relation.test(unit))){"
+          if old_structured not in text:
+              raise SystemExit('expected structured anchor not found')
+          text = text.replace(old_structured, new_structured, 1)
+
+          old_rel = r"var relational=/\b(gives?|means?|causes?|creates?|leads? to|results? in|corresponds? to|changes?|preserves?|keeps?|reduces?"
+          new_rel = r"var relational=/\b(gives?|produces?|means?|causes?|creates?|leads? to|results? in|corresponds? to|changes?|preserves?|keeps?|adopts?|hybridi[sz]es?|strengthens?|weakens?|reduces?"
+          if old_rel not in text:
+              raise SystemExit('expected relational anchor not found')
+          text = text.replace(old_rel, new_rel, 1)
+          engine.write_text(text)
+
+          tests = Path('test-unit1-test1-adaptive.js')
+          t = tests.read_text()
+
+          semicolon_anchor = "ok('Explain Why accepts legitimate semicolon-connected nomenclature reasoning',semicolonReasoning.correct);\n"
+          semicolon_add = semicolon_anchor + "let structuredNonsense=E.explanationGrade(D.lesson('nomenclature').explanation,'The longest parent is nonsense; number locant substituent name is purple elephants.');\nok('Explain Why rejects punctuation-separated chemistry nonsense',!structuredNonsense.correct);\n"
+          if 'punctuation-separated chemistry nonsense' not in t:
+              if semicolon_anchor not in t:
+                  raise SystemExit('semicolon regression anchor not found')
+              t = t.replace(semicolon_anchor, semicolon_add, 1)
+
+          hybrid_anchor = "ok('Explain Why accepts a concise chemistry-causal hybridization explanation',hybridReasoning.correct);\n"
+          hybrid_add = hybrid_anchor + "let naturalHybridReasoning=E.explanationGrade(D.lesson('hybridization').explanation,'Three electron domains produce trigonal planar geometry, so the carbon adopts sp2 hybridization.');\nok('Explain Why accepts produce/adopts hybridization reasoning',naturalHybridReasoning.correct);\n"
+          if 'produce/adopts hybridization reasoning' not in t:
+              if hybrid_anchor not in t:
+                  raise SystemExit('hybrid regression anchor not found')
+              t = t.replace(hybrid_anchor, hybrid_add, 1)
+
+          imf_anchor = "ok('Explain Why accepts structured IMF cause-and-effect reasoning',imfReasoning.correct);\n"
+          ir_add = imf_anchor + "let irReasoning=E.explanationGrade(D.lesson('functional-ir').explanation,'An alcohol has a broad O-H and no carbonyl; a ketone has a strong C=O and no broad O-H; a carboxylic acid has both broad O-H and strong carbonyl features.');\nok('Explain Why preserves valid IR pattern reasoning without copula-only credit',irReasoning.correct);\n"
+          if 'valid IR pattern reasoning without copula-only credit' not in t:
+              if imf_anchor not in t:
+                  raise SystemExit('IMF regression anchor not found')
+              t = t.replace(imf_anchor, ir_add, 1)
+
+          tests.write_text(t)
+          PY
+
+      - name: Install DOM-test dependency
+        run: npm install --no-save --package-lock=false jsdom@22
+
+      - name: Run focused Test 1 regressions
+        run: |
+          node test-unit1-test1-chemistry.js
+          node test-unit1-test1-bank-coverage.js
+          node test-unit1-test1-adaptive.js
+          node test-unit1-test1-production.js
+          node test-unit1-test1-real-page.js
+
+      - name: Commit tested repair and remove runner
+        run: |
+          rm .github/workflows/pr96-explanation-finalize.yml
+          git config user.name "wilsonmerissa26-ops"
+          git config user.email "wilsonmerissa26@gmail.com"
+          git add course-units/unit1/test1/test1-engine.js test-unit1-test1-adaptive.js .github/workflows/pr96-explanation-finalize.yml
+          git diff --cached --check
+          git commit -m "Require chemistry relationships in explanations"
+          git push origin HEAD:feature/test1-adaptive-tutor
