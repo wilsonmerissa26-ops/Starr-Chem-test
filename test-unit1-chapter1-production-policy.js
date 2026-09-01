@@ -13,6 +13,15 @@ var E=w.Chapter1TeachingEngine,R=w.StudentModelIdkRouter,P=w.Chapter1TeachingPol
 function ok(label,cond){assert.ok(cond,label);console.log("PASS  "+label);passed++;}
 function eq(label,a,b){assert.strictEqual(a,b,label);console.log("PASS  "+label);passed++;}
 
+var formalLesson=w.Chapter1TeachingData.lesson("formal-charge"),formalBank=P.bank(formalLesson);
+function byId(id){return formalBank.find(function(x){return x.id===id;});}
+ok("F-I5 accepts +1 notation",E.grade(byId("F-I5"),{v:"6",n:"2",b:"3",fc:"+1"}).correct);
+ok("F-I5 accepts 1+ notation",E.grade(byId("F-I5"),{v:"6",n:"2",b:"3",fc:"1+"}).correct);
+ok("F-I5 accepts plain 1 consistently with other +1 items",E.grade(byId("F-I5"),{v:"6",n:"2",b:"3",fc:"1"}).correct);
+ok("F-I5 still rejects a genuinely wrong -1 answer",!E.grade(byId("F-I5"),{v:"6",n:"2",b:"3",fc:"-1"}).correct);
+ok("Plain 0 remains accepted on the neutral multiple-bond item",E.grade(byId("F-I2"),{v:"6",n:"4",b:"2",fc:"0"}).correct);
+ok("Plain -1 remains accepted on the negative formal-charge item",E.grade(byId("F-I3"),{v:"4",n:"2",b:"3",fc:"-1"}).correct);
+
 var t=2000000,s=E.createSession("lewis",t);E.setPhase(s,"independent");
 var a=E.submitIndependent(s,{total:"14",bonds:"6",pairs:"1"},t+1);
 ok("Lewis first clean cold success is evidence but not enough to explain yet",a.correct&&a.countedAsIndependent&&!a.sufficientEvidence&&s.phase==="independent");
@@ -44,8 +53,8 @@ ok("Repair after a wrong cold item routes to a fresh item",rp.correct&&E.current
 E.submitIndependent(g,{v:"4",n:"2",b:"3",fc:"-1"},t+204);
 E.submitIndependent(g,{v:"5",n:"2",b:"3",fc:"0"},t+205);
 eq("If the original multiple-bond item was contaminated, a fresh alternate multiple-bond item is supplied","F-I5",E.currentItem(g).id);
-var alt=E.submitIndependent(g,{v:"6",n:"2",b:"3",fc:"+1"},t+206);
-ok("Fresh alternate restores formal-charge coverage without recycling the contaminated item",alt.correct&&alt.sufficientEvidence&&g.phase==="explain");
+var alt=E.submitIndependent(g,{v:"6",n:"2",b:"3",fc:"1"},t+206);
+ok("Fresh alternate accepts plain 1 and restores formal-charge coverage without recycling the contaminated item",alt.correct&&alt.sufficientEvidence&&g.phase==="explain");
 
 var h=E.createSession("formal-charge",t+300);E.setPhase(h,"independent");
 var help=E.requestColdHelp(h,R.IDK_REASONS.DONT_KNOW_START,t+301);
