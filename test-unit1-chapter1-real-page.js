@@ -42,11 +42,15 @@ function submit(form){form.dispatchEvent(new form.ownerDocument.defaultView.Even
   assert(d.body.textContent.includes("Valence-electron count"),"wrong oxygen answer identifies the first broken step");
   assert(d.body.textContent.includes("not going to mark it wrong and stare at you"),"wrong answer explicitly behaves as tutoring rather than a gated worksheet");
   assert(d.getElementById("supportedRetry"),"first supported miss can be treated as a possible slip");
+  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,0,"original supported answer form is removed while intervention is active, so the learner cannot bypass diagnosis by correcting the old item");
   d.getElementById("supportedDiagnose").click();
   assert.strictEqual(d.querySelectorAll('[data-supported-reason]').length,6,"teaching stage exposes all six IDK reasons");
+  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,0,"diagnosis mode keeps the original item unavailable until the learner chooses a repair route");
 
   d.querySelector('[data-supported-reason="forgot_prerequisite"]').click();
   assert(d.querySelector('[data-supported-teach]'),"selected reason opens targeted teaching before another answer");
+  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,1,"targeted teaching exposes only the repair form, never the original failed item");
+  assert(d.querySelector('.repair-mini [data-answer-form]'),"the sole active form during targeted teaching is the repair check");
   assert(d.body.textContent.includes("H=1, C=4, N=5, O=6"),"prerequisite route teaches the exact valence deficit");
   assert(d.body.textContent.includes("Quick repair")||d.body.textContent.includes("smaller idea"),"targeted teaching includes a low-risk repair check");
   var repair=d.querySelector('.repair-mini [data-answer-form]');repair.querySelector('input[name="x"]').value="5";submit(repair);
@@ -62,6 +66,17 @@ function submit(form){form.dispatchEvent(new form.ownerDocument.defaultView.Even
   assert(d.querySelector('[data-supported-diagnosis]'),"wrong Build Together step stops on the broken step");
   assert(d.body.textContent.includes("Total valence-electron budget"),"Build Together identifies the exact electron-budget deficit");
   assert.strictEqual(d.querySelectorAll('[data-supported-reason]').length,6,"Build Together immediately asks why that specific step broke");
+  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,0,"Build Together diagnosis also removes the original answer form");
+
+  // A failed repair that escalates back to Watch must require Watch interactions again.
+  d.querySelector('[data-supported-reason="dont_understand_concept"]').click();
+  var repairFail=d.querySelector('.repair-mini [data-answer-form]');
+  assert(repairFail,"Build Together diagnosis opens a targeted repair check");
+  repairFail.querySelector('input').value="999";submit(repairFail);
+  assert(d.querySelector('[data-supported-teach]'),"first repair miss changes representation instead of escaping repair");
+  repairFail=d.querySelector('.repair-mini [data-answer-form]');repairFail.querySelector('input').value="999";submit(repairFail);
+  assert(/Watch/.test(d.getElementById("phaseLabel").textContent),"second repair miss escalates back to Watch");
+  assert(d.getElementById("nextWatch").disabled,"Watch checks reset on reteach, so previously passed Watch steps cannot be tapped through");
 
   var saved=JSON.parse(w.localStorage.getItem('chm221.chapter1.lewis.v1'));
   var independentSuccesses=(saved.skill&&saved.skill.independentSuccesses)||[];
