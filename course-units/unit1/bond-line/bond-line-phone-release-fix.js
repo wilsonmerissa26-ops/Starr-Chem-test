@@ -11,12 +11,18 @@
   style.textContent="@media(max-width:620px){.shell{padding-bottom:190px!important}.topbar{position:static!important;padding-top:8px!important;padding-bottom:7px!important;backdrop-filter:none!important}.brand>.muted{display:none!important}.phase-row{margin-top:8px!important;gap:4px!important}.lesson{padding-top:12px!important}.learner-toolbar{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin-top:7px!important;padding-top:7px!important}.learner-toolbar-group{display:contents!important}.learner-tool,.learner-nav{width:100%!important;min-height:46px!important;padding:7px 4px!important;font-size:.78rem!important;line-height:1.1!important;text-align:center!important}.watch-controls{bottom:max(6px,env(safe-area-inset-bottom))!important;padding:8px!important;gap:6px!important}.watch-controls .control-btn{min-height:52px!important;padding:10px 8px!important}.card{padding-bottom:24px!important}}";
   document.head.appendChild(style);
 
+  function hasDocument(){
+    return typeof document!=="undefined"&&!!document;
+  }
+
   function phaseText(){
+    if(!hasDocument())return "";
     var node=document.getElementById("phaseLabel");
     return node?(node.textContent||"").trim():"";
   }
 
   function patchStep4Repair(){
+    if(!hasDocument())return;
     if(!/Step\s*4/i.test(phaseText())||!/repair/i.test(phaseText()))return;
     var panel=document.getElementById("lessonPanel");
     if(!panel||panel.getAttribute("data-step4-release-repair")==="true")return;
@@ -53,10 +59,19 @@
   function schedulePatch(){
     if(queued)return;
     queued=true;
-    Promise.resolve().then(function(){queued=false;patchStep4Repair();});
+    Promise.resolve().then(function(){
+      queued=false;
+      if(!hasDocument())return;
+      patchStep4Repair();
+    });
   }
 
   patchStep4Repair();
   var observer=new MutationObserver(schedulePatch);
   observer.observe(document.body,{childList:true,subtree:true});
+  function stopObserver(){observer.disconnect();}
+  if(typeof window.addEventListener==="function"){
+    window.addEventListener("pagehide",stopObserver,{once:true});
+    window.addEventListener("unload",stopObserver,{once:true});
+  }
 })();
