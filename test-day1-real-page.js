@@ -20,6 +20,7 @@ function click(d,sel){const el=d.querySelector(sel);assert(el,'missing '+sel);el
 (async()=>{
   const dom=new JSDOM(html,{url:'https://example.test/day1/',runScripts:'dangerously',resources:new RepoLoader(),pretendToBeVisual:true,virtualConsole:vc,beforeParse(w){
     w.HTMLElement.prototype.scrollIntoView=function(){};
+    w.scrollTo=function(){};
     w.print=function(){};
     w.speechSynthesis={cancel(){},speak(){}};
     w.SpeechSynthesisUtterance=function(t){this.text=t;this.rate=1;};
@@ -50,6 +51,7 @@ function click(d,sel){const el=d.querySelector(sel);assert(el,'missing '+sel);el
   click(d,'#navTabs [data-view="summary"]');await tick();
   assert(/Day 1 Summary/i.test(d.querySelector('#view').textContent),'Summary tab renders');
 
+  await tick(100);
   assert.strictEqual(errors.length,0,'real Day 1 page has no uncaught runtime errors: '+errors.join(' | '));
   console.log('PASS  Real Day 1 page boots and switches core views in production script order');
   dom.window.close();
