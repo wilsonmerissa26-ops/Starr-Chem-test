@@ -27,6 +27,8 @@ let imfReasoning=E.explanationGrade(D.lesson('imf-boiling').explanation,'n-penta
 ok('Explain Why accepts structured IMF cause-and-effect reasoning',imfReasoning.correct);
 let irReasoning=E.explanationGrade(D.lesson('functional-ir').explanation,'An alcohol has a broad O-H and no carbonyl; a ketone has a strong C=O and no broad O-H; a carboxylic acid has both broad O-H and strong carbonyl features.');
 ok('Explain Why preserves valid IR pattern reasoning without copula-only credit',irReasoning.correct);
+let irPropertyNonsense=E.explanationGrade(D.lesson('functional-ir').explanation,'Alcohol o-h broad purple nonsense words; ketone acid carbonyl strong purple elephants.');
+ok('Explain Why rejects isolated IR property words without a chemistry relationship',!irPropertyNonsense.correct);
 let Base=require('./course-units/unit1/test1/test1-engine.js'),baseTransfer=Base.createSession('alkane-isomers',t);Base.setPhase(baseTransfer,'transfer');let baseTransferId=Base.currentItem(baseTransfer).id;baseTransfer.firstColdItemId='AI-I2';baseTransfer.firstColdAt=t;let baseTr=Base.submitSupported(baseTransfer,{a:'14'},t+500);
 ok('base engine never exposes Later Retrieval during Transfer',baseTr.correct&&baseTransfer.phase==='activity'&&baseTransferId==='AI-T1');
 let probeBypass=E.createSession('nomenclature',t);let probeWrong=E.submitProbe(probeBypass,{a:'4'},t+510),probeRetry=E.submitProbe(probeBypass,{a:'5'},t+511);
