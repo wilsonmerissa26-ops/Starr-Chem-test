@@ -1,5 +1,5 @@
 "use strict";
-const assert=require('assert');
+const assert=require('assert'),fs=require('fs');
 const {JSDOM}=require('jsdom');
 const M=require('./course-units/unit1/test1/test1-motion.js');
 let passed=0;
@@ -19,4 +19,9 @@ let rs=mount('ring-strain');ok('ring-strain starts from preferred sp3 angle',/10
 const dom=new JSDOM('<!doctype html><html><head></head><body><aside><article class="skill-card selected"><button data-open="newman-energy"></button></article></aside><section data-t1-host><section class="lesson-shell"><span id="phaseLabel">Cold Independent</span><div class="teacher"></div></section></section></body></html>',{url:'https://example.test/?skill=newman-energy'});
 M.boot(dom.window.document);ok('boot does not inject teaching motion into Cold Independent',!dom.window.document.querySelector('[data-motion-card]'));
 dom.window.document.querySelector('#phaseLabel').textContent='Watch · I Do';M.boot(dom.window.document);ok('boot injects reasoning motion into Watch',!!dom.window.document.querySelector('[data-motion-card]'));
+
+const motionSource=fs.readFileSync('course-units/unit1/test1/test1-motion.js','utf8');
+ok('motion observer watches only direct host replacement',motionSource.includes('obs.observe(host,{childList:true})')&&!motionSource.includes('obs.observe(host,{childList:true,subtree:true,characterData:true})'));
+const pageSource=fs.readFileSync('course-units/unit1/test1/index.html','utf8');
+ok('tablet chemistry visuals use reduced SVG typography',/@media\(max-width:1100px\)\{\.chem-svg \.big\{font-size:20px\}\.chem-svg \.note\{font-size:14px\}\.chem-svg \.small\{font-size:13px\}\}/.test(pageSource));
 console.log('\n'+passed+' Test 1 teaching-motion assertions passed.');
