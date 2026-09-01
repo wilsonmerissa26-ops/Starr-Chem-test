@@ -36,7 +36,7 @@ jobs:
       - name: Syntax-check Chapter 1 learner runtime
         run: node --check course-units/unit1/chapter1/chapter1-app.js && node --check course-units/unit1/chapter1/chapter1-app-v2.js
       - name: Syntax-check Test 1 adaptive tutor
-        run: node --check course-units/unit1/test1/test1-data.js && node --check course-units/unit1/test1/test1-support.js && node --check course-units/unit1/test1/test1-policy.js && node --check course-units/unit1/test1/test1-engine.js && node --check course-units/unit1/test1/test1-engine-production.js && node --check course-units/unit1/test1/test1-visuals.js && node --check course-units/unit1/test1/test1-production.js && node --check course-units/unit1/test1/test1-app-v2.js
+        run: node --check course-units/unit1/test1/test1-data.js && node --check course-units/unit1/test1/test1-support.js && node --check course-units/unit1/test1/test1-policy.js && node --check course-units/unit1/test1/test1-engine.js && node --check course-units/unit1/test1/test1-engine-production.js && node --check course-units/unit1/test1/test1-visuals.js && node --check course-units/unit1/test1/test1-production.js && node --check course-units/unit1/test1/test1-motion.js && node --check course-units/unit1/test1/test1-app-v2.js
       - name: Run CHM 221 Unit 1 behavioral regressions
         run: node test-chm221-unit1.js
       - name: Run Unit 1 IDK teaching regression
@@ -59,5 +59,7 @@ jobs:
         run: node test-unit1-test1-adaptive.js
       - name: Run Test 1 production-practice regression
         run: node test-unit1-test1-production.js
+      - name: Run Test 1 teaching motion regression
+        run: node test-unit1-test1-motion.js
       - name: Run real Test 1 learner page regression
         run: node test-unit1-test1-real-page.js
