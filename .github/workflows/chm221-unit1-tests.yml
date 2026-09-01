@@ -36,7 +36,7 @@ jobs:
       - name: Syntax-check Chapter 1 learner runtime
         run: node --check course-units/unit1/chapter1/chapter1-app.js && node --check course-units/unit1/chapter1/chapter1-app-v2.js
       - name: Syntax-check Test 1 adaptive tutor
-        run: node --check course-units/unit1/test1/test1-data.js && node --check course-units/unit1/test1/test1-support.js && node --check course-units/unit1/test1/test1-engine.js && node --check course-units/unit1/test1/test1-app.js
+        run: node --check course-units/unit1/test1/test1-data.js && node --check course-units/unit1/test1/test1-support.js && node --check course-units/unit1/test1/test1-engine.js && node --check course-units/unit1/test1/test1-engine-production.js && node --check course-units/unit1/test1/test1-app.js
       - name: Run CHM 221 Unit 1 behavioral regressions
         run: node test-chm221-unit1.js
       - name: Run Unit 1 IDK teaching regression
