@@ -32,9 +32,11 @@ jobs:
       - name: Syntax-check Chapter 1 evidence policy
         run: node --check course-units/unit1/chapter1/chapter1-policy.js
       - name: Syntax-check Chapter 1 IDK support
-        run: node --check course-units/unit1/chapter1/chapter1-support.js && node --check course-units/unit1/chapter1/chapter1-support-hook.js
+        run: node --check course-units/unit1/chapter1/chapter1-support.js && node --check course-units/unit1/chapter1/chapter1-support-hook.js && node --check course-units/unit1/chapter1/chapter1-supported-support.js
       - name: Syntax-check Chapter 1 learner runtime
-        run: node --check course-units/unit1/chapter1/chapter1-app.js
+        run: node --check course-units/unit1/chapter1/chapter1-app.js && node --check course-units/unit1/chapter1/chapter1-app-v2.js
+      - name: Syntax-check Test 1 adaptive tutor
+        run: node --check course-units/unit1/test1/test1-data.js && node --check course-units/unit1/test1/test1-support.js && node --check course-units/unit1/test1/test1-policy.js && node --check course-units/unit1/test1/test1-engine.js && node --check course-units/unit1/test1/test1-engine-production.js && node --check course-units/unit1/test1/test1-visuals.js && node --check course-units/unit1/test1/test1-production.js && node --check course-units/unit1/test1/test1-app-v2.js
       - name: Run CHM 221 Unit 1 behavioral regressions
         run: node test-chm221-unit1.js
       - name: Run Unit 1 IDK teaching regression
@@ -49,3 +51,13 @@ jobs:
         run: node test-unit1-chapter1-real-page.js
       - name: Run Chapter 1 learner entry regression
         run: node test-unit1-chapter1-entry.js
+      - name: Run Test 1 chemistry accuracy regression
+        run: node test-unit1-test1-chemistry.js
+      - name: Run Test 1 bank coverage audit
+        run: node test-unit1-test1-bank-coverage.js
+      - name: Run Test 1 adaptive behavior regression
+        run: node test-unit1-test1-adaptive.js
+      - name: Run Test 1 production-practice regression
+        run: node test-unit1-test1-production.js
+      - name: Run real Test 1 learner page regression
+        run: node test-unit1-test1-real-page.js
