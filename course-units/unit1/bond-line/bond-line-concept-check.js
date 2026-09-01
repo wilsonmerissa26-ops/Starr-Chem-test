@@ -107,3 +107,15 @@
     submitConceptCheck: submitConceptCheck
   });
 });
+
+/* Real-device release layer: browser only; pure/Node callers remain unchanged. */
+(function(){
+  if(typeof document==="undefined"||typeof window==="undefined")return;
+  if(document.querySelector('script[data-bond-line-phone-release-fix]'))return;
+  var script=document.createElement("script");
+  script.src="bond-line-phone-release-fix.js";
+  script.async=false;
+  script.setAttribute("data-bond-line-phone-release-fix","");
+  script.onerror=function(){console.error("Unable to load Bond-Line phone release fixes");};
+  document.head.appendChild(script);
+})();
