@@ -5,7 +5,15 @@ let passed=0;
 function ok(name,cond){assert.ok(cond,name);console.log('PASS  '+name);passed++;}
 function eq(name,a,b){assert.strictEqual(a,b,name);console.log('PASS  '+name);passed++;}
 
-eq('five exam-relevant production checkpoints',P.TASKS.length,5);
+eq('six exam-relevant production checkpoints',P.TASKS.length,6);
+assert.deepStrictEqual(P.TASKS.map(x=>x.id),[
+  'c5-isomer-construction',
+  'bondline-redraw-before-name',
+  'newman-anti-gauche-production',
+  'newman-energy-production',
+  'cis14-chair-production',
+  'trans14-chair-production'
+],'exact production checkpoint set stays explicit');console.log('PASS  exact six production checkpoint ids');passed++;
 let iso=P.taskFor('Guided: C5H12 has how many constitutional isomers?','Guided Practice');
 ok('C5H12 guided item requires drawing all distinct skeletons',iso&&/all three distinct C5H12 carbon skeletons/i.test(iso.instruction));
 ok('isomer construction checks duplicate-by-rotation risk',iso.checklist.some(x=>/duplicate.*rotation/i.test(x)));
