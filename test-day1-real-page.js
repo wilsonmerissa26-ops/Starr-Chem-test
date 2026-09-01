@@ -31,7 +31,7 @@ function click(d,sel){const el=d.querySelector(sel);assert(el,'missing '+sel);el
   await tick(60);
   assert(w.Day1Orchestrator,'Day 1 orchestrator loads');
   assert(d.querySelector('#view'),'Day 1 view root exists');
-  assert.strictEqual(d.querySelectorAll('#navTabs button').length,6,'Day 1 navigation renders six tabs');
+  ['home','math','chemistry','notebook','review','summary'].forEach(v=>assert(d.querySelector('#navTabs [data-view="'+v+'"]'),'Day 1 core navigation includes '+v));
   assert(/Day 1/i.test(d.body.textContent),'Day 1 initial home view renders');
 
   click(d,'#navTabs [data-view="math"]');await tick();
