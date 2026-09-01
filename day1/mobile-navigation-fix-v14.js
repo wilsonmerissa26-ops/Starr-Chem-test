@@ -19,6 +19,7 @@ function settleReset(){
   setTimeout(resetViewport,80);
   setTimeout(resetViewport,220);
 }
+function setText(el,value){if(el&&el.textContent!==value)el.textContent=value;}
 function polishFoundationHome(){
   var root=document.getElementById('view');
   if(!root)return;
@@ -27,9 +28,9 @@ function polishFoundationHome(){
   var hero=root.querySelector('.hero');
   if(!hero)return;
   var phase=hero.querySelector('.phase'),heading=hero.querySelector('h1'),copy=hero.querySelector('p');
-  if(phase)phase.textContent='FOUNDATION LIBRARY • DAY 1';
-  if(heading)heading.textContent='Day 1 Foundation Review';
-  if(copy)copy.textContent='Refresh the math and Lewis-structure skills that support your Organic Chemistry work. Your saved progress stays here when you return.';
+  setText(phase,'FOUNDATION LIBRARY • DAY 1');
+  setText(heading,'Day 1 Foundation Review');
+  setText(copy,'Refresh the math and Lewis-structure skills that support your Organic Chemistry work. Your saved progress stays here when you return.');
   if(!hero.querySelector('[data-course-hub-link]')){
     var link=document.createElement('a');
     link.href='../course-hub/';
@@ -44,7 +45,7 @@ function polishFoundationHome(){
     hero.appendChild(link);
   }
   var subtitle=document.querySelector('.brandIdentity .muted');
-  if(subtitle)subtitle.textContent='AStarryia • Foundation Library • Day 1';
+  setText(subtitle,'AStarryia • Foundation Library • Day 1');
 }
 tabs.addEventListener('click',function(e){
   var b=e.target.closest('button[data-view]');
@@ -61,8 +62,10 @@ new MutationObserver(function(){
   if(next!==lastView){lastView=next;settleReset();}
   polishFoundationHome();
 }).observe(tabs,{subtree:true,attributes:true,attributeFilter:['class']});
+/* classroom-v5 replaces #view's direct children on navigation. Watching only
+   direct child replacement avoids an observer feeding on its own polishing. */
 var root=document.getElementById('view');
-if(root)new MutationObserver(function(){polishFoundationHome();}).observe(root,{childList:true,subtree:true});
+if(root)new MutationObserver(function(){polishFoundationHome();}).observe(root,{childList:true});
 var initial=tabs.querySelector('button.on[data-view]');
 if(initial)lastView=initial.getAttribute('data-view');
 polishFoundationHome();
