@@ -1,1 +1,80 @@
-placeholder
+name: PR95 reviewed fix runner
+
+on:
+  push:
+    branches: [ "fix/chapter1-teaching-restoration" ]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR95 branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/chapter1-teaching-restoration
+          fetch-depth: 0
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Apply only the two reviewed teaching-loop fixes and regressions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('course-units/unit1/chapter1/chapter1-app-v2.js')
+          s=p.read_text()
+          old="""      if(!g.correct){supportedIntervention.repairMisses=(supportedIntervention.repairMisses||0)+1;var alt=Teach.text(active.lessonId,supportedIntervention.errorCode,'explanation_not_making_sense');if(supportedIntervention.repairMisses===1){supportedIntervention.teaching=alt||supportedIntervention.teaching;message='That smaller check still missed, so I switched the representation instead of repeating myself.';save();render();return;}Engine.setPhase(active,'watch');active.watchIndex=0;supportedIntervention=null;wrongCounts={};message='That foundation is still unstable. We are stepping back to Watch so you can see it built again before trying it.';save();render();return;}
+          """
+          new="""      if(!g.correct){supportedIntervention.repairMisses=(supportedIntervention.repairMisses||0)+1;var alt=Teach.text(active.lessonId,supportedIntervention.errorCode,'explanation_not_making_sense');if(supportedIntervention.repairMisses===1){supportedIntervention.teaching=alt||supportedIntervention.teaching;message='That smaller check still missed, so I switched the representation instead of repeating myself.';save();render();return;}Engine.setPhase(active,'watch');active.watchIndex=0;active._watchChecks={};watchFeedback='';supportedIntervention=null;wrongCounts={};message='That foundation is still unstable. We are stepping back to Watch so you can see it built again before trying it.';save();render();return;}
+          """
+          assert old in s, 'Watch-reset target not found'
+          s=s.replace(old,new)
+          old2="""  function renderSupported(){var item=Engine.currentItem(active),title=phaseLabel();host.innerHTML=shell(supportedBanner()+'<div class=\"stage-progress\">'+esc(progressText())+'</div><div class=\"prompt\">'+esc(item.prompt)+'</div>'+fieldForm(item,'Check','<button type=\"button\" class=\"ghost\" id=\"supportedIdk\">I don’t know yet</button>')+'<div class=\"actions secondary-actions\"><button type=\"button\" class=\"ghost\" id=\"supportedHint\">Give me a first-step hint</button></div>'+interventionHtml());bindAnswer(function(a){
+          """
+          new2="""  function renderSupported(){var item=Engine.currentItem(active),title=phaseLabel(),answerArea=supportedIntervention?'':fieldForm(item,'Check','<button type=\"button\" class=\"ghost\" id=\"supportedIdk\">I don’t know yet</button>')+'<div class=\"actions secondary-actions\"><button type=\"button\" class=\"ghost\" id=\"supportedHint\">Give me a first-step hint</button></div>';host.innerHTML=shell(supportedBanner()+'<div class=\"stage-progress\">'+esc(progressText())+'</div><div class=\"prompt\">'+esc(item.prompt)+'</div>'+answerArea+interventionHtml());if(!supportedIntervention)bindAnswer(function(a){
+          """
+          assert old2 in s, 'supported-form target not found'
+          s=s.replace(old2,new2)
+          old3="""    });host.querySelector('#supportedIdk').addEventListener('click',function(){supportedIntervention={sourcePhase:active.phase,sourceItemId:item.id,errorCode:firstErrorCode(item),fieldLabel:firstFieldLabel(item),mode:'diagnose',wrongCount:wrongCounts[phaseItemKey()]||0};message='You do not have to guess. Tell me what kind of stuck this is.';render();});host.querySelector('#supportedHint').addEventListener('click',function(){var code=firstErrorCode(item),plan=planFor(code);supportedIntervention={sourcePhase:active.phase,sourceItemId:item.id,errorCode:code,fieldLabel:firstFieldLabel(item),mode:'wrong',wrongCount:wrongCounts[phaseItemKey()]||0};message=plan?'First-step hint: '+plan.start:(lesson().reteach[code]||'Work one step at a time.');render();});bindSupportedIntervention();}
+          """
+          new3="""    });var supportedIdk=host.querySelector('#supportedIdk');if(supportedIdk)supportedIdk.addEventListener('click',function(){supportedIntervention={sourcePhase:active.phase,sourceItemId:item.id,errorCode:firstErrorCode(item),fieldLabel:firstFieldLabel(item),mode:'diagnose',wrongCount:wrongCounts[phaseItemKey()]||0};message='You do not have to guess. Tell me what kind of stuck this is.';render();});var supportedHint=host.querySelector('#supportedHint');if(supportedHint)supportedHint.addEventListener('click',function(){var code=firstErrorCode(item),plan=planFor(code);supportedIntervention={sourcePhase:active.phase,sourceItemId:item.id,errorCode:code,fieldLabel:firstFieldLabel(item),mode:'wrong',wrongCount:wrongCounts[phaseItemKey()]||0};message=plan?'First-step hint: '+plan.start:(lesson().reteach[code]||'Work one step at a time.');render();});bindSupportedIntervention();}
+          """
+          assert old3 in s, 'supported-button target not found'
+          s=s.replace(old3,new3)
+          p.write_text(s)
+
+          p=Path('test-unit1-chapter1-real-page.js')
+          t=p.read_text()
+          a='''  assert(d.getElementById("supportedRetry"),"first supported miss can be treated as a possible slip");\n  d.getElementById("supportedDiagnose").click();\n  assert.strictEqual(d.querySelectorAll('[data-supported-reason]').length,6,"teaching stage exposes all six IDK reasons");\n'''
+          b='''  assert(d.getElementById("supportedRetry"),"first supported miss can be treated as a possible slip");\n  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,0,"original supported answer form is removed while intervention is active, so the learner cannot bypass diagnosis by correcting the old item");\n  d.getElementById("supportedDiagnose").click();\n  assert.strictEqual(d.querySelectorAll('[data-supported-reason]').length,6,"teaching stage exposes all six IDK reasons");\n  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,0,"diagnosis mode keeps the original item unavailable until the learner chooses a repair route");\n'''
+          assert a in t, 'first regression target not found'
+          t=t.replace(a,b)
+          a='''  assert(d.querySelector('[data-supported-teach]'),"selected reason opens targeted teaching before another answer");\n  assert(d.body.textContent.includes("H=1, C=4, N=5, O=6"),"prerequisite route teaches the exact valence deficit");\n'''
+          b='''  assert(d.querySelector('[data-supported-teach]'),"selected reason opens targeted teaching before another answer");\n  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,1,"targeted teaching exposes only the repair form, never the original failed item");\n  assert(d.querySelector('.repair-mini [data-answer-form]'),"the sole active form during targeted teaching is the repair check");\n  assert(d.body.textContent.includes("H=1, C=4, N=5, O=6"),"prerequisite route teaches the exact valence deficit");\n'''
+          assert a in t, 'repair-form regression target not found'
+          t=t.replace(a,b)
+          a='''  assert.strictEqual(d.querySelectorAll('[data-supported-reason]').length,6,"Build Together immediately asks why that specific step broke");\n\n  var saved=JSON.parse(w.localStorage.getItem('chm221.chapter1.lewis.v1'));\n'''
+          b='''  assert.strictEqual(d.querySelectorAll('[data-supported-reason]').length,6,"Build Together immediately asks why that specific step broke");\n  assert.strictEqual(d.querySelectorAll('[data-answer-form]').length,0,"Build Together diagnosis also removes the original answer form");\n\n  // A failed repair that escalates back to Watch must require Watch interactions again.\n  d.querySelector('[data-supported-reason="dont_understand_concept"]').click();\n  var repairFail=d.querySelector('.repair-mini [data-answer-form]');\n  assert(repairFail,"Build Together diagnosis opens a targeted repair check");\n  repairFail.querySelector('input').value="999";submit(repairFail);\n  assert(d.querySelector('[data-supported-teach]'),"first repair miss changes representation instead of escaping repair");\n  repairFail=d.querySelector('.repair-mini [data-answer-form]');repairFail.querySelector('input').value="999";submit(repairFail);\n  assert(/Watch/.test(d.getElementById("phaseLabel").textContent),"second repair miss escalates back to Watch");\n  assert(d.getElementById("nextWatch").disabled,"Watch checks reset on reteach, so previously passed Watch steps cannot be tapped through");\n\n  var saved=JSON.parse(w.localStorage.getItem('chm221.chapter1.lewis.v1'));\n'''
+          assert a in t, 'Watch-reset regression target not found'
+          t=t.replace(a,b)
+          p.write_text(t)
+          PY
+      - name: Syntax-check exact fixes
+        run: node --check course-units/unit1/chapter1/chapter1-app-v2.js && node --check test-unit1-chapter1-real-page.js
+      - name: Install real-page dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
+      - name: Run real Chapter 1 regression
+        run: node test-unit1-chapter1-real-page.js
+      - name: Commit fixes and remove temporary workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm -f .github/workflows/pr95-review-fix-runner.yml
+          git add course-units/unit1/chapter1/chapter1-app-v2.js test-unit1-chapter1-real-page.js .github/workflows/pr95-review-fix-runner.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix Chapter 1 intervention bypasses"
+          git push origin HEAD:fix/chapter1-teaching-restoration
