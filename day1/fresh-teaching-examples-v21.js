@@ -32,6 +32,7 @@ var explanations={
  'Negative log with scientific notation':'Use two rules you have already learned: log(ab)=log(a)+log(b), and log(10^n)=n. Work the plain log first. Only after that do you apply the negative sign in front of log.'
 };
 function title(){var h=view.querySelector('.stage')&&view.querySelector('.stage').closest('.card');h=h&&h.querySelector('h2');return h?(h.textContent||'').trim():'';}
+function setText(el,value){if(el&&el.textContent!==value)el.textContent=value;}
 function addLogTools(){
  if(!/Logs & estimation/i.test(view.textContent||''))return;
  var details=[].slice.call(view.querySelectorAll('details.card')).find(function(d){return /Math Toolbox/i.test((d.querySelector('summary')||{}).textContent||'');});
@@ -41,9 +42,9 @@ function addLogTools(){
 }
 function apply(){
  var t=title(),stage=view.querySelector('.stage'),card=stage&&stage.closest('.card'),heading=card&&card.querySelector('h2'),visual=view.querySelector('.stage .visual.small');
- if(visual&&examples[t])visual.textContent=examples[t];
- if(explanations[t]){var b=view.querySelector('.teacher .bubble div');if(b)b.textContent=explanations[t];}
- if(t==='Build log(6)'&&heading)heading.textContent='Build a log from known landmarks';
+ if(visual&&examples[t])setText(visual,examples[t]);
+ if(explanations[t]){var b=view.querySelector('.teacher .bubble div');if(b)setText(b,explanations[t]);}
+ if(t==='Build log(6)'&&heading)setText(heading,'Build a log from known landmarks');
  addLogTools();
 }
 function readPatchedLesson(){
