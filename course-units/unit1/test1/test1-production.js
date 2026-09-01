@@ -63,7 +63,7 @@
   function html(task){return '<div class="production-requirement" data-production="'+task.id+'"><div class="eyebrow">Production checkpoint · draw before answering</div><p><b>'+task.instruction+'</b></p><ul>'+task.checklist.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ul><p class="small"><b>Important:</b> the browser is not pretending it can grade handwriting. The sketch is required practice; the structured chemistry answer below is what is graded. This supported drawing never becomes cold mastery evidence.</p><div class="production-status" role="status">Draw on the pad before submitting.</div></div>';}
 
   function ensureCanvas(container){var canvas=container.querySelector('.sketch-pad');if(canvas)return canvas;var wrap=document.createElement('div');wrap.className='sketch-wrap production-sketch';wrap.innerHTML='<div><b>Scratch drawing area</b> · Apple Pencil, finger, or mouse.</div><canvas class="sketch-pad" width="900" height="360" aria-label="Required chemistry production drawing area"></canvas><button type="button" class="ghost tiny" data-clear-sketch>Clear drawing</button>';
-    var form=container.querySelector('[data-answer]');if(form)container.insertBefore(wrap,form);else container.appendChild(wrap);return wrap.querySelector('.sketch-pad');
+    var form=container.querySelector('[data-answer]');if(form&&form.parentNode)form.parentNode.insertBefore(wrap,form);else container.appendChild(wrap);return wrap.querySelector('.sketch-pad');
   }
 
   function bindCount(canvas){if(!canvas||canvas.dataset.productionBound==='1')return;canvas.dataset.productionBound='1';canvas.dataset.productionSegments=canvas.dataset.productionSegments||'0';var drawing=false;
