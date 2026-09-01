@@ -15,7 +15,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
+      - name: Install DOM-test dependency
+        run: npm install --no-save --no-package-lock jsdom@24.1.3
       - name: Apply reviewed fixes
         run: python .github/tmp-pr96-fix.py
       - name: Run focused regressions
