@@ -3,7 +3,7 @@ function f(id,label,accepted,errorCode){return Object.freeze({id:id,label:label,
 function item(id,prompt,fields,tags){return Object.freeze({id:id,prompt:prompt,fields:Object.freeze(fields),tags:Object.freeze(tags||[])});}
 var EXTRA=Object.freeze({
   'formal-charge':Object.freeze([
-    item('F-I5','Oxygen has one double bond, one single bond, and one lone pair. Enter V, N, B, and FC.',[f('v','V',['6'],'VALENCE_COUNT'),f('n','N',['2'],'NONBONDING_ELECTRONS'),f('b','B',['3'],'BOND_ORDER'),f('fc','FC',['+1','1+','positive 1','positive one'],'FORMAL_CHARGE')],['charged','multiple']),
+    item('F-I5','Oxygen has one double bond, one single bond, and one lone pair. Enter V, N, B, and FC.',[f('v','V',['6'],'VALENCE_COUNT'),f('n','N',['2'],'NONBONDING_ELECTRONS'),f('b','B',['3'],'BOND_ORDER'),f('fc','FC',['+1','1+','1','positive 1','positive one'],'FORMAL_CHARGE')],['charged','multiple']),
     item('F-I6','Carbon has one triple bond and one single bond, with no lone pairs. Enter V, N, B, and FC.',[f('v','V',['4'],'VALENCE_COUNT'),f('n','N',['0'],'NONBONDING_ELECTRONS'),f('b','B',['4'],'BOND_ORDER'),f('fc','FC',['0'],'FORMAL_CHARGE')],['multiple'])
   ])
 });
