@@ -17,10 +17,16 @@ let disconnectedBecause=E.explanationGrade(D.lesson('nomenclature').explanation,
 ok('Explain Why rejects chemistry keywords followed by an unrelated because-clause',!disconnectedBecause.correct);
 let semicolonReasoning=E.explanationGrade(D.lesson('nomenclature').explanation,'Choose the longest parent chain; number from the end with lower locants; identify each substituent and assemble the name.');
 ok('Explain Why accepts legitimate semicolon-connected nomenclature reasoning',semicolonReasoning.correct);
+let structuredNonsense=E.explanationGrade(D.lesson('nomenclature').explanation,'The longest parent is nonsense; number locant substituent name is purple elephants.');
+ok('Explain Why rejects punctuation-separated chemistry nonsense',!structuredNonsense.correct);
 let hybridReasoning=E.explanationGrade(D.lesson('hybridization').explanation,'Three electron domains give trigonal planar geometry, so the carbon is sp2 hybridized.');
 ok('Explain Why accepts a concise chemistry-causal hybridization explanation',hybridReasoning.correct);
+let naturalHybridReasoning=E.explanationGrade(D.lesson('hybridization').explanation,'Three electron domains produce trigonal planar geometry, so the carbon adopts sp2 hybridization.');
+ok('Explain Why accepts produce/adopts hybridization reasoning',naturalHybridReasoning.correct);
 let imfReasoning=E.explanationGrade(D.lesson('imf-boiling').explanation,'n-pentane has greater surface contact and stronger London dispersion; neopentane is more compact and branched, so it boils lower.');
 ok('Explain Why accepts structured IMF cause-and-effect reasoning',imfReasoning.correct);
+let irReasoning=E.explanationGrade(D.lesson('functional-ir').explanation,'An alcohol has a broad O-H and no carbonyl; a ketone has a strong C=O and no broad O-H; a carboxylic acid has both broad O-H and strong carbonyl features.');
+ok('Explain Why preserves valid IR pattern reasoning without copula-only credit',irReasoning.correct);
 let Base=require('./course-units/unit1/test1/test1-engine.js'),baseTransfer=Base.createSession('alkane-isomers',t);Base.setPhase(baseTransfer,'transfer');let baseTransferId=Base.currentItem(baseTransfer).id;baseTransfer.firstColdItemId='AI-I2';baseTransfer.firstColdAt=t;let baseTr=Base.submitSupported(baseTransfer,{a:'14'},t+500);
 ok('base engine never exposes Later Retrieval during Transfer',baseTr.correct&&baseTransfer.phase==='activity'&&baseTransferId==='AI-T1');
 let probeBypass=E.createSession('nomenclature',t);let probeWrong=E.submitProbe(probeBypass,{a:'4'},t+510),probeRetry=E.submitProbe(probeBypass,{a:'5'},t+511);
