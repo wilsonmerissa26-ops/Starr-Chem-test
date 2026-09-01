@@ -35,7 +35,7 @@ function click(d,sel){const el=d.querySelector(sel);assert(el,'missing '+sel);el
   assert(/Day 1/i.test(d.body.textContent),'Day 1 initial home view renders');
 
   click(d,'#navTabs [data-view="math"]');await tick();
-  assert(/Math Foundations/i.test(d.querySelector('#view').textContent),'Math tab renders without stalling');
+  assert(/Math Foundation/i.test(d.querySelector('#view').textContent),'Math tab renders without stalling');
   const firstArea=d.querySelector('[data-area]');
   assert(firstArea,'Math area choices render');
   firstArea.click();await tick();
