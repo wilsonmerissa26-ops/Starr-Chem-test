@@ -21,9 +21,12 @@ function install(doc,store){
  function begin(e){var b=e.target&&e.target.closest?e.target.closest('#check'):null;if(!b||b.disabled||!view.contains(b))return;pending=snapshot(store,text(view.querySelector('.question')));setTimeout(finish,0)}
  function finish(){if(!pending)return;var good=view.querySelector('#feedback .good');if(!good)return;record(store,pending);pending=null;augmentSummary()}
  function augmentSummary(){
-  var h=[].slice.call(view.querySelectorAll('h2')).find(function(x){return text(x)==='Day 1 Summary'});if(!h)return;var host=h.parentElement;if(!host)return;var old=host.querySelector('[data-math-evidence-v23]');if(old)old.remove();var e=load(store),keys=Object.keys(e.areas||{});if(!keys.length)return;
+  var h=[].slice.call(view.querySelectorAll('h2')).find(function(x){return text(x)==='Day 1 Summary'});if(!h)return;var host=h.parentElement;if(!host)return;var old=host.querySelector('[data-math-evidence-v23]');var e=load(store),keys=Object.keys(e.areas||{});
+  if(!keys.length){if(old)old.remove();return;}
   var names={fractions_percent:'Fractions & percentages',algebra:'Algebra',exponents:'Exponents',scientific_notation:'Scientific notation',logs:'Logs & estimation',unit_conversions:'Unit conversions'};
-  var box=doc.createElement('div');box.setAttribute('data-math-evidence-v23','1');box.className='warning';box.style.marginTop='14px';box.innerHTML='<b>Math evidence</b><p class="muted">Independent correct answers are kept separate from answers completed after teaching, a hint, or a wrong-attempt explanation.</p>'+keys.map(function(k){var a=e.areas[k];return '<div><b>'+String(names[k]||k)+'</b>: '+a.independentCorrect+' independent • '+a.supportedCorrect+' supported/repaired</div>'}).join('');host.appendChild(box);
+  var html='<b>Math evidence</b><p class="muted">Independent correct answers are kept separate from answers completed after teaching, a hint, or a wrong-attempt explanation.</p>'+keys.map(function(k){var a=e.areas[k];return '<div><b>'+String(names[k]||k)+'</b>: '+a.independentCorrect+' independent • '+a.supportedCorrect+' supported/repaired</div>'}).join('');
+  if(old){if(old.innerHTML!==html)old.innerHTML=html;return;}
+  var box=doc.createElement('div');box.setAttribute('data-math-evidence-v23','1');box.className='warning';box.style.marginTop='14px';box.innerHTML=html;host.appendChild(box);
  }
  view.addEventListener('pointerup',begin,true);view.addEventListener('click',begin,true);
  new MutationObserver(function(){setTimeout(augmentSummary,0)}).observe(view,{childList:true,subtree:true});augmentSummary();

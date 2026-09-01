@@ -30,7 +30,7 @@ ok('practice stop patch is live',html.indexOf('practice-stop-v22.js')>=0);
 ['5/6 − 1/3','3/8 of 160','7x + 2 = 3x + 26','2/x = 6/15','2⁻⁴ = 1/2⁴ = 1/16','0.00061 = 6.1 × 10⁻⁴','−log(6×10⁻⁶)','750 mL → L','0.015 mol/s'].forEach(function(x){ok('practice fixture is not reused by v21 teaching '+x,fresh.indexOf(x)<0);});
 ok('log product rule is explicitly explained in teacher patch',fresh.indexOf('log(ab)=log(a)+log(b)')>=0&&fresh.indexOf('log(10^n)=n')>=0);
 ok('log power rules are added to toolbox',fresh.indexOf('log(10^n) = n')>=0&&fresh.indexOf('log(a×10^n) = log(a) + n')>=0);
-ok('fresh log heading matches its landmark example',fresh.indexOf("heading.textContent='Build a log from known landmarks'")>=0);
+ok('fresh log heading matches its landmark example and uses idempotent write',fresh.indexOf('Build a log from known landmarks')>=0&&fresh.indexOf("setText(heading,'Build a log from known landmarks')")>=0);
 ok('practice stop covers all six banks',stop.indexOf('fractions_percent:6')>=0&&stop.indexOf('algebra:4')>=0&&stop.indexOf('exponents:5')>=0&&stop.indexOf('scientific_notation:5')>=0&&stop.indexOf('logs:4')>=0&&stop.indexOf('unit_conversions:7')>=0);
 ok('practice completion stops instead of wrapping',stop.indexOf('Finish skill ✓')>=0&&stop.indexOf("c.session.phase='entry'")>=0&&stop.indexOf("c.session.status='Practice set complete'")>=0);
 ok('math evidence layer loads before check guard',html.indexOf('math-evidence-v23.js?v=20260819d')>=0&&html.indexOf('math-evidence-v23.js')<html.indexOf('math-check-input-guard-v19.js'));
