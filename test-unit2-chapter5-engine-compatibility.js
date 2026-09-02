@@ -32,7 +32,7 @@ console.log('\n=== ALL CHAPTER 5 LESSONS SATISFY ENGINE SESSION CONTRACT ===');
 D.lessonIds().forEach(function(id){
   var s=E.createSession(id,1000),l=D.lesson(id);
   ok(s.lessonId===id,id+' session starts with its own curriculum ID');
-  ok(s.skill.skillId===l.skillId,id+' session uses its Chapter 5 shared Student Model skill ID');
+  ok(s.skill.id===l.skillId,id+' session uses its Chapter 5 shared Student Model skill ID');
   ok(s.phase==='probe',id+' starts at Quick Diagnostic');
   ok(E.currentItem(s)&&E.currentItem(s).id===l.probe[0].id,id+' exposes its first diagnostic item through the locked engine');
 });
