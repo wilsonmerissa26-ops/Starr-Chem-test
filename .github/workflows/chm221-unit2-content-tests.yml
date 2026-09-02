@@ -5,6 +5,7 @@ on:
     paths:
       - 'course-units/unit2/**'
       - 'test-unit2-chapter5-content.js'
+      - 'test-unit2-chapter5-visuals.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
   push:
     branches:
@@ -12,6 +13,7 @@ on:
     paths:
       - 'course-units/unit2/**'
       - 'test-unit2-chapter5-content.js'
+      - 'test-unit2-chapter5-visuals.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
 
 jobs:
@@ -24,5 +26,9 @@ jobs:
           node-version: 20
       - name: Chapter 5 data parses
         run: node --check course-units/unit2/chapter5/chapter5-data.js
+      - name: Chapter 5 visual data parses
+        run: node --check course-units/unit2/chapter5/chapter5-visual-data.js
       - name: Chapter 5 curriculum contract
         run: node test-unit2-chapter5-content.js
+      - name: Chapter 5 visual contract
+        run: node test-unit2-chapter5-visuals.js
