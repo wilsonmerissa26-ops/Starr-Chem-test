@@ -1,0 +1,40 @@
+name: CHM 221 Unit 2 Content Tests
+
+on:
+  pull_request:
+    paths:
+      - 'course-units/unit2/**'
+      - 'test-unit2-chapter5-content.js'
+      - 'test-unit2-chapter5-visuals.js'
+      - 'test-unit2-chapter5-support.js'
+      - '.github/workflows/chm221-unit2-content-tests.yml'
+  push:
+    branches:
+      - 'feature/unit2-chapter5-curriculum'
+    paths:
+      - 'course-units/unit2/**'
+      - 'test-unit2-chapter5-content.js'
+      - 'test-unit2-chapter5-visuals.js'
+      - 'test-unit2-chapter5-support.js'
+      - '.github/workflows/chm221-unit2-content-tests.yml'
+
+jobs:
+  chapter5-content:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Chapter 5 data parses
+        run: node --check course-units/unit2/chapter5/chapter5-data.js
+      - name: Chapter 5 visual data parses
+        run: node --check course-units/unit2/chapter5/chapter5-visual-data.js
+      - name: Chapter 5 support parses
+        run: node --check course-units/unit2/chapter5/chapter5-support.js
+      - name: Chapter 5 curriculum contract
+        run: node test-unit2-chapter5-content.js
+      - name: Chapter 5 visual contract
+        run: node test-unit2-chapter5-visuals.js
+      - name: Chapter 5 support-routing contract
+        run: node test-unit2-chapter5-support.js
