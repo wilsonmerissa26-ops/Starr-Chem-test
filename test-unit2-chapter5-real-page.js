@@ -11,13 +11,19 @@ async function tick(){await new Promise(r=>setTimeout(r,12));}
  await new Promise(resolve=>{if(d.readyState==='complete')return resolve();w.addEventListener('load',resolve,{once:true});setTimeout(resolve,900);});await tick();
  assert(w.StudentModelIdkRouter,'shared Student Model loads');
  assert(w.Chapter5AdaptiveData,'Chapter 5 curriculum loads');
+ assert(w.Chapter5CoreData&&w.Chapter5ScopeData,'core and current-edition scope data both load');
  assert(w.Chapter5AdaptiveSupport,'Chapter 5 support loads');
+ assert(w.Chapter5CoreSupport&&w.Chapter5ScopeSupport,'core and current-edition support layers both load');
  assert(w.Chapter5EngineBridge,'Chapter 5 engine bridge loads');
  assert(w.Chapter5AdaptiveEngine,'Chapter 5 adopts the adaptive runtime');
  assert.strictEqual(w.Chapter5AdaptiveEngine,w.Test1AdaptiveEngine,'Chapter 5 uses the exact existing adaptive engine object');
  assert(w.Chapter5VisualData&&w.Chapter5Visuals,'structured Chapter 5 visual layers load');
+ assert(w.Chapter5CoreVisualData&&w.Chapter5ScopeVisualData,'core and current-edition visual data both load');
  assert(w.LearnerTools,'shared learner tools load');
- assert.strictEqual(d.querySelectorAll('[data-open]').length,8,'real page renders eight Chapter 5 skill cards');
+ assert.strictEqual(w.Chapter5AdaptiveData.lessonIds().length,10,'runtime curriculum exposes ten current-edition Chapter 5 skills');
+ assert.strictEqual(d.querySelectorAll('[data-open]').length,10,'real page renders ten Chapter 5 skill cards');
+ assert(d.querySelector('[data-open="enantiomer-mixtures-quantitative"]'),'specific rotation and ee skill card is learner-facing');
+ assert(d.querySelector('[data-open="other-chirality"]'),'other chirality skill card is learner-facing');
  assert(d.querySelector('[data-unit-nav]'),'Unit 2 nav visible');
  assert(d.querySelector('[data-home-nav]'),'Home nav visible');
  assert(d.querySelector('[data-periodic-tool]'),'Periodic Table visible');
@@ -67,13 +73,45 @@ async function tick(){await new Promise(r=>setTimeout(r,12));}
  assert(/away/i.test(d.querySelector('.rs-visual').textContent),'R/S visual explicitly shows priority 4 direction');
  assert(/counterclockwise/i.test(d.querySelector('.rs-visual').textContent),'R/S visual explicitly shows the 1-2-3 turn');
 
+ // Current-edition quantitative extension must be real learner content, not an orphaned data file.
+ d.querySelector('[data-back-skills]').click();await tick();
+ d.querySelector('[data-open="enantiomer-mixtures-quantitative"]').click();await tick();
+ assert(/Quick Diagnostic/.test(d.getElementById('phaseLabel').textContent),'specific-rotation skill starts with the same quick diagnostic contract');
+ assert(/observed rotation/i.test(d.querySelector('.prompt').textContent),'specific-rotation diagnostic is visible');
+ assert(d.querySelector('.polarimetry-visual'),'specific-rotation diagnostic renders a structured equation visual');
+ submit(d,'wrong');await tick();
+ assert(/specific-rotation setup/i.test(d.querySelector('.diagnosis-card').textContent),'wrong quantitative answer identifies specific-rotation setup');
+ d.querySelector('[data-reason="explanation_not_making_sense"]').click();await tick();
+ assert(/Switch representation:/i.test(d.querySelector('.repair-card').textContent),'quantitative explanation failure visibly changes representation');
+ assert(/numerator or denominator/i.test(d.querySelector('.repair-check .prompt').textContent),'quantitative repair uses a smaller setup check rather than repeating arithmetic');
+ submit(d,'denominator');await tick();
+ assert(/Watch/.test(d.getElementById('phaseLabel').textContent),'passing quantitative repair enters Watch');
+ assert(d.querySelector('.polarimetry-visual'),'specific-rotation Watch retains structured equation teaching');
+
+ // Current-edition other-chirality extension must render axial and dynamic reasoning.
+ d.querySelector('[data-back-skills]').click();await tick();
+ let oc=w.Chapter5AdaptiveEngine.createSession('other-chirality',Date.now());w.Chapter5AdaptiveEngine.setPhase(oc,'guided');oc.guidedIndex=0;
+ w.localStorage.setItem('chm221.unit2.chapter5.other-chirality.v1',JSON.stringify(oc));
+ d.querySelector('[data-open="other-chirality"]').click();await tick();
+ assert(/Guided Practice/.test(d.getElementById('phaseLabel').textContent),'other-chirality extension runs on real Guided Practice');
+ assert(/allene/i.test(d.querySelector('.prompt').textContent),'other-chirality guided case asks about an allene');
+ assert(d.querySelector('.allene-visual'),'allene case renders a structured chirality-axis visual');
+ assert(/terminal carbon/i.test(d.querySelector('.allene-visual').textContent),'allene visual makes the terminal-carbon check explicit');
+
+ let dyn=w.Chapter5AdaptiveEngine.createSession('other-chirality',Date.now());w.Chapter5AdaptiveEngine.setPhase(dyn,'guided');dyn.guidedIndex=1;
+ w.localStorage.setItem('chm221.unit2.chapter5.other-chirality.v1',JSON.stringify(dyn));
+ d.querySelector('[data-back-skills]').click();await tick();d.querySelector('[data-open="other-chirality"]').click();await tick();
+ assert(d.querySelector('.dynamic-visual'),'dynamic chirality case renders a structured interconversion visual');
+ assert(/ordinary low-barrier rotation/i.test(d.querySelector('.dynamic-visual').textContent),'dynamic visual distinguishes conformational interconversion from fixed configuration');
+
  // Mobile safeguards are source contracts while real phone/iPad remains the release gate.
  assert(/@media\(max-width:860px\)[\s\S]*\.topbar\{position:static/.test(html),'tablet/phone layout lets the tall header scroll away');
  assert(/@media\(max-width:620px\)[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/.test(html),'phone learner tools compact to a four-control row');
  assert(/min-height:48px/.test(html),'primary learner controls retain touch-sized targets');
+ assert(html.indexOf('chapter5-scope-data.js')!==-1&&html.indexOf('chapter5-scope-support.js')!==-1&&html.indexOf('chapter5-scope-visual-data.js')!==-1,'real page loads all current-edition scope layers before the engine');
  assert(html.indexOf('../../unit1/test1/test1-engine.js')!==-1,'learner page loads exact existing adaptive engine file');
  assert(html.indexOf('chapter5-engine.js')===-1,'learner page does not load a copied Chapter 5 engine');
  assert.strictEqual(errors.length,0,'real Chapter 5 page has no uncaught runtime errors: '+errors.join(' | '));
- console.log('PASS  Real Chapter 5 page: locked engine, visual teaching, six-way IDK repair, fresh cold evidence, and mobile safeguards work in production script order');
+ console.log('PASS  Real Chapter 5 page: ten-skill current-edition scope, locked engine, structured visual teaching, six-way IDK repair, fresh cold evidence, and mobile safeguards work in production script order');
  dom.window.close();
 })().catch(e=>{console.error(e);process.exit(1);});
