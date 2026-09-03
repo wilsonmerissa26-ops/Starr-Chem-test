@@ -8,6 +8,7 @@ on:
       - 'test-unit2-chapter5-visuals.js'
       - 'test-unit2-chapter5-support.js'
       - 'test-unit2-chapter5-engine-compatibility.js'
+      - 'test-unit2-chapter5-scope-extension.js'
       - 'test-unit2-chapter5-real-page.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
   push:
@@ -21,6 +22,7 @@ on:
       - 'test-unit2-chapter5-visuals.js'
       - 'test-unit2-chapter5-support.js'
       - 'test-unit2-chapter5-engine-compatibility.js'
+      - 'test-unit2-chapter5-scope-extension.js'
       - 'test-unit2-chapter5-real-page.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
 
@@ -36,10 +38,16 @@ jobs:
         run: npm install --no-save --no-package-lock jsdom@24.1.3
       - name: Chapter 5 data parses
         run: node --check course-units/unit2/chapter5/chapter5-data.js
+      - name: Chapter 5 scope data parses
+        run: node --check course-units/unit2/chapter5/chapter5-scope-data.js
       - name: Chapter 5 visual data parses
         run: node --check course-units/unit2/chapter5/chapter5-visual-data.js
+      - name: Chapter 5 scope visual data parses
+        run: node --check course-units/unit2/chapter5/chapter5-scope-visual-data.js
       - name: Chapter 5 support parses
         run: node --check course-units/unit2/chapter5/chapter5-support.js
+      - name: Chapter 5 scope support parses
+        run: node --check course-units/unit2/chapter5/chapter5-scope-support.js
       - name: Chapter 5 engine bridge parses
         run: node --check course-units/unit2/chapter5/chapter5-engine-bridge.js
       - name: Chapter 5 learner app parses
@@ -54,5 +62,7 @@ jobs:
         run: node test-unit2-chapter5-support.js
       - name: Chapter 5 locked-engine compatibility
         run: node test-unit2-chapter5-engine-compatibility.js
+      - name: Chapter 5 current-edition scope extension
+        run: node test-unit2-chapter5-scope-extension.js
       - name: Chapter 5 real learner page
         run: node test-unit2-chapter5-real-page.js
