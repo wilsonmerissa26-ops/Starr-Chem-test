@@ -10,6 +10,7 @@ on:
       - 'test-unit2-chapter5-engine-compatibility.js'
       - 'test-unit2-chapter5-scope-extension.js'
       - 'test-unit2-chapter5-real-page.js'
+      - 'test-unit2-ch2-ch3-content.js'
       - 'test-unit2-ch2-ch3-engine-compatibility.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
   push:
@@ -26,6 +27,7 @@ on:
       - 'test-unit2-chapter5-engine-compatibility.js'
       - 'test-unit2-chapter5-scope-extension.js'
       - 'test-unit2-chapter5-real-page.js'
+      - 'test-unit2-ch2-ch3-content.js'
       - 'test-unit2-ch2-ch3-engine-compatibility.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
 
@@ -59,12 +61,16 @@ jobs:
         run: node --check course-units/unit2/chapter5/chapter5-visuals.js
       - name: Chapter 2 resonance data parses
         run: node --check course-units/unit2/chapter2-resonance/chapter2-data.js
+      - name: Chapter 2 evidence data parses
+        run: node --check course-units/unit2/chapter2-resonance/chapter2-evidence-data.js
       - name: Chapter 2 resonance support parses
         run: node --check course-units/unit2/chapter2-resonance/chapter2-support.js
       - name: Chapter 2 resonance engine bridge parses
         run: node --check course-units/unit2/chapter2-resonance/chapter2-engine-bridge.js
       - name: Chapter 3 data parses
         run: node --check course-units/unit2/chapter3/chapter3-data.js
+      - name: Chapter 3 evidence data parses
+        run: node --check course-units/unit2/chapter3/chapter3-evidence-data.js
       - name: Chapter 3 support parses
         run: node --check course-units/unit2/chapter3/chapter3-support.js
       - name: Chapter 3 engine bridge parses
@@ -81,5 +87,7 @@ jobs:
         run: node test-unit2-chapter5-scope-extension.js
       - name: Chapter 5 real learner page
         run: node test-unit2-chapter5-real-page.js
+      - name: Chapter 2 and 3 curriculum contract
+        run: node test-unit2-ch2-ch3-content.js
       - name: Chapter 2 and 3 locked-engine compatibility
         run: node test-unit2-ch2-ch3-engine-compatibility.js
