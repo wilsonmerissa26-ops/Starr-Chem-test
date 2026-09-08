@@ -1,0 +1,48 @@
+name: CHM 221 Semester System Tests
+
+on:
+  pull_request:
+    paths:
+      - 'semester/**'
+      - 'test-semester-system.js'
+      - '.github/workflows/semester-system-tests.yml'
+      - 'course-hub/**'
+      - 'course-units/**'
+  push:
+    branches:
+      - 'feature/semester-system-persistence'
+    paths:
+      - 'semester/**'
+      - 'test-semester-system.js'
+      - '.github/workflows/semester-system-tests.yml'
+      - 'course-hub/**'
+      - 'course-units/**'
+
+jobs:
+  semester-system:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Semester manifest parses
+        run: node --check semester/semester-manifest.js
+      - name: Semester store parses
+        run: node --check semester/semester-store.js
+      - name: Legacy import parses
+        run: node --check semester/semester-legacy-import.js
+      - name: Adaptive bridge parses
+        run: node --check semester/semester-adaptive-bridge.js
+      - name: Page mirror parses
+        run: node --check semester/semester-page-mirror.js
+      - name: Dashboard parses
+        run: node --check semester/semester-dashboard.js
+      - name: Semester persistence contract
+        run: node test-semester-system.js
+      - name: Dashboard has required progress surfaces
+        run: |
+          grep -q 'Continue where you left off' semester/semester-dashboard.js
+          grep -q 'data-storage-mode' semester/index.html
+          grep -q 'data-review' semester/index.html
+          grep -q 'Export progress backup' semester/index.html
