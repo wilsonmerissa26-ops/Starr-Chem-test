@@ -12,6 +12,7 @@ on:
       - 'test-unit2-chapter5-real-page.js'
       - 'test-unit2-ch2-ch3-content.js'
       - 'test-unit2-ch2-ch3-engine-compatibility.js'
+      - 'test-unit2-ch2-ch3-real-pages.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
   push:
     branches:
@@ -19,6 +20,7 @@ on:
       - 'feature/unit2-adaptive-runtime'
       - 'feature/unit2-chapter5-learner'
       - 'feature/unit2-ch2-ch3-curriculum'
+      - 'feature/unit2-ch2-ch3-learner'
     paths:
       - 'course-units/unit2/**'
       - 'test-unit2-chapter5-content.js'
@@ -29,6 +31,7 @@ on:
       - 'test-unit2-chapter5-real-page.js'
       - 'test-unit2-ch2-ch3-content.js'
       - 'test-unit2-ch2-ch3-engine-compatibility.js'
+      - 'test-unit2-ch2-ch3-real-pages.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
 
 jobs:
@@ -59,6 +62,8 @@ jobs:
         run: node --check course-units/unit2/chapter5/chapter5-app.js
       - name: Chapter 5 visual renderer parses
         run: node --check course-units/unit2/chapter5/chapter5-visuals.js
+      - name: Shared new-chapter learner app parses
+        run: node --check course-units/unit2/adaptive-chapter-app.js
       - name: Chapter 2 resonance data parses
         run: node --check course-units/unit2/chapter2-resonance/chapter2-data.js
       - name: Chapter 2 evidence data parses
@@ -67,6 +72,8 @@ jobs:
         run: node --check course-units/unit2/chapter2-resonance/chapter2-support.js
       - name: Chapter 2 resonance engine bridge parses
         run: node --check course-units/unit2/chapter2-resonance/chapter2-engine-bridge.js
+      - name: Chapter 2 visuals parse
+        run: node --check course-units/unit2/chapter2-resonance/chapter2-visuals.js
       - name: Chapter 3 data parses
         run: node --check course-units/unit2/chapter3/chapter3-data.js
       - name: Chapter 3 evidence data parses
@@ -75,6 +82,8 @@ jobs:
         run: node --check course-units/unit2/chapter3/chapter3-support.js
       - name: Chapter 3 engine bridge parses
         run: node --check course-units/unit2/chapter3/chapter3-engine-bridge.js
+      - name: Chapter 3 visuals parse
+        run: node --check course-units/unit2/chapter3/chapter3-visuals.js
       - name: Chapter 5 curriculum contract
         run: node test-unit2-chapter5-content.js
       - name: Chapter 5 visual contract
@@ -91,3 +100,5 @@ jobs:
         run: node test-unit2-ch2-ch3-content.js
       - name: Chapter 2 and 3 locked-engine compatibility
         run: node test-unit2-ch2-ch3-engine-compatibility.js
+      - name: Chapter 2 and 3 real learner pages and saved progress
+        run: node test-unit2-ch2-ch3-real-pages.js
