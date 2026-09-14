@@ -1,6 +1,6 @@
 'use strict';
 const assert=require('assert'),fs=require('fs');
-const D=require('./course-units/unit2/test2/test2-data.js');
+const D=require('./course-units/unit2/test2/test2-data-complete.js');
 const S=require('./course-units/unit2/test2/test2-support.js');
 let passed=0;function ok(v,m){assert(v,m);passed++;console.log('PASS  '+m);}
 function allItems(l){let out=[];out.push(...l.probe);l.watch.forEach(x=>out.push(x.check));out.push(...l.concept,...l.build,...l.guided,...l.independent,...l.transfer,l.intervening,...l.retrieval);Object.keys(l.repairChecks).forEach(k=>out.push(l.repairChecks[k]));return out.filter(Boolean);}
@@ -33,6 +33,12 @@ D.lessons().forEach(l=>{
  const tags=new Set();l.independent.forEach(x=>(x.tags||[]).forEach(t=>tags.add(t)));l.requiredTags.forEach(t=>ok(tags.has(t),l.id+' cold bank covers required tag '+t));
  codes(l).forEach(code=>{ok(!!l.repairChecks[code],l.id+' has a smaller repair check for '+code);ok(!!l.reteach[code],l.id+' has targeted reteaching for '+code);S.REASONS.forEach(r=>{const x=S.route(l,code,r.id);ok(x&&x.text&&x.text.length>20,l.id+' '+code+' routes '+r.id+' to meaningful support');});const alt=S.route(l,code,'explanation_not_making_sense');ok(/switch representation/i.test(alt.text),l.id+' '+code+' changes representation when explanation fails');});
 });
+console.log('\n=== EQUIVALENT-CONTRIBUTOR REPAIR IS DISTINCT ===');
+const resonance=D.lesson('resonance-mixed');
+ok(!!resonance.repairChecks.RANK_EQUIVALENT,'resonance mixed owns a repair for equal contributor weight');
+ok(/symmetry-equivalent/.test(resonance.repairChecks.RANK_EQUIVALENT.prompt),'equivalent-contributor repair uses a fresh simpler symmetry check');
+ok(/contribute equally/.test(resonance.reteach.RANK_EQUIVALENT),'equivalent-contributor reteach explicitly teaches equal weight');
+ok(resonance.repairChecks.RANK_EQUIVALENT.id!=='T2RM-W2'&&resonance.repairChecks.RANK_EQUIVALENT.id!=='T2RM-R2','equivalent-contributor repair is not a reused Watch or Retrieval item');
 console.log('\n=== COURSE-SPECIFIC REPAIR ROUTES ===');
 ok(/chapter5/.test(S.courseHref('STEREO_RELATION')),'stereoisomer miss routes to Chapter 5');
 ok(/chapter5/.test(S.courseHref('SPECIFIC_ROTATION_SETUP')),'optical-mixture miss routes to Chapter 5');
@@ -44,6 +50,6 @@ ok(/chapter3/.test(S.courseHref('LEWIS_ACCEPTOR')),'Lewis acid-base miss routes 
 console.log('\n=== INTERVENING CHEMISTRY STAYS OUTSIDE LOCAL REPAIR DOMAIN ===');
 D.lessons().forEach(l=>{const domain=new Set(codes(l)),activityCodes=[];(l.intervening.fields||[]).forEach(f=>activityCodes.push(f.errorCode));activityCodes.forEach(code=>ok(!domain.has(code)||!!l.repairChecks[code],l.id+' different-chemistry activity does not silently expand the lesson repair contract'));});
 console.log('\n=== FROZEN ENGINE BOUNDARY ===');
-['course-units/unit2/test2/test2-data.js','course-units/unit2/test2/test2-support.js','course-units/unit2/test2/test2-engine-bridge.js'].forEach(p=>{const s=fs.readFileSync(p,'utf8');ok(!/evaluateMastery|MIN_RETRIEVAL_DELAY_MS\s*=|recordIndependentAttempt\s*=/.test(s),p+' does not reimplement mastery or retrieval policy');});
+['course-units/unit2/test2/test2-data.js','course-units/unit2/test2/test2-data-complete.js','course-units/unit2/test2/test2-support.js','course-units/unit2/test2/test2-engine-bridge.js'].forEach(p=>{const s=fs.readFileSync(p,'utf8');ok(!/evaluateMastery|MIN_RETRIEVAL_DELAY_MS\s*=|recordIndependentAttempt\s*=/.test(s),p+' does not reimplement mastery or retrieval policy');});
 ok(!fs.existsSync('course-units/unit2/test2/test2-engine.js'),'Test 2 contains no copied mastery engine');
 console.log('\n=== SUMMARY: '+passed+' passed, 0 failed ===');
