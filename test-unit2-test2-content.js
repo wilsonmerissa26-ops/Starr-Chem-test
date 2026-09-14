@@ -5,7 +5,8 @@ const S=require('./course-units/unit2/test2/test2-support.js');
 let passed=0;function ok(v,m){assert(v,m);passed++;console.log('PASS  '+m);}
 function allItems(l){let out=[];out.push(...l.probe);l.watch.forEach(x=>out.push(x.check));out.push(...l.concept,...l.build,...l.guided,...l.independent,...l.transfer,l.intervening,...l.retrieval);Object.keys(l.repairChecks).forEach(k=>out.push(l.repairChecks[k]));return out.filter(Boolean);}
 function supportedItems(l){let out=[];out.push(...l.probe);l.watch.forEach(x=>out.push(x.check));out.push(...l.concept,...l.build,...l.guided);Object.keys(l.repairChecks).forEach(k=>out.push(l.repairChecks[k]));return out.filter(Boolean);}
-function codes(l){let set=new Set();allItems(l).forEach(i=>(i.fields||[]).forEach(f=>set.add(f.errorCode)));return [...set];}
+function repairDomainItems(l){let out=[];out.push(...l.probe);l.watch.forEach(x=>out.push(x.check));out.push(...l.concept,...l.build,...l.guided,...l.independent,...l.transfer,...l.retrieval);return out.filter(Boolean);}
+function codes(l){let set=new Set();repairDomainItems(l).forEach(i=>(i.fields||[]).forEach(f=>set.add(f.errorCode)));return [...set];}
 console.log('=== TEST 2 SCOPE ===');
 ok(D.META.unit==='Unit 2','Test 2 belongs to Unit 2');
 ok(D.META.title==='Cumulative Test 2 Tutor','Test 2 identity is cumulative tutor');
@@ -40,6 +41,8 @@ ok(/chapter3/.test(S.courseHref('PKA_ACID')),'pKa miss routes to Chapter 3');
 ok(/chapter3/.test(S.courseHref('EQ_DIRECTION')),'equilibrium miss routes to Chapter 3');
 ok(/chapter3/.test(S.courseHref('COMBINED_WEIGHT')),'stability miss routes to Chapter 3');
 ok(/chapter3/.test(S.courseHref('LEWIS_ACCEPTOR')),'Lewis acid-base miss routes to Chapter 3');
+console.log('\n=== INTERVENING CHEMISTRY STAYS OUTSIDE LOCAL REPAIR DOMAIN ===');
+D.lessons().forEach(l=>{const domain=new Set(codes(l)),activityCodes=[];(l.intervening.fields||[]).forEach(f=>activityCodes.push(f.errorCode));activityCodes.forEach(code=>ok(!domain.has(code)||!!l.repairChecks[code],l.id+' different-chemistry activity does not silently expand the lesson repair contract'));});
 console.log('\n=== FROZEN ENGINE BOUNDARY ===');
 ['course-units/unit2/test2/test2-data.js','course-units/unit2/test2/test2-support.js','course-units/unit2/test2/test2-engine-bridge.js'].forEach(p=>{const s=fs.readFileSync(p,'utf8');ok(!/evaluateMastery|MIN_RETRIEVAL_DELAY_MS\s*=|recordIndependentAttempt\s*=/.test(s),p+' does not reimplement mastery or retrieval policy');});
 ok(!fs.existsSync('course-units/unit2/test2/test2-engine.js'),'Test 2 contains no copied mastery engine');
