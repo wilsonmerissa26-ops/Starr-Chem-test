@@ -13,6 +13,9 @@ on:
       - 'test-unit2-ch2-ch3-content.js'
       - 'test-unit2-ch2-ch3-engine-compatibility.js'
       - 'test-unit2-ch2-ch3-real-pages.js'
+      - 'test-unit2-test2-content.js'
+      - 'test-unit2-test2-engine-compatibility.js'
+      - 'test-unit2-test2-real-page.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
   push:
     branches:
@@ -21,6 +24,7 @@ on:
       - 'feature/unit2-chapter5-learner'
       - 'feature/unit2-ch2-ch3-curriculum'
       - 'feature/unit2-ch2-ch3-learner'
+      - 'feature/unit2-test2-tutor'
     paths:
       - 'course-units/unit2/**'
       - 'test-unit2-chapter5-content.js'
@@ -32,6 +36,9 @@ on:
       - 'test-unit2-ch2-ch3-content.js'
       - 'test-unit2-ch2-ch3-engine-compatibility.js'
       - 'test-unit2-ch2-ch3-real-pages.js'
+      - 'test-unit2-test2-content.js'
+      - 'test-unit2-test2-engine-compatibility.js'
+      - 'test-unit2-test2-real-page.js'
       - '.github/workflows/chm221-unit2-content-tests.yml'
 
 jobs:
@@ -84,6 +91,16 @@ jobs:
         run: node --check course-units/unit2/chapter3/chapter3-engine-bridge.js
       - name: Chapter 3 visuals parse
         run: node --check course-units/unit2/chapter3/chapter3-visuals.js
+      - name: Test 2 base data parses
+        run: node --check course-units/unit2/test2/test2-data.js
+      - name: Test 2 completed data parses
+        run: node --check course-units/unit2/test2/test2-data-complete.js
+      - name: Test 2 support parses
+        run: node --check course-units/unit2/test2/test2-support.js
+      - name: Test 2 engine bridge parses
+        run: node --check course-units/unit2/test2/test2-engine-bridge.js
+      - name: Test 2 visuals parse
+        run: node --check course-units/unit2/test2/test2-visuals.js
       - name: Chapter 5 curriculum contract
         run: node test-unit2-chapter5-content.js
       - name: Chapter 5 visual contract
@@ -102,3 +119,9 @@ jobs:
         run: node test-unit2-ch2-ch3-engine-compatibility.js
       - name: Chapter 2 and 3 real learner pages and saved progress
         run: node test-unit2-ch2-ch3-real-pages.js
+      - name: Test 2 cumulative curriculum contract
+        run: node test-unit2-test2-content.js
+      - name: Test 2 locked-engine compatibility
+        run: node test-unit2-test2-engine-compatibility.js
+      - name: Test 2 real learner page and saved progress
+        run: node test-unit2-test2-real-page.js
