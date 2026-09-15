@@ -1,7 +1,7 @@
 'use strict';
 const assert=require('assert'),fs=require('fs'),J=require('jsdom'),JSDOM=J.JSDOM,ResourceLoader=J.ResourceLoader,VirtualConsole=J.VirtualConsole;
 class RepoLoader extends ResourceLoader{fetch(url){const u=new URL(url),p=decodeURIComponent(u.pathname).replace(/^\//,'');if(fs.existsSync(p)&&fs.statSync(p).isFile())return Promise.resolve(Buffer.from(fs.readFileSync(p)));return null;}}
-async function tick(ms=12){await new Promise(r=>setTimeout(r,ms));}
+async function tick(ms=35){await new Promise(r=>setTimeout(r,ms));}
 function submit(d,value){const form=d.querySelector('[data-answer]');assert(form,'answer form exists');const input=form.querySelector('input');assert(input,'answer input exists');input.value=value;form.dispatchEvent(new d.defaultView.Event('submit',{bubbles:true,cancelable:true}));}
 async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(String(e&&e.message||e)));const dom=new JSDOM(html,{url:'https://example.test/'+path.replace(/index\.html$/,''),runScripts:'dangerously',resources:new RepoLoader(),pretendToBeVisual:true,virtualConsole:vc,beforeParse(win){win.matchMedia=()=>({matches:true,media:'(max-width:860px)',addListener(){},removeListener(){},addEventListener(){},removeEventListener(){},dispatchEvent(){return true;}});win.HTMLElement.prototype.scrollIntoView=function(){this.setAttribute('data-scroll-hit','true');};}});const w=dom.window,d=w.document;w.addEventListener('error',e=>errors.push(String(e.error||e.message)));await new Promise(resolve=>{if(d.readyState==='complete')return resolve();w.addEventListener('load',resolve,{once:true});setTimeout(resolve,1200);});await tick();return{html,dom,w,d,errors};}
 (async()=>{
