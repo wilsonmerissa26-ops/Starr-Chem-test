@@ -1,0 +1,29 @@
+name: Package Test 2 Audit Snapshot
+
+on:
+  push:
+    branches:
+      - 'temp/package-f3ecb4e7'
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact validated Test 2 head
+        uses: actions/checkout@v4
+        with:
+          ref: f3ecb4e7222ec1cdcd0bb7ce89372b6554fb33e2
+          fetch-depth: 1
+      - name: Build exact source ZIP
+        run: |
+          zip -rq AStarryia-CHM221-Test2-f3ecb4e7.zip . -x '.git/*'
+          sha256sum AStarryia-CHM221-Test2-f3ecb4e7.zip > AStarryia-CHM221-Test2-f3ecb4e7.sha256.txt
+      - name: Upload audit package
+        uses: actions/upload-artifact@v4
+        with:
+          name: AStarryia-CHM221-Test2-f3ecb4e7
+          path: |
+            AStarryia-CHM221-Test2-f3ecb4e7.zip
+            AStarryia-CHM221-Test2-f3ecb4e7.sha256.txt
+          if-no-files-found: error
+          retention-days: 7
