@@ -8,7 +8,7 @@ function compactLayout(){return !!(root.matchMedia&&root.matchMedia('(max-width:
 function scrollTarget(el){if(!compactLayout()||!el||typeof el.scrollIntoView!=='function')return;var go=function(){try{el.scrollIntoView({behavior:'smooth',block:'start'});}catch(_){el.scrollIntoView();}};if(typeof root.requestAnimationFrame==='function')root.requestAnimationFrame(go);else root.setTimeout(go,0);}
 function focusLesson(){scrollTarget(host);}
 function focusSkills(){scrollTarget(cards);}
-function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c];});}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function key(id){return C.storagePrefix+id+(C.storageSuffix||'.v1');}
 function save(){if(active){try{root.localStorage.setItem(key(active.lessonId),JSON.stringify(active));doc.documentElement.setAttribute('data-save-state','saved');}catch(e){doc.documentElement.setAttribute('data-save-state','failed');}}renderCards();}
 function load(id){try{var raw=root.localStorage.getItem(key(id));return raw?JSON.parse(raw):null;}catch(_){return null;}}
