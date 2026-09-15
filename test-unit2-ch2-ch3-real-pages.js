@@ -3,7 +3,7 @@ const assert=require('assert'),fs=require('fs'),J=require('jsdom'),JSDOM=J.JSDOM
 class RepoLoader extends ResourceLoader{fetch(url){const u=new URL(url),p=decodeURIComponent(u.pathname).replace(/^\//,'');if(fs.existsSync(p)&&fs.statSync(p).isFile())return Promise.resolve(Buffer.from(fs.readFileSync(p)));return null;}}
 async function tick(ms=12){await new Promise(r=>setTimeout(r,ms));}
 function submit(d,value){const form=d.querySelector('[data-answer]');assert(form,'answer form exists');const input=form.querySelector('input');assert(input,'answer input exists');input.value=value;form.dispatchEvent(new d.defaultView.Event('submit',{bubbles:true,cancelable:true}));}
-async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(String(e&&e.message||e)));const dom=new JSDOM(html,{url:'https://example.test/'+path.replace(/index\.html$/,''),runScripts:'dangerously',resources:new RepoLoader(),pretendToBeVisual:true,virtualConsole:vc});const w=dom.window,d=w.document;w.addEventListener('error',e=>errors.push(String(e.error||e.message)));await new Promise(resolve=>{if(d.readyState==='complete')return resolve();w.addEventListener('load',resolve,{once:true});setTimeout(resolve,1200);});await tick();return{html,dom,w,d,errors};}
+async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=new VirtualConsole();vc.on('jsdomError',e=>errors.push(String(e&&e.message||e)));const dom=new JSDOM(html,{url:'https://example.test/'+path.replace(/index\.html$/,''),runScripts:'dangerously',resources:new RepoLoader(),pretendToBeVisual:true,virtualConsole:vc,beforeParse(win){win.matchMedia=()=>({matches:true,media:'(max-width:860px)',addListener(){},removeListener(){},addEventListener(){},removeEventListener(){},dispatchEvent(){return true;}});win.HTMLElement.prototype.scrollIntoView=function(){this.setAttribute('data-scroll-hit','true');};}});const w=dom.window,d=w.document;w.addEventListener('error',e=>errors.push(String(e.error||e.message)));await new Promise(resolve=>{if(d.readyState==='complete')return resolve();w.addEventListener('load',resolve,{once:true});setTimeout(resolve,1200);});await tick();return{html,dom,w,d,errors};}
 (async()=>{
  console.log('=== CHAPTER 2 REAL PAGE ===');
  let x=await boot('course-units/unit2/chapter2-resonance/index.html'),w=x.w,d=x.d;
@@ -14,6 +14,7 @@ async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=n
  assert(d.querySelector('[data-unit-nav]')&&d.querySelector('[data-home-nav]'),'Chapter 2 shared navigation loads');
  assert(d.querySelector('[data-periodic-tool]')&&d.querySelector('[data-help-tool]'),'Chapter 2 shared learner tools load');
  d.querySelector('[data-open="rank-resonance"]').click();await tick();
+ assert.strictEqual(d.querySelector('[data-chapter-host]').getAttribute('data-scroll-hit'),'true','Chapter 2 compact phone/iPad layout scrolls directly to the opened lesson');
  assert(/Quick Diagnostic/.test(d.getElementById('phaseLabel').textContent),'Chapter 2 starts with diagnostic');
  assert(d.querySelector('.chem-visual'),'Chapter 2 diagnostic has structured chemistry visual');
  submit(d,'wrong');await tick();
@@ -25,7 +26,7 @@ async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=n
  assert(d.querySelector('.chem-visual'),'Chapter 2 repair includes structured visual support');
  let saved=w.localStorage.getItem('chm221.unit2.chapter2.rank-resonance.v1');assert(saved,'Chapter 2 session saves under its own page-level key');
  assert(JSON.parse(saved).repair&&JSON.parse(saved).repair.active,'Chapter 2 saved record preserves active repair state');
- d.querySelector('[data-back-skills]').click();await tick();d.querySelector('[data-open="rank-resonance"]').click();await tick();
+ d.querySelector('[data-back-skills]').click();await tick();assert.strictEqual(d.querySelector('[data-chapter-cards]').getAttribute('data-scroll-hit'),'true','Chapter 2 back button returns compact layout to the skill list');d.querySelector('[data-open="rank-resonance"]').click();await tick();
  assert(d.querySelector('.repair-card'),'Chapter 2 reopening the skill resumes the saved repair instead of restarting');
  assert(/Targeted repair/i.test(d.querySelector('.repair-card').textContent),'Chapter 2 resume restores the exact learning phase');
  assert.strictEqual(x.errors.length,0,'Chapter 2 real page has no uncaught runtime errors: '+x.errors.join(' | '));
@@ -39,6 +40,7 @@ async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=n
  assert.strictEqual(d.querySelectorAll('[data-open]').length,12,'Chapter 3 renders twelve course skills');
  assert(d.querySelector('[data-unit-nav]')&&d.querySelector('[data-home-nav]'),'Chapter 3 shared navigation loads');
  d.querySelector('[data-open="pka-acidity"]').click();await tick();
+ assert.strictEqual(d.querySelector('[data-chapter-host]').getAttribute('data-scroll-hit'),'true','Chapter 3 compact phone/iPad layout scrolls directly to the opened lesson');
  assert(d.querySelector('.chem-visual'),'Chapter 3 pKa lesson renders a structured pKa visual');
  submit(d,'wrong');await tick();
  assert(d.querySelector('.diagnosis-card'),'wrong Chapter 3 diagnostic opens diagnosis');
@@ -59,6 +61,7 @@ async function boot(path){const html=fs.readFileSync(path,'utf8'),errors=[],vc=n
  assert(/@media\(max-width:860px\)[\s\S]*\.topbar\{position:static/.test(css),'tablet/phone header scrolls away');
  assert(/@media\(max-width:620px\)[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/.test(css),'phone learner tools compact to four controls');
  assert(/min-height:48px/.test(css),'primary touch targets stay at least 48px');
+ assert(/compactLayout\(\)[\s\S]*scrollIntoView/.test(app),'shared learner shell explicitly focuses opened lessons on compact layouts');
  assert(c2html.includes('../../unit1/test1/test1-engine.js')&&c3html.includes('../../unit1/test1/test1-engine.js'),'both pages load exact existing engine file');
  assert(!/evaluateMastery|MIN_RETRIEVAL_DELAY_MS\s*=|recordIndependentAttempt\s*=/.test(app),'new learner shell contains no mastery or retrieval-policy implementation');
  assert(/localStorage\.setItem\(key\(active\.lessonId\)/.test(app),'new learner shell preserves page-level localStorage save pattern');
