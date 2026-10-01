@@ -1,0 +1,72 @@
+name: Phase 2A Source Review Edge Tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  source-review-edges:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run canonical model/runtime entry boundary
+        run: node test-phase2-canonical-entry-boundary.js
+      - name: Run prerequisite graph static invariants
+        run: node test-phase2-prerequisite-graph-invariants.js
+      - name: Run deep-repair parent-bank exhaustion contract
+        run: node test-phase2-deep-repair-bank-exhaustion.js
+      - name: Run route-evidence audit integrity contract
+        run: node test-phase2-route-evidence-audit.js
+      - name: Run signed scientific notation generalization
+        run: node test-phase2-signed-scientific-generalization.js
+      - name: Run computed-output safety contract
+        run: node test-phase2-output-safety.js
+      - name: Build exact directly-runnable Phase 2A source-review bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          git diff --name-only --diff-filter=ACMRT "$BASE" "$HEAD" > phase2a-changed-files.txt
+          cat > phase2a-required-main-dependencies.txt <<'EOF'
+          day1/index.html
+          math-strategy-adapters.js
+          math-strategy-cost.js
+          math-strategy-library.js
+          math-strategy-engine.js
+          student-model-idk-router.js
+          EOF
+          cat phase2a-changed-files.txt phase2a-required-main-dependencies.txt | sed '/^$/d' | sort -u > phase2a-bundle-files.txt
+          while IFS= read -r f; do
+            test -f "$f" || { echo "Missing bundle file: $f" >&2; exit 1; }
+          done < phase2a-bundle-files.txt
+          {
+            echo "Phase 2A Adaptive Core source-review bundle"
+            echo "PR: #27"
+            echo "Base SHA: $BASE"
+            echo "Head SHA: $HEAD"
+            echo
+            echo "Files changed by PR #27:"
+            cat phase2a-changed-files.txt
+            echo
+            echo "Unchanged main dependencies included so the package can run standalone:"
+            cat phase2a-required-main-dependencies.txt
+            echo
+            echo "Verification rule: use the commit SHA and execute the source/tests. Do not rely on ZIP-container hashes as source identity."
+          } > PHASE2A_REVIEW_BUNDLE_MANIFEST.txt
+          zip -9 Phase2A_Adaptive_Core_Source_Review.zip PHASE2A_REVIEW_BUNDLE_MANIFEST.txt
+          zip -9 Phase2A_Adaptive_Core_Source_Review.zip -@ < phase2a-bundle-files.txt
+      - name: Upload exact Phase 2A source-review bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Phase2A-Source-Review-${{ github.event.pull_request.head.sha }}
+          path: Phase2A_Adaptive_Core_Source_Review.zip
+          if-no-files-found: error
+          retention-days: 30
