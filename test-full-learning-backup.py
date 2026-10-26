@@ -80,6 +80,7 @@ def snapshot(page):
 
 def open_settings(page):
     page.goto(APP); page.wait_for_selector("[data-go='settings']", state="attached")
+    app_ready(page)
     page.evaluate("document.querySelector(\"[data-go='settings']\").click()"); page.wait_for_selector("#full-backup")
 
 def export(page):
@@ -96,19 +97,27 @@ def preview_restore(page, data):
     page.wait_for_function("document.getElementById('full-backup-status').textContent.length > 0 && !document.getElementById('full-backup-status').textContent.startsWith('Checking')")
     return page.inner_text("#full-backup-status"), page.inner_text("#full-restore-preview")
 
-def click_and_wait(page, text):
+def app_ready(page):
+    """Wait until the planner has finished opening its saved data (no fixed sleeps)."""
+    page.wait_for_function("document.getElementById('save-status').textContent !== 'Checking saved work\u2026'")
+
+def click_and_wait(page, text, expect_reload=True):
     page.on("dialog", lambda d: d.accept())  # confirm before replacing, then the "reloading" notice
-    page.click("text=" + text)
-    page.wait_for_timeout(1500)  # restore finishes and, on success, the app reloads
-    page.wait_for_load_state("load")
+    if expect_reload:
+        with page.expect_navigation(timeout=20000):
+            page.click("text=" + text)
+        app_ready(page)
+    else:
+        page.click("text=" + text)
+        page.wait_for_function("/stopped/.test(document.getElementById('full-backup-status').textContent)")
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
     def fresh():
-        ctx = browser.new_context(accept_downloads=True); pg = ctx.new_page(); pg.goto(APP); return ctx, pg
+        ctx = browser.new_context(accept_downloads=True); pg = ctx.new_page(); pg.goto(APP); app_ready(pg); return ctx, pg
 
     # 1. Export is read-only, complete, byte-for-byte, and excludes other apps.
-    ctx, page = fresh(); seed(page); page.goto(APP); page.wait_for_timeout(500)
+    ctx, page = fresh(); seed(page); page.goto(APP); app_ready(page)
     before = snapshot(page)
     backup, status = export(page)
     after = snapshot(page)
@@ -131,7 +140,7 @@ with sync_playwright() as p:
     # 2. Export on a device with no databases does not create empty ones.
     ctx, page = fresh(); page.evaluate("localStorage.setItem('coach-notes','x')")
     dbs_before = snapshot(page)["dbs"]
-    open_settings(page); page.wait_for_timeout(600)
+    open_settings(page)
     dbs_after_load = snapshot(page)["dbs"]
     export(page)
     dbs_after = snapshot(page)["dbs"]
@@ -149,9 +158,9 @@ with sync_playwright() as p:
     check("Planner database restored exactly", restored["records"].get("astarryia-learning-planner-v1/snapshots") == [["active", PLANNER]])
     song_rec = restored["records"].get("astarryia-physiology-music-v1/tracks", [[None, {}]])[0][1]
     check("Study-song audio restored byte-for-byte", song_rec.get("blob") == SONG_BYTES and song_rec.get("blobType") == "audio/mpeg")
-    page.goto(APP + "#today"); page.wait_for_timeout(800)
+    page.goto(APP + "#today"); page.reload(); app_ready(page)
     check("Planner shows the restored custom task as done", page.evaluate("!!(document.querySelector(\"#today-tasks [data-check='own-1']\")||{}).checked"))
-    page.goto(APP + "#chemistry"); page.wait_for_timeout(500)
+    page.goto(APP + "#chemistry"); page.reload(); app_ready(page)
     check("Learning App reads the restored quiz history", "1 / 8" in page.inner_text("#chem-progress-title"))
     ctx.close()
 
@@ -179,7 +188,7 @@ with sync_playwright() as p:
     preview_restore(page, backup)
     page.evaluate("""() => { const orig = Storage.prototype.setItem;
       Storage.prototype.setItem = function (k, v) { if (String(k).startsWith('astarryia-restore-safety-')) throw new DOMException('Quota exceeded', 'QuotaExceededError'); return orig.call(this, k, v); }; }""")
-    click_and_wait(page, "Replace 1 differing item")
+    click_and_wait(page, "Replace 1 differing item", expect_reload=False)
     check("Full storage aborts replace with no changes", page.evaluate("localStorage.getItem('astarryia-unit3-v1')") == newer
           and page.evaluate("localStorage.getItem('coach-state')") is None, page.inner_text("#full-backup-status"))
     ctx.close()
