@@ -10,7 +10,10 @@ function coachMetrics(){
  const a=s&&s.attempts&&s.attempts[i]||{};
  const n=Number.isFinite(Number(a.n))?Math.max(0,Math.min(100000,Number(a.n))):0;
  const c=Number.isFinite(Number(a.c))?Math.max(0,Math.min(n,Number(a.c))):0;
- return {index:i,title,n,c,rate:n?c/n:0,milestone:n>=4&&c/n>=.8};
+ const latest=s&&s.latestByModule&&s.latestByModule[i],roundTotal=latest&&Number(latest.total),roundCorrect=latest&&Number(latest.correct);
+ const validRound=Number.isFinite(roundTotal)&&roundTotal>=4&&Number.isFinite(roundCorrect)&&roundCorrect>=0&&roundCorrect<=roundTotal;
+ const rate=validRound?roundCorrect/roundTotal:(n?c/n:0);
+ return {index:i,title,n,c,rate,latest:validRound?{correct:roundCorrect,total:roundTotal}:null,milestone:validRound?(rate>=.8):(n>=4&&c/n>=.8)};
  });
  const milestones=data.filter(m=>m.milestone).length,attempts=data.reduce((n,m)=>n+m.n,0),
  right=data.reduce((n,m)=>n+m.c,0),last=s&&s.lastQuiz&&typeof s.lastQuiz==="object"?s.lastQuiz:null;
@@ -26,7 +29,7 @@ function coachRecommendedTasks(){
   id:"u3-coach-"+item.index,date:iso(new Date(parse(today).getTime()+i*86400000)),
   subject:"chem",title:(item.n?"Review weak lesson: ":"Learn + practice: ")+item.title,
   kind:"practice",minutes:25,source:"Chemistry Coach · adaptive study",
-  notes:item.n?("Quiz checks: "+item.c+"/"+item.n+" correct. Relearn the rule, retry without notes, then draw 2 fresh examples."):"Teach the rule, use the example, then take the independent check.",
+  notes:item.n?("Quiz checks: "+(item.latest?item.latest.correct+"/"+item.latest.total+" latest round; ":"")+item.c+"/"+item.n+" cumulative. Relearn the rule, retry without notes, then draw 2 fresh examples."):"Teach the rule, use the example, then take the independent check.",
   coach:true,module:item.index,mode:item.n?"quiz":"teach",fixed:true
  }));
 }
@@ -102,7 +105,7 @@ function renderCoach(){
  const lastInfo=last&&Number.isInteger(last.module)&&last.module>=0&&last.module<8&&Number.isFinite(Number(last.correct))&&Number.isFinite(Number(last.total))
  ?'<p class="small muted">Most recent completed quiz: '+esc(U3_TITLES[last.module])+' · '+esc(last.correct)+'/'+esc(last.total)+' correct.</p>':"";
  $("#chem-weak-list").innerHTML='<h3 style="margin-top:17px">Recommended next</h3>'+ (recommendations.length?recommendations.map(item=>'<div class="coach-row"><h3>'+esc(item.title)+'</h3><p class="small">'+esc(item.notes)+'</p><button class="btn compact" data-coach-module="'+item.module+'" data-coach-mode="'+item.mode+'">Practice this topic →</button></div>').join(""):'<div class="coach-row">All eight quiz milestones reached! Now test independent handwritten mechanisms and mixed reaction maps.</div>')+lastInfo;
- $("#chem-module-list").innerHTML=stats.data.map(item=>'<div class="chem-unit"><div><b>'+esc((item.index+1)+". "+item.title)+'</b><div class="small muted">'+(item.n?item.c+"/"+item.n+" correct":"No checks yet")+'</div></div><div class="row"><span class="pill '+(item.milestone?"done":"")+'">'+(item.milestone?"Practice milestone":item.n?"Needs review":"Not assessed")+'</span><button class="btn secondary compact" data-coach-module="'+item.index+'" data-coach-mode="'+(item.n?"quiz":"teach")+'">Open</button></div></div>').join("");
+ $("#chem-module-list").innerHTML=stats.data.map(item=>'<div class="chem-unit"><div><b>'+esc((item.index+1)+". "+item.title)+'</b><div class="small muted">'+(item.n?(item.latest?"Latest round "+item.latest.correct+"/"+item.latest.total+" · ":"")+item.c+"/"+item.n+" lifetime checks":"No checks yet")+'</div></div><div class="row"><span class="pill '+(item.milestone?"done":"")+'">'+(item.milestone?"Practice milestone":item.n?"Needs review":"Not assessed")+'</span><button class="btn secondary compact" data-coach-module="'+item.index+'" data-coach-mode="'+(item.n?"quiz":"teach")+'">Open</button></div></div>').join("");
  $("#coach-today").innerHTML=recommendations.length?'<div class="card" style="margin-top:15px;border-left:5px solid #8855bc"><div class="eyebrow">Automatically personalized from chemistry quizzes</div><h3>'+esc(recommendations[0].title)+'</h3><p class="small muted">'+esc(recommendations[0].notes)+'</p><button class="btn compact" data-coach-module="'+recommendations[0].module+'" data-coach-mode="'+recommendations[0].mode+'">Continue my Chemistry Coach →</button></div>':'<div class="card" style="margin-top:15px"><b>Unit 3 quiz milestones reached.</b><p class="small muted">Next: prove the mechanisms with independent drawn problems.</p><button class="btn secondary compact" data-go="chemistry">Open Chemistry</button></div>';
 }
 function renderToday(){const tasks=allTasks().filter(function(t){return t.date===today || (t.date<today && t.date>=iso(new Date(parse(today).getTime()-14*86400000)) && !markDone(t.id) && (t.kind==="assignment"||t.kind==="practice"));});const actual=allTasks().filter(t=>t.date===today);$("#today-count").textContent=actual.length;$("#done-count").textContent=actual.filter(t=>markDone(t.id)).length;const ev=nextEvents()[0];$("#next-milestone").innerHTML=ev?esc(fmt(ev.date))+'<div class="small muted" style="font-weight:550;margin-top:5px">'+esc(ev.title)+'</div>':"All major events reviewed";renderTaskList("#today-tasks",tasks,"Nothing scheduled for today. Add one focused learning task in My planner.");renderTaskList("#up-next",allTasks().filter(t=>t.date>today&&!markDone(t.id)).slice(0,5),"No upcoming tasks saved.");}
