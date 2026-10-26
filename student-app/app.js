@@ -44,7 +44,7 @@ function coachRecommendedTasks(){
 const SEED=[
 ["chem-1026-review","2026-10-26","chem","Unit 3: SN1/SN2/E1/E2 final review","practice",65,"Coach suggestion","Classify 12 reagents/substrates; work Unit 3 Problem Set #6, #9, #12 and correct mechanisms. Exam is Tuesday; do not count watching as mastery."],
 ["chem-1026-mock","2026-10-26","chem","Exam 3: timed past-paper practice","practice",75,"Coach suggestion","Use the 2023 practice Exam 3 under timed conditions, then explain each wrong answer from scratch. This is a historical exam, not this term's test."],
-["chem-1027-exam","2026-10-27","chem","Test 3 • Chapters 6–7 focus","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Cumulative; confirm any schedule changes in Canvas. No phone, tablet, or AI during exams."],
+["chem-1027-exam","2026-10-27","chem","Test 3 • Chapters 6–7 focus","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Confirm any schedule changes in Canvas. No phone, tablet, or AI during exams."],
 ["ap-1027-muscles","2026-10-27","ap","Muscular System, Part 1","class",25,"BIO 131 syllabus","Lecture topic: Chapter 9. Prepare a muscle-tissue comparison and label major muscles from memory."],
 ["ap-1028-lab","2026-10-28","ap","Lab: Appendicular Skeleton & Joints and Movement","lab",30,"BIO 131 syllabus","Lab topic. Check Canvas for associated pre- and post-lab quizzes and due times."],
 ["chem-1029-ch8","2026-10-29","chem","Chapter 8: learn, draw, self-test","class",35,"CHM 221 syllabus","Thursday lecture: Chapter 8. Write a one-page mechanism map and retry 4 missed reactions."],
@@ -61,25 +61,25 @@ const SEED=[
 ["chem-1112-ch9","2026-11-12","chem","Chapter 9 lecture + retrieval","class",35,"CHM 221 syllabus","After lecture, solve unfamiliar problems before checking answers."],
 ["ap-1114-mock","2026-11-14","ap","A&P Exam 3 practice quiz","practice",50,"Coach suggestion","Make a closed-note quiz across Chapters 8–10; explain the missed questions."],
 ["ap-1116-final","2026-11-16","ap","A&P Exam 3: targeted repair","practice",40,"Coach suggestion","Redo weak muscle/physiology questions. Avoid reading answers without attempting first."],
-["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Mix Chapters 6–9 and practice writing products and mechanisms from blank paper."],
+["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Practice writing products and mechanisms from blank paper for the chapters Test 4 covers. Confirm those chapters in Canvas."],
 ["ap-1117-exam","2026-11-17","ap","Exam 3 • Chapters 8–10","exam",0,"BIO 131 syllabus","Tuesday lecture Exam 3."],
 ["chem-1117-ch9","2026-11-17","chem","Chapter 9 practice lecture","class",30,"CHM 221 syllabus","Course focus: Chapter 9 + practice. Prepare Test 4 review questions."],
 ["ap-1118-lab","2026-11-18","ap","Lab: Muscles of Lower Limb","lab",30,"BIO 131 syllabus","Lab topic; check Canvas quizzes and deadlines."],
 ["chem-1118-mock","2026-11-18","chem","Test 4: timed mixed practice","practice",70,"Coach suggestion","Practice under a time limit, then redraw all missed products and arrow mechanisms."],
-["chem-1119-test4","2026-11-19","chem","Test 4 • cumulative course test","exam",0,"CHM 221 syllabus","Thursday in-class Test 4; confirm in Canvas if calendar is revised."],
+["chem-1119-test4","2026-11-19","chem","Test 4","exam",0,"CHM 221 syllabus","Thursday in-class Test 4. Confirm the chapters covered and any calendar changes in Canvas."],
 ["chem-1123-ch11","2026-11-23","chem","Chapter 11 preview","practice",35,"Coach suggestion","Preview Chapter 11 for Tuesday's lecture; recall earlier mechanisms."],
 ["chem-1124-ch11","2026-11-24","chem","Chapter 11 lecture","class",25,"CHM 221 syllabus","Tuesday lecture; Thanksgiving week."],
 ["chem-1130-ch10","2026-11-30","chem","Chapter 10 preview","practice",35,"Coach suggestion","Make a list of structures/reaction patterns for Chapter 10; mark any unfamiliar reaction."],
 ["ap-1201-review","2026-12-01","ap","Final review lecture","class",45,"BIO 131 syllabus","Tuesday final review. Cumulative final scheduled Monday Dec 7."],
 ["chem-1201-ch10","2026-12-01","chem","Chapter 10 lecture","class",30,"CHM 221 syllabus","Tuesday Chapter 10 lecture. Use problem-solving rather than passive rereading."],
-["ap-1202-labexam","2026-12-02","ap","Lab Practical 2","exam",0,"BIO 131 syllabus","Wednesday Lab Practical 2; cumulative practical."],
+["ap-1202-labexam","2026-12-02","ap","Lab Practical 2","exam",0,"BIO 131 syllabus","Wednesday Lab Practical 2. Confirm the structures covered in Canvas."],
 ["chem-1203-wrap","2026-12-03","chem","Chapter 10 + course wrap-up","class",30,"CHM 221 syllabus","Thursday lecture and course wrap-up."],
 ["ap-1204-mock","2026-12-04","ap","A&P cumulative mock test","practice",60,"Coach suggestion","Mix all units and record exact concepts missed, especially identification and physiology."],
 ["ap-1206-review","2026-12-06","ap","A&P final: short recall and reset","practice",40,"Coach suggestion","Two rounds of unlabeled drawings and challenging cumulative questions; then rest."],
 ["ap-1207-final","2026-12-07","ap","Cumulative Final • 7–10 PM","exam",0,"BIO 131 syllabus","Monday cumulative final, 7:00–10:00 PM. Verify location and updates in Canvas."],
-["chem-1208-review","2026-12-08","chem","Organic Chemistry cumulative final practice","practice",60,"Coach suggestion","Timed mixed problem set covering previous chapters, then targeted review."],
+["chem-1208-review","2026-12-08","chem","Test 5 & Final Exam practice","practice",60,"Coach suggestion","Timed mixed problem set, then targeted review of missed patterns."],
 ["chem-1209-final-prep","2026-12-09","chem","Final prep: only weak patterns","practice",40,"Coach suggestion","Focus on missed mechanisms, kinetics and structure drawing. No all-night rereading."],
-["chem-1210-final","2026-12-10","chem","Test 5 + Cumulative Final • 7 PM","exam",0,"CHM 221 syllabus","Thursday cumulative final at 7:00 PM; mandatory. No devices during test."]
+["chem-1210-final","2026-12-10","chem","Test 5 & Final Exam • 7 PM","exam",0,"CHM 221 syllabus","Thursday, 7:00 PM. Confirm the location and any changes in Canvas."]
 ].map(function(a){return {id:a[0],date:a[1],subject:a[2],title:a[3],kind:a[4],minutes:a[5],source:a[6],notes:a[7],fixed:true};});
 const $=s=>document.querySelector(s);
 let state={version:1,done:{},custom:[],updatedAt:null},today="",selected="",month=null,subjectFilter="all",db=null,storageMode="starting",writing=false;

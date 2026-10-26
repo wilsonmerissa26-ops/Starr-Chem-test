@@ -73,6 +73,9 @@ with sync_playwright() as p:
     check("Proton transfer: SN2 lesson teaches deprotonation after a neutral nucleophile attacks", "Neutral nucleophiles need a final proton transfer" in u3)
     check("Counting: lesson teaches steps, transition states and intermediates from the mechanism", "Count steps from the mechanism" in u3)
     check("E1 lesson says the hydrogen removed is on a carbon next to the carbocation", "removes a hydrogen from a carbon next to the carbocation carbon" in u3)
+    check("SN2 is taught as one concerted step, with the proton transfer as a separate step",
+          "The SN2 mechanism itself is always one concerted step" in u3 and "only the first step is the SN2" in u3
+          and "The SN2 step itself is a single concerted step; a separate proton transfer" in u3)
     check("Secondary + alkoxide is labeled as the course chart, with the standard-textbook difference", "simplified CHM 221 decision tree" in u3 and "standard textbook" in u3)
     page.evaluate("u3ShowMode('shortcuts')"); sheet = page.inner_text("#u3Work")
     sn2_row = [l for l in sheet.splitlines() if l.startswith("SN2")]
@@ -116,6 +119,60 @@ with sync_playwright() as p:
     deep_well = [0, 80, -40, 60, -80]
     check("Deep-well diagram: shortcut and rigorous rule differ (why the lesson keeps its exception note)",
           highest_peak_rule(deep_well) == 1 and lowest_point_rule(deep_well) == 2)
+
+    # Structure checks behind the six new items (pure calculation from atom graphs; pass on any version).
+    section("New-item structure checks")
+    MASS_H = {"C": 4, "N": 3, "O": 2, "Br": 1}  # neutral valence = bonds an atom makes
+    def mol(atoms, bonds):
+        """atoms: {id: element}; bonds: [(a, b)] single bonds. Returns adjacency and implicit H counts."""
+        adj = {a: [] for a in atoms}
+        for a, b in bonds: adj[a].append(b); adj[b].append(a)
+        h = {a: MASS_H[atoms[a]] - len(adj[a]) for a in atoms}
+        assert all(v >= 0 for v in h.values()), "valence exceeded"
+        return {"atoms": atoms, "adj": adj, "h": h}
+    def formula(m):
+        c = {}
+        for a, e in m["atoms"].items(): c[e] = c.get(e, 0) + 1
+        c["H"] = sum(m["h"].values())
+        return "".join(e + (str(c[e]) if c[e] > 1 else "") for e in ("C", "H", "Br", "N", "O") if c.get(e))
+    def carbocation(m, lg):
+        """Remove the leaving group; report the cation carbon's class, its H count, and beta-H count."""
+        cplus = [n for n in m["adj"][lg]][0]
+        carbons = [n for n in m["adj"][cplus] if m["atoms"][n] == "C"]
+        beta_h = sum(m["h"][n] for n in carbons)
+        return {"class": len(carbons), "h_on_cation": 3 - len(carbons), "beta_h": beta_h, "carbons": carbons, "cplus": cplus}
+    def better_shift_exists(m, cat):
+        """A 1,2-shift helps only if a neighbouring carbon would become a MORE substituted cation."""
+        for n in cat["carbons"]:
+            c_nbrs = len([x for x in m["adj"][n] if m["atoms"][x] == "C"])  # includes the old cation carbon
+            if m["h"][n] > 0 and c_nbrs > cat["class"]: return True  # hydride shift: n keeps all its carbons
+            movable = [x for x in m["adj"][n] if m["atoms"][x] == "C" and x != cat["cplus"]]
+            if movable and c_nbrs - 1 > cat["class"]: return True  # alkyl shift: n loses the migrating carbon
+        return False
+    tBuBr = mol({1: "C", 2: "C", 3: "C", 4: "C", 5: "Br"}, [(1, 2), (2, 3), (2, 4), (2, 5)])            # 2-bromo-2-methylpropane
+    amylBr = mol({1: "C", 2: "C", 3: "C", 4: "C", 5: "C", 6: "Br"}, [(1, 2), (2, 3), (3, 4), (2, 5), (2, 6)])  # 2-bromo-2-methylbutane
+    hexBr = mol({1: "C", 2: "C", 3: "C", 4: "C", 5: "C", 6: "C", 7: "Br"}, [(1, 2), (2, 3), (3, 4), (4, 5), (3, 6), (3, 7)])  # 3-bromo-3-methylpentane
+    tBuOH = mol({1: "C", 2: "C", 3: "C", 4: "C", 5: "O"}, [(1, 2), (2, 3), (2, 4), (2, 5)])            # 2-methyl-2-propanol
+    ether = mol({1: "C", 2: "C", 3: "C", 4: "C", 5: "C", 6: "O", 7: "C", 8: "C"}, [(1, 2), (2, 3), (3, 4), (2, 5), (2, 6), (6, 7), (7, 8)])  # 2-ethoxy-2-methylbutane
+    etBr = mol({1: "C", 2: "C", 3: "Br"}, [(1, 2), (2, 3)])
+    etNH2 = mol({1: "C", 2: "C", 3: "N"}, [(1, 2), (2, 3)])
+    check("Formulas: C4H9Br, C5H11Br, C6H13Br substrates", (formula(tBuBr), formula(amylBr), formula(hexBr)) == ("C4H9Br", "C5H11Br", "C6H13Br"),
+          (formula(tBuBr), formula(amylBr), formula(hexBr)))
+    check("Formulas: products C4H10O (2-methyl-2-propanol), C7H16O (2-ethoxy-2-methylbutane), C2H7N (ethylamine)",
+          (formula(tBuOH), formula(ether), formula(etNH2)) == ("C4H10O", "C7H16O", "C2H7N"), (formula(tBuOH), formula(ether), formula(etNH2)))
+    c1, c2, c3 = carbocation(tBuBr, 5), carbocation(amylBr, 6), carbocation(hexBr, 7)
+    check("All three substrates give tertiary carbocations (SN1/E1 reasonable)", (c1["class"], c2["class"], c3["class"]) == (3, 3, 3))
+    check("3-bromo-3-methylpentane: the cation carbon has no hydrogen (item u3-m6-q6)", c3["h_on_cation"] == 0)
+    check("Each cation has beta-hydrogens on adjacent carbons (E1 possible)", min(c1["beta_h"], c2["beta_h"], c3["beta_h"]) > 0, (c1["beta_h"], c2["beta_h"], c3["beta_h"]))
+    check("No 1,2-shift can give a more stable cation, so 'no rearrangement' is a true assumption",
+          not any(better_shift_exists(m, c) for m, c in ((tBuBr, c1), (amylBr, c2), (hexBr, c3))))
+    check("Bromoethane is primary: SN2 with ammonia, no carbocation (item u3-m4-q5)", carbocation(etBr, 3)["class"] == 1)
+    steps = {"SN1 + neutral nucleophile": ["ionization", "attack", "O-H proton transfer"], "SN1 + anionic nucleophile": ["ionization", "attack"],
+             "E1": ["ionization", "beta-H removal"], "SN2 + anionic nucleophile": ["concerted SN2"],
+             "SN2 + neutral nucleophile": ["concerted SN2", "N-H proton transfer"]}
+    check("Step counts used by the items: SN1 with water 3, E1 2 (1 intermediate), SN2 with NH3 2 (1 intermediate)",
+          len(steps["SN1 + neutral nucleophile"]) == 3 and len(steps["E1"]) - 1 == 1 and len(steps["SN2 + neutral nucleophile"]) == 2
+          and steps["SN2 + neutral nucleophile"][0] == "concerted SN2" and len(steps["SN2 + anionic nucleophile"]) == 1)
 
     # =============== 2. Decision lab follows Dr. Meadows' tree in every combination ===============
     section("Decision lab")
@@ -174,6 +231,14 @@ with sync_playwright() as p:
         ctx.close()
     guarded("Original coach: saved GREEN", legacy_green_saved)
 
+    def fresh_profile():
+        ctx, page, errs = fresh()
+        rows = page.evaluate("[...document.querySelectorAll('#skills .skill')].map(d => [d.firstElementChild.textContent.trim(), d.lastElementChild.textContent.trim()])")
+        statuses = {name: st for name, st in rows}
+        check("Fresh student profile: all 10 skills show 'Not assessed'", len(rows) == 10 and all(st == "NOT ASSESSED" for st in statuses.values()), statuses)
+        check("Fresh student profile: no skill starts GREEN (including Acid/Base)", "GREEN" not in statuses.values() and statuses.get("Acid/Base") == "NOT ASSESSED", statuses.get("Acid/Base"))
+        ctx.close()
+    guarded("Fresh student profile", fresh_profile)
     def unit3_memorized():
         ctx, page, errs = fresh(); open_quiz(page, 0)
         answer_round(page, [(k + 1) % 4 for k in KEYS_M1]); page.evaluate("u3Retry()"); answer_round(page, KEYS_M1)
@@ -273,6 +338,27 @@ with sync_playwright() as p:
         check("Every module and mode opens without errors", not errs, errs[:2])
         ctx.close()
     guarded("Every module and mode opens", no_errors_normal)
+
+    # =============== 5. Calendar wording matches the syllabus (no unconfirmed descriptors) ===============
+    section("Calendar wording")
+    def calendar():
+        ctx, page, errs = fresh(APP); page.wait_for_selector("#calendar-grid .day[data-date]", state="attached")
+        def tasks_on(date):
+            target = date[:7]
+            for _ in range(14):
+                cur = page.evaluate("document.querySelector('#calendar-grid .day[data-date]').dataset.date.slice(0,7)")
+                if cur == target: break
+                page.evaluate("document.getElementById(%r).click()" % ("next-month" if cur < target else "prev-month"))
+            page.evaluate("d => document.querySelector('#calendar-grid [data-date=\"' + d + '\"]').click()", date)
+            return page.evaluate("document.getElementById('selected-tasks').textContent")
+        t3, t4, final, bio = tasks_on("2026-10-27"), tasks_on("2026-11-19"), tasks_on("2026-12-10"), tasks_on("2026-12-07")
+        check("Test 3 (Oct 27) is not described as cumulative", "Test 3" in t3 and "umulative" not in t3.split("Muscular")[0], t3[:160])
+        check("Test 4 (Nov 19) is not described as cumulative", "Test 4" in t4 and "umulative" not in t4, t4[:160])
+        check("Dec 10 uses the syllabus title 'Test 5 & Final Exam' at 7 PM, without unconfirmed descriptors",
+              "Test 5 & Final Exam • 7 PM" in final and "umulative" not in final and "mandatory" not in final, final[:160])
+        check("BIO 131 final keeps the syllabus listing: Dec 7, 7–10 PM", "7–10 PM" in bio and "Final" in bio, bio[:160])
+        ctx.close()
+    guarded("Calendar wording", calendar)
 
     browser.close()
 server.shutdown()

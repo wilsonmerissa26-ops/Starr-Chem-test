@@ -4,7 +4,7 @@
 Open the repository GitHub Pages route `/student-app/` in Safari on her iPad. Share → Add to Home Screen → Add. The app links to `/unit3-coach/`, `/course-hub/`, and all nine original readiness days without modifying their progress stores.
 
 ## Current subjects
-- CHM 221 Organic Chemistry. Fall 2026 Dr. Meadows schedule, Unit 3 source-aligned coach, original foundational program, dated exam/study tasks. Test 3 Oct 27; Test 4 Nov 19; cumulative final Dec 10 at 7 PM.
+- CHM 221 Organic Chemistry. Fall 2026 Dr. Meadows schedule, Unit 3 source-aligned coach, original foundational program, dated exam/study tasks. Test 3 Oct 27; Test 4 Nov 19; Test 5 & Final Exam Dec 10 at 7 PM. The syllabus schedule is tentative; Canvas and instructor announcements take precedence.
 - BIO 131 Anatomy & Physiology I. Fall 2026 section 008 syllabus. Exam 3 Nov 17; Lab Practical 2 Dec 2; cumulative final Dec 7 from 7–10 PM.
 - Named user-created subjects via the Planner. No fabricated school deadlines.
 
