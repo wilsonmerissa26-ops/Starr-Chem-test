@@ -3,7 +3,7 @@
   "short_name": "AStarryia Learn",
   "description": "Subject-based study planner and chemistry tutor",
   "start_url": "./",
-  "scope": "./",
+  "scope": "../",
   "display": "standalone",
   "background_color": "#f8f5fb",
   "theme_color": "#251336",
