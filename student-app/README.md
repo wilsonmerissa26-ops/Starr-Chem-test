@@ -4,7 +4,7 @@
 Open the repository GitHub Pages route `/student-app/` in Safari on her iPad. Share → Add to Home Screen → Add. The app links to `/unit3-coach/`, `/course-hub/`, and all nine original readiness days without modifying their progress stores.
 
 ## Current subjects
-- CHM 221 Organic Chemistry. Fall 2026 Dr. Meadows schedule, Unit 3 source-aligned coach, original foundational program, dated exam/study tasks. Test 3 Oct 27; Test 4 Nov 19; cumulative final Dec 10 at 7 PM.
+- CHM 221 Organic Chemistry. Fall 2026 Dr. Meadows schedule, Unit 3 source-aligned coach, original foundational program, dated exam/study tasks. Test 3 Oct 27; Test 4 Nov 19; Test 5 & Final Exam Dec 10 at 7 PM. The syllabus schedule is tentative; Canvas and instructor announcements take precedence.
 - BIO 131 Anatomy & Physiology I. Fall 2026 section 008 syllabus. Exam 3 Nov 17; Lab Practical 2 Dec 2; cumulative final Dec 7 from 7–10 PM.
 - Named user-created subjects via the Planner. No fabricated school deadlines.
 
@@ -28,8 +28,8 @@ This is study support, not an assignment-completion service. CHM 221 syllabus st
 ## Unified chemistry classroom (live integration)
 - In the Learning App select **Chemistry**. Unit 3 opens in an embedded same-origin classroom; the original standalone coach remains accessible.
 - Quiz results are stored under the existing `astarryia-unit3-v1` localStorage key and are read by the Learning App. The coach also sends same-origin, iframe-source-verified messages for immediate updates.
-- Actual correct/incorrect answers update an eight-module practice milestone display and generate up to two dated adaptive recommendations in **Today**, **Subjects**, and **Calendar**.
-- After a completed four-question round, the most recent completed round per module can satisfy that module's quiz practice milestone; cumulative totals remain intact. A practice milestone is not proof of independent handwritten mechanism mastery.
+- Actual correct/incorrect answers update an eight-module practice evidence display and generate up to two dated adaptive recommendations in **Today**, **Subjects**, and **Calendar**.
+- Only a question's first-ever answer counts as practice evidence; retakes, and questions seen before the evidence system existed, count as practice only. A module shows strong first-try evidence after at least 4 first-try answers at 80% or better. This is not mastery and does not verify handwritten mechanisms. Cumulative practice totals remain intact.
 - Earlier nine-day foundation progress keys are never overwritten and do not get falsely credited by Unit 3 quiz scores.
 - An embedded lesson may need a network connection even when the planner's offline shell is cached. This version does not sync across devices or send grades to Canvas.
 - Run `node test-student-chemistry-integration.js` and confirm the AStarryia Unified Student App Tests workflow passes after changes.
