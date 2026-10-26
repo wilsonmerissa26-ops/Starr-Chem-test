@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>AStarryia | Physiology Music Lab</title>
+<style>
+:root{color-scheme:light;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--ink:#21152b;--muted:#665b70;--purple:#7132ae;--line:#e3d7e8;--surface:#fff;--bg:#f8f4fb;--soft:#f1e8fa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);line-height:1.5}a{color:#61289d}.shell{max-width:1180px;margin:auto;padding:20px 16px 80px}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.back{font-weight:750}.mark{font-size:12px;letter-spacing:.16em;font-weight:900;color:#66339a;text-transform:uppercase}.hero{background:linear-gradient(120deg,#2c1744,#6e379b);color:#fff;padding:27px;border-radius:25px;margin:18px 0}.hero h1{font-size:clamp(1.9rem,5vw,3.5rem);line-height:1.05;margin:8px 0}.hero p{max-width:730px;opacity:.91;margin-bottom:0}.hero b{color:#f4d4ff}.layout{display:grid;grid-template-columns:310px 1fr;gap:20px;align-items:start}.card{background:var(--surface);border:1px solid var(--line);border-radius:19px;padding:18px;box-shadow:0 6px 25px rgba(45,27,66,.04)}.stack{display:grid;gap:18px}.side{position:sticky;top:14px}.songlist{display:grid;gap:7px;margin-top:14px}.song{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--line);text-align:left;width:100%;background:#fff;padding:12px;border-radius:12px;cursor:pointer;color:var(--ink);font:inherit;min-height:58px}.song strong{display:block;font-size:.92rem}.song small{display:block;color:var(--muted);font-size:.76rem}.song[aria-current=true]{background:var(--soft);border-color:#ac8dcb}.song:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid #ab7cde;outline-offset:2px}.song-index{color:var(--purple);font-weight:900}.head{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}.head h2{font-size:clamp(1.45rem,3vw,2.2rem);margin:4px 0}.tag{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 10px;background:var(--soft);font-size:.8rem;font-weight:800;color:#5a267f}.sub{color:var(--muted);font-size:.94rem}.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.btn{font:inherit;font-size:.9rem;font-weight:800;border:1px solid #d6c4e3;background:#fff;color:#532381;padding:10px 13px;border-radius:12px;cursor:pointer;min-height:44px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}.btn.primary{background:var(--purple);border-color:var(--purple);color:#fff}.btn:disabled{opacity:.5;cursor:default}.note{background:#f8f3ff;border-left:4px solid #ae7dd2;padding:11px 13px;border-radius:8px;font-size:.9rem}.stylebox{white-space:pre-wrap;margin:9px 0 0;background:#f7f3fa;padding:12px;border-radius:12px;font-size:.9rem}.lyrics{white-space:pre-wrap;font:inherit;font-size:.97rem;line-height:1.85;background:#fcfaff;padding:16px;border:1px solid var(--line);border-radius:15px;max-height:590px;overflow:auto;margin:10px 0}.quizitem{padding:15px 0;border-top:1px solid var(--line)}.quizitem:first-child{border-top:none}.quizitem h4{margin:0 0 11px}.choices{display:grid;gap:8px}.choice{display:block;text-align:left;padding:11px 12px;background:white;border:1px solid #daccdf;border-radius:10px;min-height:44px;font:inherit;cursor:pointer}.choice.correct{background:#e7f8ea;border-color:#3c9350}.choice.incorrect{background:#fff0ee;border-color:#d58b89}.feedback{margin:9px 0 0;padding:10px;border-radius:10px;background:#f3f0f6;font-size:.9rem}.audio{width:100%;margin-top:10px}.status{color:var(--muted);font-size:.85rem;min-height:22px}.small{font-size:.84rem;color:var(--muted)}label.filebtn{cursor:pointer}.filebtn input{display:none}.empty{padding:10px 0;color:var(--muted)}.footer{padding-top:10px;font-size:.83rem;color:var(--muted)}.meter{font-weight:850;color:#67348e}@media(max-width:780px){.layout{grid-template-columns:1fr}.side{position:static}.songlist{grid-template-columns:repeat(2,minmax(0,1fr))}.hero{padding:21px}}@media(max-width:500px){.songlist{grid-template-columns:1fr}.shell{padding:11px 11px 65px}.hero{border-radius:18px}.card{padding:14px}.btn{flex:1}.row{gap:8px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main class="shell">
+ <header class="top"><a class="back" href="../course-hub/">← AStarryia's Course Hub</a><span class="mark">★ Music × Memory × Mechanisms</span></header>
+ <section class="hero"><div class="mark" style="color:#efc8ff">AStarryia's Learning Lab</div><h1>Physiology <b>Music Lab</b> 🎶</h1><p>Ten original study songs. Make the audio in Suno, add an MP3, then sing it, explain it, and prove you understand the physiology. The lyrics are memory supports; the practice questions check the mechanism.</p></section>
+ <div class="layout">
+  <aside class="card side" aria-label="Study song playlist"><div class="mark">Playlist · 10 tracks</div><h2 style="margin:6px 0">Choose a body system</h2><p class="small">Start with whatever your class is covering today.</p><nav class="songlist" id="songList"></nav><p class="small">These are broad A&amp;P topics, not yet mapped to a verified physiology syllabus.</p></aside>
+  <div class="stack">
+   <section class="card" aria-label="Selected song">
+    <div class="head"><div><span id="systemTag" class="tag">Body system</span><h2 id="songTitle"></h2><p class="sub" id="memoryHook"></p></div><span class="tag">Original lyrics</span></div>
+    <p class="note"><b>Suno workflow:</b> Copy the style and lyrics, open <a href="https://suno.com/create" target="_blank" rel="noopener noreferrer">Suno Create ↗</a>, choose Custom lyrics, and generate a track. Check the pronunciation and scientific terms before exporting the MP3.</p>
+    <div class="row"><button type="button" class="btn primary" id="copyLyrics">Copy song lyrics</button><button type="button" class="btn" id="copyStyle">Copy music style</button><a class="btn" href="https://suno.com/create" target="_blank" rel="noopener noreferrer">Open Suno ↗</a></div>
+    <h3 style="margin-bottom:5px">Production style</h3><div class="stylebox" id="songStyle"></div>
+    <h3 style="margin-bottom:5px">Song lyrics</h3><div class="lyrics" id="songLyrics" aria-label="Full song lyrics"></div>
+    <p class="status" id="copyStatus" role="status"></p>
+   </section>
+   <section class="card" aria-label="Audio player and import">
+    <div class="mark">Listen & learn</div><h2 style="margin:6px 0">Bring your MP3 into the lesson</h2>
+    <div id="audioEmpty" class="empty">No MP3 loaded yet. Make the song in Suno, download it, and select the file below.</div>
+    <audio id="player" class="audio" controls preload="metadata" hidden aria-label="Selected physiology study song"></audio>
+    <p class="status" id="audioStatus" role="status"></p>
+    <div class="row"><label class="btn primary filebtn">Import MP3 or WAV<input id="audioFile" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav,audio/x-wav"></label><button id="removeAudio" class="btn" type="button" disabled>Remove local audio</button></div>
+    <p class="small">An imported file is saved locally in this browser using IndexedDB, if available. It is <b>not</b> uploaded to a server, backed up, or shared to her other devices. To give every device the same track, add the finalized licensed audio to the website's audio folder.</p>
+   </section>
+   <section class="card" aria-label="Understanding check">
+    <div class="head"><div><div class="mark">Sing → explain → check</div><h2 style="margin:6px 0">Can you explain what happens?</h2></div><span class="meter" id="score">0 / 2</span></div>
+    <p class="sub">Sing the hook once. Then answer without reading the lyrics. Each explanation tells you <i>why</i> the process works.</p>
+    <div id="quiz"></div><div class="row"><button type="button" class="btn" id="resetQuiz">Try fresh questions</button></div>
+    <div class="note" style="margin-top:14px"><b>Real understanding test:</b> Close the lyrics and explain the entire cause → signal → response chain out loud. A right guess is not yet mastery.</div>
+   </section>
+   <footer class="footer">Supplemental, self-paced A&amp;P study materials. Not a substitute for class materials, lab work, or examinations. Chemistry mastery scores in AStarryia's existing course program remain separate and unchanged.</footer>
+  </div>
+ </div>
+</main>
+<script src="songs.js"></script><script src="app.js"></script>
+</body></html>
