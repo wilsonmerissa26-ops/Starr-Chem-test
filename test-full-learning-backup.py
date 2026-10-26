@@ -39,8 +39,10 @@ PLANNER = {"version": 1, "done": {"chem-1026-review": "2026-10-26T12:00:00Z", "o
 SONG_BYTES = list(range(256)) * 40  # 10 KB synthetic audio-like blob covering every byte value
 
 results, failures = [], []
+SECTION = ["Setup"]
+def section(name): SECTION[0] = name
 def check(name, ok, detail=""):
-    results.append(("PASS" if ok else "FAIL", name, detail))
+    results.append(("PASS" if ok else "FAIL", name, detail, SECTION[0]))
     if not ok: failures.append(name)
 
 def seed(page, local=True, planner=True, song=True, other=True):
@@ -116,6 +118,7 @@ with sync_playwright() as p:
     def fresh():
         ctx = browser.new_context(accept_downloads=True); pg = ctx.new_page(); pg.goto(APP); app_ready(pg); return ctx, pg
 
+    section('Export: read-only, complete, isolated')
     # 1. Export is read-only, complete, byte-for-byte, and excludes other apps.
     ctx, page = fresh(); seed(page); page.goto(APP); app_ready(page)
     before = snapshot(page)
@@ -148,6 +151,7 @@ with sync_playwright() as p:
     check("Export does not add any database", dbs_after == dbs_after_load, "%s -> %s" % (dbs_after_load, dbs_after))
     ctx.close()
 
+    section('Restore: preview, round trip, replace, damaged, foreign, rejected files')
     # 3. Full round trip into a fresh profile using "Add missing items only".
     ctx, page = fresh(); status, prev = preview_restore(page, backup)
     check("Preview reports missing items before any change", "missing on this device" in prev, prev)
@@ -226,8 +230,10 @@ with sync_playwright() as p:
         check("Rejects " + label + " with no change", status.startswith("Could not read") and snapshot(page) == before, status)
         ctx.close()
 
+    section("Export: read-only, complete, isolated")
     check("Normal backup is marked complete", backup.get("complete") is True and backup.get("incompleteReasons") == [])
 
+    section('Newer work saved in another tab')
     # ---------- Safeguard 1: newer work saved in another tab between preview and restore ----------
     def other_tab(ctx):
         t = ctx.new_page(); t.goto(APP); app_ready(t); return t
@@ -272,6 +278,7 @@ with sync_playwright() as p:
           page.evaluate("localStorage.getItem('astarryia-unit3-v1')") == '{"SYNTHETIC":"newest from tab B"}')
     ctx.close()
 
+    section('Mandatory fingerprints')
     # ---------- Safeguard 2: mandatory fingerprints ----------
     def variant(mutate):
         d = json.loads(json.dumps(backup))
@@ -310,6 +317,7 @@ with sync_playwright() as p:
     check("No SHA-256: restore refuses with no change", "cannot verify" in status and snapshot(page) == before and prev.strip() == "", status)
     ctx.close()
 
+    section('Incomplete backups')
     # ---------- Safeguard 3: never call a partial backup complete ----------
     def export_any(page):
         open_settings(page)
@@ -354,6 +362,7 @@ with sync_playwright() as p:
     check("Cut-short file is flagged", "may have been cut short" in prev, prev[:160])
     ctx.close()
 
+    section('Key and database coverage')
     # ---------- Key coverage: every AStarryia key in the repository, and none of Michael's ----------
     import re, glob
     found = set()
@@ -384,6 +393,7 @@ with sync_playwright() as p:
     check("Michael's database is not covered", not any("Michael" in n for n in covered))
     ctx.close()
 
+    section('Partial and failed restores, retry')
     # ---------- Partial and failed restores are reported truthfully, and retry finishes safely ----------
     def restore_and_capture(page, button, expect_reload):
         """Clicks a restore button, accepts dialogs, and returns the alert text (if any)."""
@@ -446,7 +456,11 @@ with sync_playwright() as p:
     restore_and_capture(page, "Add missing items only (safe)", expect_reload=False)
     st = page.inner_text("#full-backup-status")
     check("Total failure: reported as RESTORE FAILED, never complete", st.startswith("RESTORE FAILED") and "COMPLETE" not in st, st[:140])
-    check("Total failure: device unchanged", snapshot(page) == before)
+    after = snapshot(page)
+    check("Total failure: no saved item or record changed", after["local"] == before["local"]
+          and all(after["records"].get(k) == v for k, v in before["records"].items())
+          and all(not v for k, v in after["records"].items() if k not in before["records"]), str(after["records"])[:160])
+    check("Total failure: no database was deleted", set(before["dbs"]) <= set(after["dbs"]))
     ctx.close()
 
     # P4. A study-song database that already existed (empty) is never removed when a write into it fails.
@@ -477,6 +491,7 @@ with sync_playwright() as p:
     check("Cleanup never deletes a database that gained records", any(r[0] == "other-tab-song" for r in recs), str(recs)[:120])
     ctx.close()
 
+    section('Safety-copy growth')
     # ---------- Safety copies cannot make backups grow ----------
     ctx, page = fresh(); seed(page, song=False)
     big = "S" * 200000
@@ -504,5 +519,11 @@ with sync_playwright() as p:
     browser.close()
 server.shutdown()
 for r in results: print("%s  %s%s" % (r[0], r[1], ("  [" + r[2][:160] + "]") if r[0] == "FAIL" and r[2] else ""))
+print("\nChecks by area:")
+order = []
+for r in results:
+    if r[3] not in order: order.append(r[3])
+for name in order:
+    print("  %3d  %s" % (sum(1 for r in results if r[3] == name), name))
 print("\n%d checks, %d failed" % (len(results), len(failures)))
 sys.exit(1 if failures else 0)

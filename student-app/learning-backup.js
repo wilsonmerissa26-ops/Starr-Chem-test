@@ -362,13 +362,12 @@
   }
 
   // ---------- restore writing ----------
-  // Databases this restore had to create because they did not exist on the device yet.
-  var createdByRestore = {};
+  // May create a missing database with the same structure its own page creates. If a later write fails,
+  // that database is deliberately left in place (possibly empty): this code never deletes a database.
   function openForWrite(spec) {
     return new Promise(function (resolve, reject) {
       var req = global.indexedDB.open(spec.name, spec.version);
-      req.onupgradeneeded = function (e) {
-        if (e.oldVersion === 0) createdByRestore[spec.name] = true;
+      req.onupgradeneeded = function () {
         spec.stores.forEach(function (s) {
           if (!req.result.objectStoreNames.contains(s.name)) req.result.createObjectStore(s.name, s.keyPath ? { keyPath: s.keyPath } : undefined);
         });
@@ -377,23 +376,6 @@
       req.onerror = function () { reject(req.error || Error("Could not open " + spec.name)); };
       req.onblocked = function () { reject(Error(spec.name + " is open elsewhere. Close other tabs and try again")); };
     });
-  }
-
-  function removeIfCreatedAndEmpty(spec) {
-    return openExisting(spec.name).then(function (o) {
-      if (o.status !== "open") return;
-      var db = o.db;
-      return Promise.all(spec.stores.map(function (st) {
-        return db.objectStoreNames.contains(st.name) ? readStore(db, st.name).then(function (r) { return r.length; }) : 0;
-      })).then(function (counts) {
-        db.close();
-        if (counts.some(function (n) { return n > 0; })) return;
-        return new Promise(function (resolve) {
-          var del = global.indexedDB.deleteDatabase(spec.name);
-          del.onsuccess = del.onerror = del.onblocked = function () { delete createdByRestore[spec.name]; resolve(); };
-        });
-      });
-    }).catch(function () {});
   }
 
   // Writes IndexedDB entries. Each existence check and write happens inside one readwrite
@@ -434,7 +416,6 @@
         }, function (err) {
           var reason = (err && err.message) || "database write failed";
           list.forEach(function (e) { report.failed.push({ id: e.id, reason: reason }); });
-          if (createdByRestore[spec.name]) return removeIfCreatedAndEmpty(spec);
         });
       });
     }, Promise.resolve());
