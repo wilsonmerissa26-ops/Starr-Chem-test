@@ -26,6 +26,16 @@ main{padding:24px}.hero{display:grid;grid-template-columns:1.05fr 1.3fr;gap:18px
 @media(max-width:950px){.unit3-layout,.unit3-hero{grid-template-columns:1fr}.unit3-menu{display:flex;overflow-x:auto;position:static}.unit3-menu button{min-width:148px}.unit3-lookup{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:530px){.unit3-inputs,.unit3-lookup,.unit3-mini,.unit3-cards{grid-template-columns:1fr}.unit3-card{padding:15px}.unit3-q{font-size:17px}}
 </style>
+<style id="embedded-coach-style">
+body.unit3-embedded .top,body.unit3-embedded aside{display:none!important}
+body.unit3-embedded .layout{display:block;min-height:0}
+body.unit3-embedded .app{min-height:0;max-width:none}
+body.unit3-embedded main{width:100%;padding:8px}
+body.unit3-embedded #unit3{display:block!important}
+body.unit3-embedded .unit3-sprint{display:none}
+body.unit3-embedded .unit3-menu{top:10px}
+body.unit3-embedded .unit3-hero{margin-top:8px}
+</style>
 </head>
 <body>
 <div class="app">
@@ -207,7 +217,24 @@ const U3=[
 ];
 const U3KEY="astarryia-unit3-v1";
 let u3s;try{u3s=JSON.parse(localStorage.getItem(U3KEY))||{module:0,step:0,mode:'teach',attempts:{},wrong:{},quizIndex:0,quizRight:0,quizCount:0,quizAnswered:false}}catch(e){u3s={module:0,step:0,mode:'teach',attempts:{},wrong:{},quizIndex:0,quizRight:0,quizCount:0,quizAnswered:false}}
-function u3Save(){localStorage.setItem(U3KEY,JSON.stringify(u3s))}
+const U3EMBED=window.parent!==window&&new URLSearchParams(location.search).get("embed")==="1";
+function u3BridgePublish(){
+ if(!U3EMBED)return;
+ try{
+   const modules=U3.map((item,i)=>({index:i,title:item.title,total:item.questions.length}));
+   window.parent.postMessage({source:"astarryia-unit3-bridge",type:"progress",version:1,
+     record:{attempts:u3s.attempts||{},wrong:u3s.wrong||{},lastQuiz:u3s.lastQuiz||null,
+     module:u3s.module,mode:u3s.mode,modules:modules}},location.origin);
+ }catch(_){}
+}
+function u3BridgeHeight(){
+ if(!U3EMBED)return;
+ try{
+   const height=Math.ceil(Math.max(document.documentElement.scrollHeight,document.body.scrollHeight));
+   window.parent.postMessage({source:"astarryia-unit3-bridge",type:"resize",height:height},location.origin);
+ }catch(_){}
+}
+function u3Save(){localStorage.setItem(U3KEY,JSON.stringify(u3s));u3BridgePublish()}
 function u3Safe(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function u3SetModule(i){u3s.module=i;u3s.step=0;u3s.quizIndex=0;u3s.quizCount=0;u3s.quizRight=0;u3s.quizAnswered=false;u3s.mode='teach';u3Save();u3Render();document.getElementById('unit3').scrollIntoView({behavior:'smooth',block:'start'})}
 function u3ShowMode(mode){u3s.mode=mode;u3Save();showScreen('unit3');u3Render()}
@@ -219,14 +246,28 @@ function u3StepNext(){let l=U3[u3s.module].lessons.length;if(u3s.step<l-1){u3s.s
 function u3Quiz(){let m=U3[u3s.module],i=u3s.quizIndex;if(i>=m.questions.length){document.getElementById('u3Work').innerHTML=`<div class="unit3-light"><h2>${u3s.quizRight} / ${m.questions.length} correct this round</h2><p>${u3s.quizRight>=4?'Strong recall. Now draw two comparable examples on paper.':'Review every missed item, then retry without notes.'}</p></div><button class="btn primary" onclick="u3Retry()">Try this lesson again</button><button class="btn secondary" onclick="u3NextModule()">Go to next lesson</button>`;return}let q=m.questions[i];document.getElementById('u3Work').innerHTML=`<div class="unit3-quiztop"><div class="unit3-tag">Question ${i+1} / ${m.questions.length}</div><span class="unit3-note">Closed notes; reason first, click second</span></div><div class="unit3-q">${u3Safe(q.q)}</div><div id="u3Choices">${q.a.map((x,j)=>`<button class="unit3-choice" onclick="u3Answer(${j})">${String.fromCharCode(65+j)}. ${u3Safe(x)}</button>`).join('')}</div><div id="u3Feedback"></div>`}
 function u3Answer(j){if(u3s.quizAnswered)return;let idx=u3s.quizIndex,q=U3[u3s.module].questions[idx],ok=j===q.c;u3s.quizAnswered=true;u3s.quizCount++;if(ok)u3s.quizRight++;let a=u3s.attempts[u3s.module]||{n:0,c:0};a.n++;if(ok)a.c++;u3s.attempts[u3s.module]=a;if(!ok){let key=u3s.module+'-'+idx;u3s.wrong[key]=(u3s.wrong[key]||0)+1}u3Save();let btns=document.querySelectorAll('#u3Choices button');btns.forEach((b,k)=>{b.disabled=true;if(k===q.c)b.classList.add('correct');if(k===j&&!ok)b.classList.add('wrong')});document.getElementById('u3Feedback').innerHTML=`<div class="unit3-feedback"><strong>${ok?'✓ Correct reasoning target':'✗ Not yet'}</strong><p>${u3Safe(q.why)}</p><p class="unit3-note">Say or write the rule from memory before proceeding.</p><button class="btn primary" onclick="u3QuizNext()">${idx===U3[u3s.module].questions.length-1?'See my result':'Next question →'}</button></div>`;u3RenderProgressOnly()}
 function u3RenderProgressOnly(){let done=0,n=0,c=0;for(let i=0;i<U3.length;i++){let a=u3s.attempts[i]||{n:0,c:0};n+=a.n;c+=a.c;if(a.n>=4&&a.c/a.n>=.8)done++}document.getElementById('u3SummaryTitle').textContent=`${done} / ${U3.length} practice milestones`;document.getElementById('u3Progress').innerHTML=`<div class="unit3-progress"><div style="width:${Math.round(done/U3.length*100)}%"></div></div><p class="unit3-muted">${n} total quiz attempts · ${n?Math.round(100*c/n):0}% accuracy</p>`}
-function u3QuizNext(){u3s.quizIndex++;u3s.quizAnswered=false;u3Save();u3Quiz()}
+function u3QuizNext(){u3s.quizIndex++;if(u3s.quizIndex>=U3[u3s.module].questions.length){u3s.lastQuiz={module:u3s.module,correct:u3s.quizRight,total:U3[u3s.module].questions.length,completedAt:new Date().toISOString()}}u3s.quizAnswered=false;u3Save();u3Quiz()}
 function u3Retry(){u3s.quizIndex=0;u3s.quizCount=0;u3s.quizRight=0;u3s.quizAnswered=false;u3Save();u3Quiz()}
 function u3NextModule(){u3SetModule((u3s.module+1)%U3.length)}
 function u3Lab(){document.getElementById('u3Work').innerHTML=`<div class="unit3-tag">Decision lab · predict major pathway</div><p class="unit3-muted">Select the conditions, guess the answer yourself, then check. Simplified decision support: competing pathways and special structures can change outcomes.</p><div class="unit3-inputs"><label>Carbon holding LG<select id="labCarbon"><option value="methyl">Methyl (CH₃–LG)</option><option value="primary">Primary (1°)</option><option value="secondary" selected>Secondary (2°)</option><option value="tertiary">Tertiary (3°)</option></select></label><label>Reagent<select id="labReagent"><option value="goodnuc">Good nucleophile, weaker base (CN⁻, RS⁻, I⁻)</option><option value="smallbase">Strong small base/nucleophile (OH⁻, MeO⁻, EtO⁻)</option><option value="bulkybase">Strong bulky base (t-BuO⁻)</option><option value="weakneutral">Weak neutral (H₂O, ROH)</option></select></label><label>Solvent<select id="labSolvent"><option value="aprotic">Polar aprotic (DMF, DMSO, MeCN)</option><option value="protic">Polar protic (H₂O, alcohol)</option></select></label><label>Leaving group<select id="labLG"><option value="good">Good LG (Br, I, OTs)</option><option value="bad">Poor LG (untreated OH)</option></select></label></div><div style="margin-top:12px;display:grid;gap:9px"><label class="unit3-check"><input type="checkbox" id="labHeat"> Heat is applied</label><label class="unit3-check"><input type="checkbox" id="labBeta" checked> At least one accessible β-H exists</label></div><div class="actions" style="margin:15px 0"><button class="btn primary" onclick="u3Predict()">Predict and explain</button><button class="btn secondary" onclick="u3ShowMode('teach')">Return to lesson</button></div><div id="labAnswer"></div>`}
 function u3Predict(){let s=document.getElementById('labCarbon').value,r=document.getElementById('labReagent').value,sol=document.getElementById('labSolvent').value,lg=document.getElementById('labLG').value,heat=document.getElementById('labHeat').checked,beta=document.getElementById('labBeta').checked,mode='',why='';if(lg==='bad'){mode='Activate the leaving group first';why='Untreated OH is usually not a useful LG for these alkyl substitution/elimination mechanisms. Protonate it or convert to OTs/another better LG as appropriate.'}else if(s==='methyl'){mode=r==='weakneutral'?'Usually no useful SN1/E1; substitution needs a stronger nucleophile':'SN2';why='Methyl has no β-H and cannot form an ordinary stable carbocation. Methyl substrates are accessible to backside attack; bulky bases may give less practical SN2 than good nucleophiles.'}else if(r==='bulkybase'){mode=beta?'E2 favored':'E2 unavailable without β-H';why=beta?'Bulky strong base preferentially removes accessible β-H; check the anti conformation and likely Hofmann regioselectivity.':'No β-H makes β-elimination impossible. Re-evaluate substrate and alternative mechanisms.'}else if(s==='tertiary'){if(r==='smallbase'){mode=beta?'E2 favored':'E2 blocked — check other pathways';why='SN2 is blocked at 3°. A strong base usually pushes E2 if an accessible β-H exists.'}else if(r==='weakneutral'||r==='goodnuc'){mode=heat&&beta?'SN1 / E1 mixture, E1 more competitive with heat':'SN1 / E1 possible (ionization)';why='A 3° center can stabilize a carbocation. Weak neutral nucleophiles in polar protic solvent favor solvolysis. Even a good nucleophile cannot normally cause direct SN2 at 3°.'} }else if(s==='primary'){if(r==='weakneutral'){mode='Often very slow; no ordinary SN1';why='A normal 1° carbocation is unstable and neutral weak nucleophiles are generally poor for SN2.'}else if(r==='smallbase'&&heat&&beta){mode='SN2 / E2 competition';why='Primary carbons favor SN2, but strong base plus heat and β-H can make E2 compete.'}else{mode='SN2 favored';why='Accessible primary carbon and a nucleophile favor backside displacement. Strong base/heat may create some E2 when β-H exists.'}}else if(s==='secondary'){if(r==='smallbase'){mode=beta?'E2 often major; SN2 can compete':'No E2 without β-H; consider SN2';why='Secondary steric hindrance plus strong basicity often favors E2. Check the actual β-H and anti geometry.'}else if(r==='goodnuc'){mode=sol==='aprotic'?'SN2 often favored':'SN2 vs solvolysis competition';why='Good nucleophile with weaker basicity can displace at 2°, especially in polar aprotic solvent; secondary reactions are condition-sensitive.'}else{mode=sol==='protic'?'SN1 / E1 possible; typically slow if cation not stabilized':'Likely slow; polar protic ionization helps more';why='Ionization of an ordinary secondary substrate may occur under suitable solvolysis conditions, often with mixtures.'}}if(!beta&&/E2/.test(mode))mode=mode.replace('E2','E2 blocked');let caution=(s==='secondary'||s==='tertiary'&&r==='weakneutral')?' These are tendencies, not guaranteed unique products.':'';if(heat&&beta&&!/heat|E1/.test(why))caution+=' Heat may increase elimination competition.';document.getElementById('labAnswer').innerHTML=`<div class="unit3-feedback"><div class="unit3-tag">Likely route</div><h3>${u3Safe(mode)}</h3><p>${u3Safe(why+caution)}</p><p class="unit3-note">Final exam checks: Is β-H actually anti? Is there a stable carbocation or allylic/benzylic exception? Do you need E/Z, inversion, or a rearrangement?</p></div>`}
 function u3Shortcuts(){document.getElementById('u3Work').innerHTML=`<div class="unit3-tag">Save your brain for drawing mechanisms</div><h3>The one-screen high-yield reference</h3><table class="unit3-compare"><thead><tr><th>Path</th><th>Conditions</th><th>Rate + steps</th><th>3-D / rearrange</th></tr></thead><tbody><tr><td><strong>SN2</strong></td><td>Methyl/1°; strong Nu, often aprotic</td><td>k[RX][Nu], one step</td><td>Inversion, no rearrange</td></tr><tr><td><strong>E2</strong></td><td>Strong base; 2°/3° common, sometimes 1°</td><td>k[RX][base], one step</td><td>Anti β-H/LG; trans-diaxial on chairs</td></tr><tr><td><strong>SN1</strong></td><td>3° or stable resonance cation; weak Nu, protic</td><td>k[RX], ionization then attack</td><td>Often both faces; possible shift</td></tr><tr><td><strong>E1</strong></td><td>Stable cation; weak base, heat often favors elimination</td><td>k[RX], ionization then β-H loss</td><td>Often Zaitsev; possible shift</td></tr></tbody></table><div class="unit3-hr"></div><div class="unit3-lookup"><div class="unit3-card"><h4>⚡ Swap + flip</h4><p>SN2 = backside substitution and inversion.</p></div><div class="unit3-card"><h4>⚡ Grab H, lose LG</h4><p>E2 = base → β-H; C–H → π; C–LG → LG.</p></div><div class="unit3-card"><h4>⚡ Carbocation shuffle</h4><p>SN1/E1 can rearrange; SN2/E2 ordinarily cannot.</p></div><div class="unit3-card"><h4>⚡ Peaks + valleys</h4><p>Peaks = TS; interior valleys = intermediates; endpoints = ΔG.</p></div><div class="unit3-card"><h4>⚡ Heat + bulk</h4><p>Heat often favors elimination. Bulky bases often favor less substituted alkene.</p></div><div class="unit3-card"><h4>⚡ β-H reality check</h4><p>No β-H = no E1/E2. E2 must have correct anti alignment.</p></div></div><div class="unit3-hr"></div><div class="unit3-callout"><strong>Essential equations:</strong> ΔG = ΔH − TΔS; ΔG° = −RT ln K. SN1/E1 rate = k[substrate]; SN2/E2 rate = k[substrate][reagent].</div><div class="unit3-light"><strong>The drawing checklist</strong><p>① Carbon skeleton ② LG replaced or π bond correctly placed ③ E/Z or wedges/dashes ④ all important stereoisomers ⑤ correct arrows and intermediates ⑥ explicit racemic label when appropriate.</p></div><div class="actions"><button class="btn primary" onclick="u3ShowMode('quiz')">Test these shortcuts</button><button class="btn secondary" onclick="u3ShowMode('lab')">Use the decision tree</button></div><div class="unit3-cite">Source alignment: Dr. Meadows Unit 3 SLOs (F25), Decision Tree (F24), Unit 3 Problem Set (F24), and Extra Practice (F24). Historical Exam 3 by Dr. Bridges (F23) used for practice types. Additional step-by-step examples and explanations are coach-created.</div>`}
-// Initialize only the new unit; never overwrite original coach-state, nine-day lesson data, or notes.
+// Preserve the original standalone coach while embedding Unit 3 in the Learning App.
+if(U3EMBED){
+ document.body.classList.add("unit3-embedded");
+ const qp=new URLSearchParams(location.search);
+ const wanted=Number(qp.get("module"));
+ if(qp.has("module")&&Number.isInteger(wanted)&&wanted>=0&&wanted<U3.length){
+   u3s.module=wanted;u3s.step=0;u3s.quizIndex=0;u3s.quizRight=0;
+   u3s.quizCount=0;u3s.quizAnswered=false;u3s.mode=qp.get("mode")==="quiz"?"quiz":"teach";
+ }
+ showScreen("unit3");
+ if(typeof ResizeObserver==="function")new ResizeObserver(u3BridgeHeight).observe(document.body);
+ window.addEventListener("load",function(){u3BridgePublish();u3BridgeHeight()});
+}
 u3Render();
+u3BridgePublish();
+u3BridgeHeight();
 </script>
 
 </body></html>
