@@ -101,7 +101,7 @@ def app_ready(page):
     """Wait until the planner has finished opening its saved data (no fixed sleeps)."""
     page.wait_for_function("document.getElementById('save-status').textContent !== 'Checking saved work\u2026'")
 
-def click_and_wait(page, text, expect_reload=True, wait_text="stopped"):
+def click_and_wait(page, text, expect_reload=True, wait_text="RESTORE NOT STARTED"):
     page.on("dialog", lambda d: d.accept())  # confirm before replacing, then the "reloading" notice
     if expect_reload:
         with page.expect_navigation(timeout=20000):
@@ -188,7 +188,7 @@ with sync_playwright() as p:
     preview_restore(page, backup)
     page.evaluate("""() => { const orig = Storage.prototype.setItem;
       Storage.prototype.setItem = function (k, v) { if (String(k).startsWith('astarryia-restore-safety-')) throw new DOMException('Quota exceeded', 'QuotaExceededError'); return orig.call(this, k, v); }; }""")
-    click_and_wait(page, "Replace 1 differing item", expect_reload=False)
+    click_and_wait(page, "Replace 1 differing item", expect_reload=False, wait_text="RESTORE NOT STARTED")
     check("Full storage aborts replace with no changes", page.evaluate("localStorage.getItem('astarryia-unit3-v1')") == newer
           and page.evaluate("localStorage.getItem('coach-state')") is None, page.inner_text("#full-backup-status"))
     ctx.close()
@@ -382,6 +382,123 @@ with sync_playwright() as p:
     covered = page.evaluate("AStarryiaLearningBackup.DATABASE_NAMES")
     check("Every AStarryia database in the repository is covered", dbs_in_repo <= set(covered), "%s vs %s" % (dbs_in_repo, covered))
     check("Michael's database is not covered", not any("Michael" in n for n in covered))
+    ctx.close()
+
+    # ---------- Partial and failed restores are reported truthfully, and retry finishes safely ----------
+    def restore_and_capture(page, button, expect_reload):
+        """Clicks a restore button, accepts dialogs, and returns the alert text (if any)."""
+        seen = []
+        if not getattr(page, "_capture", False):
+            page._capture = True
+            page._seen = seen
+            page.on("dialog", lambda d: (page._seen.append(d.message), d.accept()))
+        else:
+            page._seen.clear()
+        if expect_reload:
+            with page.expect_navigation(timeout=20000):
+                page.click("text=" + button)
+            app_ready(page)
+        else:
+            page.click("text=" + button)
+            page.wait_for_function("/RESTORE (FAILED|NOT STARTED|COMPLETE)|PARTIAL/.test(document.getElementById('full-backup-status').textContent)")
+        return " ".join(page._seen)
+
+    FAIL_ONE_LOCAL = """() => { const real = Storage.prototype.setItem;
+      Storage.prototype.setItem = function (k, v) { if (k === 'coach-notes') throw new DOMException('simulated full storage', 'QuotaExceededError'); return real.call(this, k, v); }; }"""
+    FAIL_DB = """() => { const real = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function () { if (this.name === 'snapshots') throw new DOMException('simulated database failure', 'UnknownError'); return real.apply(this, arguments); }; }"""
+
+    # P1. Browser storage fills up partway: report PARTIAL, list what failed, then a retry finishes without overwriting newer work.
+    ctx, page = fresh(); preview_restore(page, backup); page.evaluate(FAIL_ONE_LOCAL)
+    msg = restore_and_capture(page, "Add missing items only (safe)", expect_reload=True)
+    check("Partial (storage full): reported as PARTIAL", msg.startswith("PARTIAL RESTORE") and "RESTORE COMPLETE" not in msg, msg[:140])
+    check("Partial (storage full): names the item that still needs attention", "Still needs attention: coach-notes (" in msg, msg[:300])
+    check("Partial (storage full): lists what was restored", "Restored successfully:" in msg and "coach-state" in msg)
+    check("Partial (storage full): report still shown after the reload", page.evaluate("document.getElementById('full-backup-status').textContent").startswith("Last restore: PARTIAL RESTORE"))
+    check("Partial (storage full): failed item really is absent, others really restored",
+          page.evaluate("localStorage.getItem('coach-notes')") is None and page.evaluate("localStorage.getItem('coach-state')") == SYNTH_LOCAL["coach-state"])
+    tab_b = other_tab(ctx); tab_b.evaluate("v => localStorage.setItem('coach-state', v)", NEWER_STATE)  # newer work before the retry
+    open_settings(page); status, prev = preview_restore(page, backup)
+    check("Retry: preview shows only the unfinished item as missing", "1 item(s) missing" in prev, prev[:120])
+    msg = restore_and_capture(page, "Add missing items only (safe)", expect_reload=True)
+    check("Retry: completes and says RESTORE COMPLETE", msg.startswith("RESTORE COMPLETE: 1 item(s) restored"), msg[:120])
+    check("Retry: finished the missing item", page.evaluate("localStorage.getItem('coach-notes')") == SYNTH_LOCAL["coach-notes"])
+    check("Retry: newer work saved before the retry was not overwritten", page.evaluate("localStorage.getItem('coach-state')") == NEWER_STATE)
+    ctx.close()
+
+    # P2. Database write fails after browser-storage items were written: PARTIAL, database record listed, retry finishes.
+    ctx, page = fresh(); preview_restore(page, backup); page.evaluate(FAIL_DB)
+    msg = restore_and_capture(page, "Add missing items only (safe)", expect_reload=True)
+    check("Partial (database failure): reported as PARTIAL", msg.startswith("PARTIAL RESTORE") and "RESTORE COMPLETE" not in msg, msg[:140])
+    check("Partial (database failure): names the planner record", 'astarryia-learning-planner-v1/snapshots/"active"' in msg, msg[:400])
+    check("Partial (database failure): planner record really is absent",
+          not snapshot(page)["records"].get("astarryia-learning-planner-v1/snapshots"))
+    open_settings(page); preview_restore(page, backup)
+    msg = restore_and_capture(page, "Add missing items only (safe)", expect_reload=True)
+    check("Retry after database failure: RESTORE COMPLETE and planner restored", msg.startswith("RESTORE COMPLETE")
+          and snapshot(page)["records"].get("astarryia-learning-planner-v1/snapshots") == [["active", PLANNER]], msg[:120])
+    ctx.close()
+
+    # P3. Nothing can be saved: RESTORE FAILED, nothing changed, never "complete".
+    ctx, page = fresh(); before = snapshot(page); preview_restore(page, backup)
+    page.evaluate("""() => { Storage.prototype.setItem = function () { throw new DOMException('simulated full storage', 'QuotaExceededError'); };
+      IDBObjectStore.prototype.put = function () { throw new DOMException('simulated database failure', 'UnknownError'); }; }""")
+    restore_and_capture(page, "Add missing items only (safe)", expect_reload=False)
+    st = page.inner_text("#full-backup-status")
+    check("Total failure: reported as RESTORE FAILED, never complete", st.startswith("RESTORE FAILED") and "COMPLETE" not in st, st[:140])
+    check("Total failure: device unchanged", snapshot(page) == before)
+    ctx.close()
+
+    # P4. A study-song database that already existed (empty) is never removed when a write into it fails.
+    ctx, page = fresh()
+    page.evaluate("""() => new Promise(r => { const q = indexedDB.open('astarryia-physiology-music-v1', 1);
+      q.onupgradeneeded = () => q.result.createObjectStore('tracks', {keyPath: 'id'}); q.onsuccess = () => { q.result.close(); r(); }; })""")
+    preview_restore(page, backup)
+    page.evaluate("""() => { const real = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function () { if (this.name === 'tracks') throw new DOMException('simulated database failure', 'UnknownError'); return real.apply(this, arguments); }; }""")
+    msg = restore_and_capture(page, "Add missing items only (safe)", expect_reload=True)
+    check("Existing database is never removed after a failed write", "astarryia-physiology-music-v1" in snapshot(page)["dbs"] and msg.startswith("PARTIAL RESTORE"), msg[:120])
+    ctx.close()
+
+    # P5. Restore had to create the study-song database, its write failed, but another tab saved a song
+    #     there meanwhile. The cleanup must keep the database and that song.
+    ctx, page = fresh(); preview_restore(page, backup)
+    page.evaluate("""() => { const real = IDBObjectStore.prototype.put; let fired = false;
+      IDBObjectStore.prototype.put = function () {
+        if (this.name === 'tracks' && !fired) { fired = true;
+          const q = indexedDB.open('astarryia-physiology-music-v1');   // a second connection, like another tab
+          q.onsuccess = () => { const tx = q.result.transaction('tracks', 'readwrite');
+            tx.objectStore('tracks').put({id: 'other-tab-song', name: 'SYNTHETIC saved by another tab'});
+            tx.oncomplete = () => q.result.close(); };
+          throw new DOMException('simulated database failure', 'UnknownError'); }
+        return real.apply(this, arguments); }; }""")
+    restore_and_capture(page, "Add missing items only (safe)", expect_reload=True)
+    recs = snapshot(page)["records"].get("astarryia-physiology-music-v1/tracks") or []
+    check("Cleanup never deletes a database that gained records", any(r[0] == "other-tab-song" for r in recs), str(recs)[:120])
+    ctx.close()
+
+    # ---------- Safety copies cannot make backups grow ----------
+    ctx, page = fresh(); seed(page, song=False)
+    big = "S" * 200000
+    page.evaluate("v => { localStorage.setItem('astarryia-restore-safety-2026-10-01T00:00:00.000Z', v); localStorage.setItem('astarryia-restore-safety-2026-10-02T00:00:00.000Z', v); }", big)
+    data1, _, _ = export_any(page)
+    raw1 = json.dumps(data1)
+    check("Safety copies: not included in the backup", "astarryia-restore-safety-" not in raw1 and big not in raw1)
+    check("Safety copies: counted in the backup summary", data1["summary"]["restoreSafetyCopiesNotIncluded"] == 2)
+    check("Safety copies: still kept on the device", page.evaluate("localStorage.getItem('astarryia-restore-safety-2026-10-01T00:00:00.000Z')") == big)
+    for n in range(2):  # two more replace cycles, each creating another safety copy
+        page.evaluate("v => localStorage.setItem('astarryia-unit3-v1', v)", json.dumps({"SYNTHETIC": "cycle %d" % n}))
+        open_settings(page); preview_restore(page, data1)
+        restore_and_capture(page, "Replace 1 differing item", expect_reload=True)
+    data2, _, _ = export_any(page)
+    check("Safety copies: repeated replace cycles do not grow the backup",
+          data2["summary"]["restoreSafetyCopiesNotIncluded"] == 4 and abs(len(json.dumps(data2)) - len(raw1)) < 2000,
+          "%d vs %d bytes" % (len(json.dumps(data2)), len(raw1)))
+    ctx.close()
+    sneaky = json.loads(json.dumps(backup))
+    sneaky["localStorage"].append({"key": "astarryia-restore-safety-2026-10-03T00:00:00.000Z", "value": "x" * 1000, "sha256": "0" * 64})
+    ctx, page = fresh(); status, prev = preview_restore(page, sneaky)
+    check("Safety copies: a backup cannot restore one", "1 item(s) do not belong" in prev, prev[:160])
     ctx.close()
 
     browser.close()
