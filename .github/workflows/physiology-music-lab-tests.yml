@@ -1,0 +1,25 @@
+name: Physiology music lab
+on:
+  push:
+    paths:
+      - 'physiology-song-lab/**'
+      - 'course-hub/index.html'
+      - 'test-physiology-music-lab.js'
+      - '.github/workflows/physiology-music-lab-tests.yml'
+  pull_request:
+    paths:
+      - 'physiology-song-lab/**'
+      - 'course-hub/index.html'
+      - 'test-physiology-music-lab.js'
+      - '.github/workflows/physiology-music-lab-tests.yml'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check physiology-song-lab/app.js
+      - run: node --check physiology-song-lab/songs.js
+      - run: node test-physiology-music-lab.js
