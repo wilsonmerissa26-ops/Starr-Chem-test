@@ -23,3 +23,13 @@ Tasks and completion records are local to this browser/home-screen app. IndexedD
 6. Confirm no web access when offline: planner shell loads cached; cross-folder lessons need network unless they were separately cached.
 
 This is study support, not an assignment-completion service. CHM 221 syllabus states that generative AI may not be used to complete assignments unless explicitly authorized by the instructor.
+
+
+## Unified chemistry classroom (live integration)
+- In the Learning App select **Chemistry**. Unit 3 opens in an embedded same-origin classroom; the original standalone coach remains accessible.
+- Quiz results are stored under the existing `astarryia-unit3-v1` localStorage key and are read by the Learning App. The coach also sends same-origin, iframe-source-verified messages for immediate updates.
+- Actual correct/incorrect answers update an eight-module practice milestone display and generate up to two dated adaptive recommendations in **Today**, **Subjects**, and **Calendar**.
+- After a completed four-question round, the most recent completed round per module can satisfy that module's quiz practice milestone; cumulative totals remain intact. A practice milestone is not proof of independent handwritten mechanism mastery.
+- Earlier nine-day foundation progress keys are never overwritten and do not get falsely credited by Unit 3 quiz scores.
+- An embedded lesson may need a network connection even when the planner's offline shell is cached. This version does not sync across devices or send grades to Canvas.
+- Run `node test-student-chemistry-integration.js` and confirm the AStarryia Unified Student App Tests workflow passes after changes.
