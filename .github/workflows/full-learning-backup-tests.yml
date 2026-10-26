@@ -1,0 +1,32 @@
+name: AStarryia Full Learning Backup Tests
+
+on:
+  push:
+    branches: [ "main", "step0-full-learning-backup" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  full-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax-check backup module and service worker
+        run: |
+          node --check student-app/learning-backup.js
+          node --check student-app/sw.js
+      - name: Install headless Chromium
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Back up and restore synthetic records in a real browser
+        run: python test-full-learning-backup.py
+      - name: Existing Learning App integration test still passes
+        run: node test-student-chemistry-integration.js
