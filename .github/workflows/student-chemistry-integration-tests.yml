@@ -1,0 +1,23 @@
+name: AStarryia Unified Student App Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  student-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check app and integration test
+        run: |
+          node --check student-app/app.js
+          node --check test-student-chemistry-integration.js
+      - name: Test embedded chemistry lessons and automatic recommendations
+        run: node test-student-chemistry-integration.js
