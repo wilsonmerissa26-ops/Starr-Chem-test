@@ -1,0 +1,30 @@
+name: AStarryia Phase 1 Chemistry Accuracy Tests
+
+on:
+  push:
+    branches: [ "main", "phase1-chemistry-accuracy" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  phase1-chemistry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax-check the Learning App
+        run: node --check student-app/app.js
+      - name: Install headless Chromium
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Chemistry corrections, honest practice evidence and quiz reliability (real browser, synthetic data)
+        run: python test-phase1-chemistry.py
+      - name: Learning App integration test
+        run: node test-student-chemistry-integration.js

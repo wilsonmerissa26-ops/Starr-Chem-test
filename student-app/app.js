@@ -5,32 +5,40 @@ const SUBJECTS={chem:"Organic Chemistry",ap:"Anatomy & Physiology I",other:"Othe
 const U3_TITLES=["The 5-check reaction triage","Energy diagrams + thermodynamics","Reagents, solvents + leaving groups","SN2: one-step swap + flip","E2: anti H + LG → alkene","SN1/E1 + carbocation rearrangements","Regio, stereo + mechanism drawings","Reaction maps + exam transfer"];
 const U3_STORAGE="astarryia-unit3-v1";
 function coachState(){try{const x=JSON.parse(localStorage.getItem(U3_STORAGE)||"null");return x&&typeof x==="object"&&x.attempts&&typeof x.attempts==="object"?x:null;}catch(_){return null;}}
+// Practice evidence comes from the coach. Only a question's first-ever answer counts; retakes are practice.
+const EVIDENCE_LABEL={"not-started":"Not started","strong":"Strong first-try evidence","needs-review":"Needs review","in-progress":"In progress","needs-new-questions":"Needs new questions","practiced":"Practiced (no first-try evidence yet)"};
 function coachMetrics(){
- const s=coachState(),data=U3_TITLES.map((title,i)=>{
- const a=s&&s.attempts&&s.attempts[i]||{};
- const n=Number.isFinite(Number(a.n))?Math.max(0,Math.min(100000,Number(a.n))):0;
- const c=Number.isFinite(Number(a.c))?Math.max(0,Math.min(n,Number(a.c))):0;
- const latest=s&&s.latestByModule&&s.latestByModule[i],roundTotal=latest&&Number(latest.total),roundCorrect=latest&&Number(latest.correct);
- const validRound=Number.isFinite(roundTotal)&&roundTotal>=4&&Number.isFinite(roundCorrect)&&roundCorrect>=0&&roundCorrect<=roundTotal;
- const rate=validRound?roundCorrect/roundTotal:(n?c/n:0);
- return {index:i,title,n,c,rate,latest:validRound?{correct:roundCorrect,total:roundTotal}:null,milestone:validRound?(rate>=.8):(n>=4&&c/n>=.8)};
+ const s=coachState(),saved=s&&Array.isArray(s.evidence)?s.evidence:null;
+ const data=U3_TITLES.map((title,i)=>{
+  const a=s&&s.attempts&&s.attempts[i]||{};
+  const n=Number.isFinite(Number(a.n))?Math.max(0,Math.min(100000,Number(a.n))):0;
+  const c=Number.isFinite(Number(a.c))?Math.max(0,Math.min(n,Number(a.c))):0;
+  const e=saved&&saved[i]&&typeof saved[i]==="object"?saved[i]:null;
+  const known=e&&Object.prototype.hasOwnProperty.call(EVIDENCE_LABEL,e.status);
+  const fresh=known&&Number.isFinite(Number(e.firstTry))?Math.max(0,Number(e.firstTry)):0;
+  const right=known&&Number.isFinite(Number(e.firstTryCorrect))?Math.max(0,Math.min(fresh,Number(e.firstTryCorrect))):0;
+  // Records saved before the evidence system existed have no first-try information: show them as practice only.
+  const status=known?e.status:(n?"practiced":"not-started");
+  return {index:i,title,n,c,fresh,right,status,rate:fresh?right/fresh:(n?c/n:0)};
  });
- const milestones=data.filter(m=>m.milestone).length,attempts=data.reduce((n,m)=>n+m.n,0),
+ const strong=data.filter(m=>m.status==="strong").length,attempts=data.reduce((n,m)=>n+m.n,0),
  right=data.reduce((n,m)=>n+m.c,0),last=s&&s.lastQuiz&&typeof s.lastQuiz==="object"?s.lastQuiz:null;
- return {data,milestones,attempts,right,last};
+ return {data,strong,attempts,right,last};
 }
 function coachRecommendedTasks(){
  if(!today)return[];
- const m=coachMetrics(),attemptedWeak=m.data.filter(x=>x.n>0&&!x.milestone)
- .sort((a,b)=>a.rate-b.rate||a.index-b.index);
- const notStarted=m.data.filter(x=>!x.n);
+ const order={"needs-review":0,"in-progress":1,"practiced":2,"needs-new-questions":3};
+ const m=coachMetrics(),attemptedWeak=m.data.filter(x=>x.status in order)
+ .sort((a,b)=>order[a.status]-order[b.status]||a.rate-b.rate||a.index-b.index);
+ const notStarted=m.data.filter(x=>x.status==="not-started");
  const picks=attemptedWeak.concat(notStarted).slice(0,2);
  return picks.map((item,i)=>({
   id:"u3-coach-"+item.index,date:addDays(today,i),
-  subject:"chem",title:(item.n?"Review weak lesson: ":"Learn + practice: ")+item.title,
+  subject:"chem",title:(item.status==="not-started"?"Learn + practice: ":"Review weak lesson: ")+item.title,
   kind:"practice",minutes:25,source:"Chemistry Coach · adaptive study",
-  notes:item.n?("Quiz checks: "+(item.latest?item.latest.correct+"/"+item.latest.total+" latest round; ":"")+item.c+"/"+item.n+" cumulative. Relearn the rule, retry without notes, then draw 2 fresh examples."):"Teach the rule, use the example, then take the independent check.",
-  coach:true,module:item.index,mode:item.n?"quiz":"teach",fixed:true
+  notes:item.status==="not-started"?"Teach the rule, use the example, then take the independent check.":
+   (EVIDENCE_LABEL[item.status]+". "+(item.fresh?"First try: "+item.right+"/"+item.fresh+". ":"")+"All practice including retakes: "+item.c+"/"+item.n+". Relearn the rule, then draw 2 fresh examples without notes."),
+  coach:true,module:item.index,mode:item.status==="not-started"?"teach":"quiz",fixed:true
  }));
 }
 const SEED=[
@@ -97,17 +105,17 @@ function taskHTML(t){
  const finished=markDone(t.id);return '<div class="task '+(finished?"done":"")+'"><input type="checkbox" class="check" data-check="'+esc(t.id)+'" aria-label="Mark '+esc(t.title)+' complete" '+(finished?"checked":"")+'><div class="task-content"><div class="tasktitle">'+esc(t.title)+'</div><div class="taskmeta">'+esc(fmt(t.date))+' · '+esc(t.subject==="other"&&t.courseName?t.courseName:(SUBJECTS[t.subject]||t.subject))+' · '+esc(t.source)+(t.minutes?" · "+t.minutes+" min":"")+'</div><div class="row" style="margin-top:7px">'+badge(t)+'</div>'+(t.notes?'<div class="tasknotes">'+esc(t.notes)+'</div>':"")+'</div>'+(t.fixed?"":'<div class="task-actions"><button type="button" data-remove="'+esc(t.id)+'">Delete</button></div>')+'</div>';}
 function renderTaskList(selector,list,empty){$(selector).innerHTML=list.length?list.map(taskHTML).join(""):'<div class="empty">'+esc(empty)+'</div>';}
 function renderCoach(){
- const stats=coachMetrics(),pct=Math.round(stats.milestones/U3_TITLES.length*100);
- $("#chem-progress-title").textContent=stats.milestones+" / 8 practice milestones";
+ const stats=coachMetrics(),pct=Math.round(stats.strong/U3_TITLES.length*100);
+ $("#chem-progress-title").textContent=stats.strong+" / 8 modules with strong first-try evidence";
  $("#chem-progress-bar").style.width=pct+"%";
- $("#chem-progress-detail").textContent=stats.attempts+" quiz checks · "+(stats.attempts?Math.round(100*stats.right/stats.attempts):0)+"% cumulative accuracy. Passing a practice milestone does not verify drawn mechanisms.";
- $("#subject-chem-progress").textContent=stats.attempts?(stats.milestones+"/8 practice milestones · "+stats.attempts+" quiz checks"):"Not assessed yet · open Chemistry to begin";
+ $("#chem-progress-detail").textContent=stats.attempts+" practice answers in total. Only a question's first-ever answer counts as evidence; retakes are practice. Strong first-try evidence is not yet mastery and does not verify drawn mechanisms.";
+ $("#subject-chem-progress").textContent=stats.attempts?(stats.strong+"/8 modules with strong first-try evidence · "+stats.attempts+" practice answers"):"Not assessed yet · open Chemistry to begin";
  const recommendations=coachRecommendedTasks(),last=stats.last;
  const lastInfo=last&&Number.isInteger(last.module)&&last.module>=0&&last.module<8&&Number.isFinite(Number(last.correct))&&Number.isFinite(Number(last.total))
- ?'<p class="small muted">Most recent completed quiz: '+esc(U3_TITLES[last.module])+' · '+esc(last.correct)+'/'+esc(last.total)+' correct.</p>':"";
- $("#chem-weak-list").innerHTML='<h3 style="margin-top:17px">Recommended next</h3>'+ (recommendations.length?recommendations.map(item=>'<div class="coach-row"><h3>'+esc(item.title)+'</h3><p class="small">'+esc(item.notes)+'</p><button class="btn compact" data-coach-module="'+item.module+'" data-coach-mode="'+item.mode+'">Practice this topic →</button></div>').join(""):'<div class="coach-row">All eight quiz milestones reached! Now test independent handwritten mechanisms and mixed reaction maps.</div>')+lastInfo;
- $("#chem-module-list").innerHTML=stats.data.map(item=>'<div class="chem-unit"><div><b>'+esc((item.index+1)+". "+item.title)+'</b><div class="small muted">'+(item.n?(item.latest?"Latest round "+item.latest.correct+"/"+item.latest.total+" · ":"")+item.c+"/"+item.n+" lifetime checks":"No checks yet")+'</div></div><div class="row"><span class="pill '+(item.milestone?"done":"")+'">'+(item.milestone?"Practice milestone":item.n?"Needs review":"Not assessed")+'</span><button class="btn secondary compact" data-coach-module="'+item.index+'" data-coach-mode="'+(item.n?"quiz":"teach")+'">Open</button></div></div>').join("");
- $("#coach-today").innerHTML=recommendations.length?'<div class="card" style="margin-top:15px;border-left:5px solid #8855bc"><div class="eyebrow">Automatically personalized from chemistry quizzes</div><h3>'+esc(recommendations[0].title)+'</h3><p class="small muted">'+esc(recommendations[0].notes)+'</p><button class="btn compact" data-coach-module="'+recommendations[0].module+'" data-coach-mode="'+recommendations[0].mode+'">Continue my Chemistry Coach →</button></div>':'<div class="card" style="margin-top:15px"><b>Unit 3 quiz milestones reached.</b><p class="small muted">Next: prove the mechanisms with independent drawn problems.</p><button class="btn secondary compact" data-go="chemistry">Open Chemistry</button></div>';
+ ?'<p class="small muted">Most recent completed round: '+esc(U3_TITLES[last.module])+' · '+esc(last.correct)+'/'+esc(last.total)+' correct (includes any retaken questions).</p>':"";
+ $("#chem-weak-list").innerHTML='<h3 style="margin-top:17px">Recommended next</h3>'+ (recommendations.length?recommendations.map(item=>'<div class="coach-row"><h3>'+esc(item.title)+'</h3><p class="small">'+esc(item.notes)+'</p><button class="btn compact" data-coach-module="'+item.module+'" data-coach-mode="'+item.mode+'">Practice this topic →</button></div>').join(""):'<div class="coach-row">All eight modules show strong first-try evidence. That is not yet mastery: next, test independent handwritten mechanisms and mixed reaction maps.</div>')+lastInfo;
+ $("#chem-module-list").innerHTML=stats.data.map(item=>'<div class="chem-unit"><div><b>'+esc((item.index+1)+". "+item.title)+'</b><div class="small muted">'+(item.n?(item.fresh?"First try "+item.right+"/"+item.fresh+" · ":"")+item.c+"/"+item.n+" all practice":"No practice yet")+'</div></div><div class="row"><span class="pill '+(item.status==="strong"?"done":"")+'">'+esc(EVIDENCE_LABEL[item.status])+'</span><button class="btn secondary compact" data-coach-module="'+item.index+'" data-coach-mode="'+(item.n?"quiz":"teach")+'">Open</button></div></div>').join("");
+ $("#coach-today").innerHTML=recommendations.length?'<div class="card" style="margin-top:15px;border-left:5px solid #8855bc"><div class="eyebrow">Personalized from your chemistry practice</div><h3>'+esc(recommendations[0].title)+'</h3><p class="small muted">'+esc(recommendations[0].notes)+'</p><button class="btn compact" data-coach-module="'+recommendations[0].module+'" data-coach-mode="'+recommendations[0].mode+'">Continue my Chemistry Coach →</button></div>':'<div class="card" style="margin-top:15px"><b>All Unit 3 modules show strong first-try evidence.</b><p class="small muted">Next: prove the mechanisms with independent drawn problems.</p><button class="btn secondary compact" data-go="chemistry">Open Chemistry</button></div>';
 }
 function renderToday(){const tasks=allTasks().filter(function(t){return t.date===today || (t.date<today && t.date>=addDays(today,-14) && !markDone(t.id) && (t.kind==="assignment"||t.kind==="practice"));});const actual=allTasks().filter(t=>t.date===today);$("#today-count").textContent=actual.length;$("#done-count").textContent=actual.filter(t=>markDone(t.id)).length;const ev=nextEvents()[0];$("#next-milestone").innerHTML=ev?esc(fmt(ev.date))+'<div class="small muted" style="font-weight:550;margin-top:5px">'+esc(ev.title)+'</div>':"All major events reviewed";renderTaskList("#today-tasks",tasks,"Nothing scheduled for today. Add one focused learning task in My planner.");renderTaskList("#up-next",allTasks().filter(t=>t.date>today&&!markDone(t.id)).slice(0,5),"No upcoming tasks saved.");}
 function renderCalendar(){const y=month.getFullYear(),m=month.getMonth();$("#month-name").textContent=month.toLocaleDateString(undefined,{month:"long",year:"numeric"});let html=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>'<div class="weekday">'+x+'</div>').join("");const first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++)html+='<div class="day blank"></div>';for(let d=1;d<=last;d++){const date=iso(new Date(y,m,d)),events=allTasks().filter(t=>t.date===date);html+='<button type="button" class="day '+(date===today?"today ":"")+(date===selected?"selected":"")+'" data-date="'+date+'" aria-label="'+esc(fmt(date,true))+'"><span class="num">'+d+'</span>'+events.slice(0,3).map(function(t){return '<span class="mini '+(markDone(t.id)?"done":t.subject==="ap"?"ap":t.subject==="other"?"other":"")+'">'+esc(t.title)+'</span>';}).join("")+(events.length>3?'<span class="small">+'+(events.length-3)+' more</span>':"")+'</button>';}$("#calendar-grid").innerHTML=html;$("#chosen-date-label").textContent=fmt(selected,true);renderTaskList("#selected-tasks",allTasks().filter(t=>t.date===selected),"No tasks on this date. Add a study block or deadline.");}

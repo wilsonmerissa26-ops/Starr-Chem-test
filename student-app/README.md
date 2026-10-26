@@ -28,8 +28,8 @@ This is study support, not an assignment-completion service. CHM 221 syllabus st
 ## Unified chemistry classroom (live integration)
 - In the Learning App select **Chemistry**. Unit 3 opens in an embedded same-origin classroom; the original standalone coach remains accessible.
 - Quiz results are stored under the existing `astarryia-unit3-v1` localStorage key and are read by the Learning App. The coach also sends same-origin, iframe-source-verified messages for immediate updates.
-- Actual correct/incorrect answers update an eight-module practice milestone display and generate up to two dated adaptive recommendations in **Today**, **Subjects**, and **Calendar**.
-- After a completed four-question round, the most recent completed round per module can satisfy that module's quiz practice milestone; cumulative totals remain intact. A practice milestone is not proof of independent handwritten mechanism mastery.
+- Actual correct/incorrect answers update an eight-module practice evidence display and generate up to two dated adaptive recommendations in **Today**, **Subjects**, and **Calendar**.
+- Only a question's first-ever answer counts as practice evidence; retakes, and questions seen before the evidence system existed, count as practice only. A module shows strong first-try evidence after at least 4 first-try answers at 80% or better. This is not mastery and does not verify handwritten mechanisms. Cumulative practice totals remain intact.
 - Earlier nine-day foundation progress keys are never overwritten and do not get falsely credited by Unit 3 quiz scores.
 - An embedded lesson may need a network connection even when the planner's offline shell is cached. This version does not sync across devices or send grades to Canvas.
 - Run `node test-student-chemistry-integration.js` and confirm the AStarryia Unified Student App Tests workflow passes after changes.
