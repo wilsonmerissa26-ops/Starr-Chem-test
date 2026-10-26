@@ -1,22 +1,34 @@
 /* Full learning backup and safe recovery for AStarryia's learning pages.
  *
  * Export is read-only: it never writes, deletes or creates storage.
- * Restore is additive by default: it only fills in items that are missing on this device.
- * Replacing an item that already exists requires a separate explicit choice, and the
- * current value is saved to a safety copy first. If the safety copy cannot be saved,
- * nothing is replaced.
+ *   - Every item carries a mandatory SHA-256 fingerprint. If this browser cannot compute
+ *     SHA-256, no backup is made.
+ *   - A storage area that exists but cannot be read makes the backup INCOMPLETE. That is
+ *     recorded in the file, in its name, and in the message shown. A database that
+ *     genuinely does not exist is recorded as absent, which is not a failure.
  *
- * Only AStarryia's own storage is read or written. Other apps on the same site
- * (for example, other learners' apps) are never exported or restored; the backup
- * records only how many other keys were left out.
+ * Restore previews first and changes nothing until a choice is made.
+ *   - Only items with a valid, matching fingerprint can be restored. Missing, malformed or
+ *     mismatched fingerprints are reported and never restored. If this browser cannot verify
+ *     fingerprints, nothing can be restored.
+ *   - "Add missing items only" re-checks the device at the moment of writing and never
+ *     overwrites anything that appeared after the preview (for example, saved from another tab).
+ *     For IndexedDB the check and the write happen inside one transaction.
+ *   - Replacing differing items requires a separate confirmation, saves a safety copy first,
+ *     and skips any item that changed again after the preview.
+ *
+ * Only AStarryia's own storage is read or written. Other apps on the same site (for example,
+ * other learners' apps) are never exported or restored; the backup records only how many
+ * other keys were left out.
  */
 (function (global) {
   "use strict";
 
   var FORMAT = "astarryia-full-learning-backup";
-  var FORMAT_VERSION = 1;
+  var FORMAT_VERSION = 2;
   var MAX_RESTORE_BYTES = 150 * 1024 * 1024;
   var SAFETY_PREFIX = "astarryia-restore-safety-";
+  var HEX64 = /^[0-9a-f]{64}$/;
 
   // Every key pattern written by pages in the Starr-Chem-test repository (inventoried 2026-10-26).
   var KEY_PATTERNS = [
@@ -38,9 +50,12 @@
   function isStudentKey(key) {
     return typeof key === "string" && KEY_PATTERNS.some(function (re) { return re.test(key); });
   }
-
   function findDatabase(name) {
     for (var i = 0; i < DATABASES.length; i++) if (DATABASES[i].name === name) return DATABASES[i];
+    return null;
+  }
+  function findStore(spec, name) {
+    for (var i = 0; spec && i < spec.stores.length; i++) if (spec.stores[i].name === name) return spec.stores[i];
     return null;
   }
 
@@ -57,11 +72,10 @@
     for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return new Blob([bytes], { type: type || "" });
   }
-  // Convert IndexedDB values to JSON-safe form. Blobs/Files become tagged base64.
+  function isBlob(v) { return typeof Blob !== "undefined" && v instanceof Blob; }
+  // JSON-safe form of an IndexedDB value. Blobs become tagged base64.
   function encodeValue(v) {
-    if (typeof Blob !== "undefined" && v instanceof Blob) {
-      return blobToBase64(v).then(function (b64) { return { __astarryiaBlob: { type: v.type || "", base64: b64 } }; });
-    }
+    if (isBlob(v)) return blobToBase64(v).then(function (b64) { return { __astarryiaBlob: { type: v.type || "", base64: b64 } }; });
     if (Array.isArray(v)) return Promise.all(v.map(encodeValue));
     if (v && typeof v === "object") {
       var keys = Object.keys(v);
@@ -79,39 +93,72 @@
     }
     return v;
   }
+  // Synchronous fingerprint usable inside an IndexedDB transaction (where awaiting is not possible).
+  // Blob contents are represented by type and size.
+  function quickMarker(v) {
+    return JSON.stringify(v, function (_, x) { return isBlob(x) ? { __blob: [x.type, x.size] } : x; });
+  }
 
+  // ---------- mandatory SHA-256 ----------
+  var shaSupport = null;
+  function checksumSupported() {
+    if (shaSupport) return shaSupport;
+    shaSupport = new Promise(function (resolve) {
+      try {
+        if (!(global.crypto && global.crypto.subtle && global.TextEncoder)) { resolve(false); return; }
+        global.crypto.subtle.digest("SHA-256", new TextEncoder().encode("check")).then(function (b) { resolve(!!b && b.byteLength === 32); }, function () { resolve(false); });
+      } catch (_) { resolve(false); }
+    });
+    return shaSupport;
+  }
   function sha256(text) {
-    if (!(global.crypto && global.crypto.subtle && global.TextEncoder)) return Promise.resolve(null);
     return global.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)).then(function (buf) {
       return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
     });
   }
+  function checksumFor(kind, id, payloadText) { return sha256(kind + "\n" + id + "\n" + payloadText); }
+  function idbId(dbName, storeName, key) { return dbName + "/" + storeName + "/" + JSON.stringify(key); }
 
-  // ---------- read-only IndexedDB access ----------
-  // Opens an existing database WITHOUT creating it. If it does not exist, the upgrade is aborted
-  // so no empty database is left behind (an empty v1 database would break the app that owns it).
+  // ---------- IndexedDB access ----------
+  // Result status: "absent" (database genuinely does not exist), "open", or "unreadable" (exists or may
+  // exist, but could not be opened). Never creates a database: if opening would create one, the
+  // upgrade is aborted so no empty database is left behind.
+  function listDatabaseNames() {
+    try {
+      if (global.indexedDB && typeof global.indexedDB.databases === "function") {
+        return global.indexedDB.databases().then(function (list) { return list.map(function (d) { return d.name; }); }, function () { return null; });
+      }
+    } catch (_) {}
+    return Promise.resolve(null);
+  }
   function openExisting(name) {
-    return new Promise(function (resolve) {
-      if (!("indexedDB" in global)) { resolve(null); return; }
-      var created = false, req;
-      try { req = global.indexedDB.open(name); } catch (_) { resolve(null); return; }
-      req.onupgradeneeded = function (e) { created = true; try { e.target.transaction.abort(); } catch (_) {} };
-      req.onsuccess = function () { if (created) { try { req.result.close(); } catch (_) {} resolve(null); } else resolve(req.result); };
-      req.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); resolve(null); };
-      req.onblocked = function () { resolve(null); };
+    if (!global.indexedDB) return Promise.resolve({ status: "unreadable", reason: "This browser's database storage is unavailable." });
+    return listDatabaseNames().then(function (names) {
+      if (names && names.indexOf(name) === -1) return { status: "absent" };
+      return new Promise(function (resolve) {
+        var created = false, req;
+        try { req = global.indexedDB.open(name); } catch (e) { resolve({ status: "unreadable", reason: e.message }); return; }
+        req.onupgradeneeded = function (e) { created = true; try { e.target.transaction.abort(); } catch (_) {} };
+        req.onsuccess = function () {
+          if (created) { try { req.result.close(); } catch (_) {} resolve({ status: "absent" }); }
+          else resolve({ status: "open", db: req.result });
+        };
+        req.onerror = function (e) {
+          if (e && e.preventDefault) e.preventDefault();
+          if (created) resolve({ status: "absent" });
+          else resolve({ status: "unreadable", reason: (req.error && req.error.message) || "could not be opened" });
+        };
+        req.onblocked = function () { resolve({ status: "unreadable", reason: "blocked by another open page" }); };
+      });
     });
   }
 
   function readStore(db, storeName) {
     return new Promise(function (resolve, reject) {
-      if (!db.objectStoreNames.contains(storeName)) { resolve(null); return; }
       var out = [], tx;
       try { tx = db.transaction(storeName, "readonly"); } catch (e) { reject(e); return; }
       var cur = tx.objectStore(storeName).openCursor();
-      cur.onsuccess = function () {
-        var c = cur.result;
-        if (c) { out.push({ key: c.primaryKey, value: c.value }); c.continue(); }
-      };
+      cur.onsuccess = function () { var c = cur.result; if (c) { out.push({ key: c.primaryKey, value: c.value }); c.continue(); } };
       tx.oncomplete = function () { resolve(out); };
       tx.onerror = function () { reject(tx.error || Error("Read failed")); };
       tx.onabort = function () { reject(tx.error || Error("Read aborted")); };
@@ -120,42 +167,58 @@
 
   // ---------- export ----------
   function collect() {
-    var result = { local: [], databases: [], excludedOtherKeys: 0, warnings: [] };
-    var ls = null;
-    try { ls = global.localStorage; void ls.length; } catch (e) { ls = null; result.warnings.push("Browser storage could not be read: " + e.message); }
-    if (ls) {
-      var keys = [];
+    var result = { local: [], databases: [], excludedOtherKeys: 0, incomplete: [] };
+    var ls = null, keys = [];
+    try {
+      ls = global.localStorage;
       for (var i = 0; i < ls.length; i++) keys.push(ls.key(i));
+    } catch (e) { ls = null; result.incomplete.push("Browser storage (lesson progress, quiz history and notes) could not be read: " + e.message); }
+    if (ls) {
       keys.sort().forEach(function (k) {
-        if (isStudentKey(k)) result.local.push({ key: k, value: ls.getItem(k) });
-        else result.excludedOtherKeys++;
+        if (!isStudentKey(k)) { result.excludedOtherKeys++; return; }
+        try {
+          var v = ls.getItem(k);
+          if (v === null) result.incomplete.push("Saved item " + k + " disappeared while the backup was being made.");
+          else result.local.push({ key: k, value: v });
+        } catch (e) { result.incomplete.push("Saved item " + k + " could not be read: " + e.message); }
       });
     }
     return DATABASES.reduce(function (p, spec) {
       return p.then(function () {
-        return openExisting(spec.name).then(function (db) {
-          if (!db) { result.databases.push({ name: spec.name, present: false, stores: [] }); return; }
-          var entry = { name: spec.name, present: true, version: db.version, stores: [] };
+        return openExisting(spec.name).then(function (o) {
+          if (o.status === "absent") { result.databases.push({ name: spec.name, status: "absent", stores: [] }); return; }
+          if (o.status === "unreadable") {
+            result.databases.push({ name: spec.name, status: "unreadable", stores: [] });
+            result.incomplete.push("Database " + spec.name + " exists but could not be opened (" + o.reason + ").");
+            return;
+          }
+          var db = o.db, entry = { name: spec.name, status: "read", version: db.version, stores: [] };
           return spec.stores.reduce(function (q, st) {
             return q.then(function () {
+              if (!db.objectStoreNames.contains(st.name)) {
+                result.incomplete.push("Database " + spec.name + " is missing its expected '" + st.name + "' area.");
+                return;
+              }
               return readStore(db, st.name).then(function (records) {
-                if (records === null) return;
                 return Promise.all(records.map(function (r) {
                   return encodeValue(r.value).then(function (ev) { return { key: r.key, value: ev }; });
                 })).then(function (enc) { entry.stores.push({ name: st.name, records: enc }); });
+              }).catch(function (e) {
+                entry.status = "partly unreadable";
+                result.incomplete.push("Records in " + spec.name + "/" + st.name + " could not be read (" + e.message + ").");
               });
             });
-          }, Promise.resolve()).then(function () { db.close(); result.databases.push(entry); },
-            function (e) { db.close(); result.warnings.push(spec.name + ": " + e.message); result.databases.push(entry); });
+          }, Promise.resolve()).then(function () { try { db.close(); } catch (_) {} result.databases.push(entry); });
         });
       });
     }, Promise.resolve()).then(function () { return result; });
   }
 
-  function checksumFor(kind, id, payloadText) { return sha256(kind + "\n" + id + "\n" + payloadText); }
-
   function buildBackup() {
-    return collect().then(function (c) {
+    return checksumSupported().then(function (ok) {
+      if (!ok) throw Error("This browser cannot create the fingerprints that protect a backup, so no backup was made");
+      return collect();
+    }).then(function (c) {
       var jobs = [];
       c.local.forEach(function (item) {
         jobs.push(checksumFor("local", item.key, item.value).then(function (h) { item.sha256 = h; }));
@@ -163,8 +226,7 @@
       c.databases.forEach(function (db) {
         db.stores.forEach(function (st) {
           st.records.forEach(function (r) {
-            var id = db.name + "/" + st.name + "/" + JSON.stringify(r.key);
-            jobs.push(checksumFor("idb", id, JSON.stringify(r.value)).then(function (h) { r.sha256 = h; }));
+            jobs.push(checksumFor("idb", idbId(db.name, st.name, r.key), JSON.stringify(r.value)).then(function (h) { r.sha256 = h; }));
           });
         });
       });
@@ -175,13 +237,13 @@
           format: FORMAT, formatVersion: FORMAT_VERSION,
           exportedAt: new Date().toISOString(),
           context: { origin: global.location.origin, homeScreenApp: standalone },
+          complete: c.incomplete.length === 0,
+          incompleteReasons: c.incomplete,
           summary: {
             localItems: c.local.length,
             databaseRecords: c.databases.reduce(function (n, d) { return n + d.stores.reduce(function (m, s) { return m + s.records.length; }, 0); }, 0),
-            otherAppKeysNotIncluded: c.excludedOtherKeys,
-            checksums: c.local.length === 0 || c.local[0].sha256 !== null
+            otherAppKeysNotIncluded: c.excludedOtherKeys
           },
-          warnings: c.warnings,
           localStorage: c.local,
           indexedDB: c.databases
         };
@@ -191,74 +253,102 @@
 
   // ---------- restore planning ----------
   function validate(backup) {
-    if (!backup || backup.format !== FORMAT) throw Error("This is not a full AStarryia learning backup.");
-    if (backup.formatVersion !== FORMAT_VERSION) throw Error("Unsupported backup version " + backup.formatVersion + ".");
-    if (!Array.isArray(backup.localStorage) || !Array.isArray(backup.indexedDB)) throw Error("The backup file is incomplete.");
+    if (!backup || backup.format !== FORMAT) throw Error("This is not a full AStarryia learning backup");
+    if (backup.formatVersion !== FORMAT_VERSION) throw Error("Unsupported backup version " + backup.formatVersion);
+    if (!Array.isArray(backup.localStorage) || !Array.isArray(backup.indexedDB)) throw Error("The backup file is missing required sections");
     return backup;
   }
 
-  function verifyChecksums(backup) {
-    var bad = [], jobs = [];
+  // Classifies every item: "ok", "unverifiable" (fingerprint missing, malformed or not computable)
+  // or "damaged" (fingerprint does not match). The fingerprint covers (kind, id, payload), as at export.
+  function verifyItems(backup) {
+    var verdict = {}, jobs = [];
+    function check(prefixed, kind, rawId, payload, sha) {
+      if (typeof sha !== "string" || !HEX64.test(sha)) { verdict[prefixed] = "unverifiable"; return; }
+      jobs.push(checksumFor(kind, rawId, payload).then(function (h) { verdict[prefixed] = h === sha ? "ok" : "damaged"; },
+        function () { verdict[prefixed] = "unverifiable"; }));
+    }
     backup.localStorage.forEach(function (item) {
-      if (!item.sha256) return;
-      jobs.push(checksumFor("local", item.key, item.value).then(function (h) { if (h && h !== item.sha256) bad.push(item.key); }));
+      if (typeof item.value !== "string") { verdict["local:" + item.key] = "unverifiable"; return; }
+      check("local:" + item.key, "local", item.key, item.value, item.sha256);
     });
     backup.indexedDB.forEach(function (db) {
       (db.stores || []).forEach(function (st) {
         (st.records || []).forEach(function (r) {
-          if (!r.sha256) return;
-          var id = db.name + "/" + st.name + "/" + JSON.stringify(r.key);
-          jobs.push(checksumFor("idb", id, JSON.stringify(r.value)).then(function (h) { if (h && h !== r.sha256) bad.push(id); }));
+          var id = idbId(db.name, st.name, r.key);
+          check("idb:" + id, "idb", id, JSON.stringify(r.value), r.sha256);
         });
       });
     });
-    return Promise.all(jobs).then(function () { return bad; });
+    return Promise.all(jobs).then(function () { return verdict; });
+  }
+
+  function fileWarnings(backup) {
+    var w = [];
+    if (backup.complete !== true) {
+      w.push("This backup was INCOMPLETE when it was made" + (Array.isArray(backup.incompleteReasons) && backup.incompleteReasons.length ? ": " + backup.incompleteReasons.join(" ") : "."));
+    }
+    var s = backup.summary || {};
+    var records = backup.indexedDB.reduce(function (n, d) { return n + (d.stores || []).reduce(function (m, st) { return m + (st.records || []).length; }, 0); }, 0);
+    if (s.localItems !== backup.localStorage.length || s.databaseRecords !== records) w.push("The file's item count does not match its contents, so the file may have been cut short or edited.");
+    return w;
   }
 
   // Returns a plan describing what a restore would do. Makes no changes.
   function planRestore(backup) {
     validate(backup);
-    var plan = { missing: [], same: [], different: [], refused: [], corrupted: [] };
-    return verifyChecksums(backup).then(function (bad) {
-      var corrupted = {}; bad.forEach(function (id) { corrupted[id] = true; });
+    return checksumSupported().then(function (ok) {
+      if (!ok) throw Error("This browser cannot verify backup fingerprints, so nothing can be restored here");
+      return verifyItems(backup);
+    }).then(function (verdict) {
+      var plan = { missing: [], same: [], different: [], refused: [], damaged: [], unverifiable: [], warnings: fileWarnings(backup) };
+      function screen(prefixed, entry) {
+        var v = verdict[prefixed];
+        if (v === "damaged") { plan.damaged.push(entry); return false; }
+        if (v !== "ok") { plan.unverifiable.push(entry); return false; }
+        return true;
+      }
       var ls = global.localStorage;
       backup.localStorage.forEach(function (item) {
-        if (!isStudentKey(item.key) || typeof item.value !== "string") { plan.refused.push({ kind: "local", id: String(item.key) }); return; }
-        if (corrupted[item.key]) { plan.corrupted.push({ kind: "local", id: item.key }); return; }
-        var current = ls.getItem(item.key);
+        if (!isStudentKey(item.key)) { plan.refused.push({ kind: "local", id: String(item.key) }); return; }
         var entry = { kind: "local", id: item.key, key: item.key, value: item.value };
+        if (!screen("local:" + item.key, entry)) return;
+        var current = ls.getItem(item.key);
         if (current === null) plan.missing.push(entry);
         else if (current === item.value) plan.same.push(entry);
-        else plan.different.push(entry);
+        else { entry.currentAtPreview = current; plan.different.push(entry); }
       });
       return backup.indexedDB.reduce(function (p, db) {
         return p.then(function () {
           var spec = findDatabase(db.name);
           if (!spec) { plan.refused.push({ kind: "idb", id: String(db.name) }); return; }
-          return openExisting(db.name).then(function (live) {
-            return (db.stores || []).reduce(function (q, st) {
+          var stores = db.stores || [];
+          if (!stores.length) return;
+          return openExisting(db.name).then(function (o) {
+            if (o.status === "unreadable") throw Error("Database " + db.name + " on this device could not be opened, so it could not be compared safely");
+            var live = o.status === "open" ? o.db : null;
+            return stores.reduce(function (q, st) {
               return q.then(function () {
-                var stSpec = spec.stores.filter(function (s) { return s.name === st.name; })[0];
-                if (!stSpec) { plan.refused.push({ kind: "idb", id: db.name + "/" + st.name }); return; }
-                var currentRecords = live && live.objectStoreNames.contains(st.name) ? readStore(live, st.name) : Promise.resolve([]);
-                return currentRecords.then(function (cur) {
+                if (!findStore(spec, st.name)) { plan.refused.push({ kind: "idb", id: db.name + "/" + st.name }); return; }
+                var cur = live && live.objectStoreNames.contains(st.name) ? readStore(live, st.name) : Promise.resolve([]);
+                return cur.then(function (records) {
                   var byKey = {};
-                  return Promise.all((cur || []).map(function (r) {
-                    return encodeValue(r.value).then(function (ev) { byKey[JSON.stringify(r.key)] = JSON.stringify(ev); });
+                  return Promise.all(records.map(function (r) {
+                    return encodeValue(r.value).then(function (ev) { byKey[JSON.stringify(r.key)] = { full: JSON.stringify(ev), marker: quickMarker(r.value), encoded: ev }; });
                   })).then(function () {
                     (st.records || []).forEach(function (r) {
-                      var id = db.name + "/" + st.name + "/" + JSON.stringify(r.key);
-                      if (corrupted[id]) { plan.corrupted.push({ kind: "idb", id: id }); return; }
+                      var id = idbId(db.name, st.name, r.key);
                       var entry = { kind: "idb", id: id, db: db.name, store: st.name, key: r.key, value: r.value };
-                      var k = JSON.stringify(r.key);
-                      if (!(k in byKey)) plan.missing.push(entry);
-                      else if (byKey[k] === JSON.stringify(r.value)) plan.same.push(entry);
-                      else plan.different.push(entry);
+                      if (!screen("idb:" + id, entry)) return;
+                      var now = byKey[JSON.stringify(r.key)];
+                      if (!now) plan.missing.push(entry);
+                      else if (now.full === JSON.stringify(r.value)) plan.same.push(entry);
+                      else { entry.markerAtPreview = now.marker; entry.encodedAtPreview = now.encoded; plan.different.push(entry); }
                     });
                   });
                 });
               });
-            }, Promise.resolve()).then(function () { if (live) live.close(); });
+            }, Promise.resolve()).then(function () { if (live) live.close(); }, function (e) { if (live) live.close(); throw e; });
           });
         });
       }, Promise.resolve()).then(function () { return plan; });
@@ -276,70 +366,72 @@
       };
       req.onsuccess = function () { resolve(req.result); };
       req.onerror = function () { reject(req.error || Error("Could not open " + spec.name)); };
-      req.onblocked = function () { reject(Error(spec.name + " is open elsewhere. Close other tabs and try again.")); };
+      req.onblocked = function () { reject(Error(spec.name + " is open elsewhere. Close other tabs and try again")); };
     });
   }
 
-  function putRecords(entries) {
+  // Writes IndexedDB entries. Each existence check and write happens inside one readwrite
+  // transaction, so a save from another tab cannot slip in between the check and the write.
+  function putRecords(entries, mode, skipped) {
     var groups = {};
     entries.forEach(function (e) { var g = e.db + "\u0000" + e.store; (groups[g] = groups[g] || []).push(e); });
+    var written = 0;
     return Object.keys(groups).reduce(function (p, g) {
       return p.then(function () {
-        var list = groups[g], spec = findDatabase(list[0].db);
-        var stSpec = spec.stores.filter(function (s) { return s.name === list[0].store; })[0];
+        var list = groups[g], spec = findDatabase(list[0].db), stSpec = findStore(spec, list[0].store);
         return openForWrite(spec).then(function (db) {
           return new Promise(function (resolve, reject) {
-            var tx = db.transaction(stSpec.name, "readwrite"), os = tx.objectStore(stSpec.name);
-            list.forEach(function (e) { var v = decodeValue(e.value); if (stSpec.keyPath) os.put(v); else os.put(v, e.key); });
-            tx.oncomplete = function () { db.close(); resolve(); };
+            var tx = db.transaction(stSpec.name, "readwrite"), os = tx.objectStore(stSpec.name), pending = 0;
+            list.forEach(function (e) {
+              var req = os.get(e.key);
+              req.onsuccess = function () {
+                var cur = req.result, allowed;
+                if (e.replacing) allowed = cur !== undefined && quickMarker(cur) === e.markerAtPreview;
+                else allowed = cur === undefined;
+                if (!allowed) { skipped.push(e.id); return; }
+                var v = decodeValue(e.value);
+                if (stSpec.keyPath) os.put(v); else os.put(v, e.key);
+                pending++;
+              };
+            });
+            tx.oncomplete = function () { written += pending; db.close(); resolve(); };
             tx.onerror = function () { db.close(); reject(tx.error || Error("Write failed")); };
             tx.onabort = function () { db.close(); reject(tx.error || Error("Write aborted")); };
           });
         });
       });
-    }, Promise.resolve());
+    }, Promise.resolve()).then(function () { return written; });
   }
 
-  // Before replacing anything, keep the device's current values. Returns the safety key used.
+  // Keeps the values seen at preview for every item about to be replaced. Returns the safety key.
   function saveSafetyCopy(entries) {
-    var currentLocal = [], idbIds = [];
-    entries.forEach(function (e) {
-      if (e.kind === "local") currentLocal.push({ key: e.key, value: global.localStorage.getItem(e.key) });
-      else idbIds.push(e);
-    });
-    var idbJobs = idbIds.map(function (e) {
-      return openExisting(e.db).then(function (db) {
-        if (!db) return null;
-        return readStore(db, e.store).then(function (recs) {
-          db.close();
-          var match = (recs || []).filter(function (r) { return JSON.stringify(r.key) === JSON.stringify(e.key); })[0];
-          if (!match) return null;
-          return encodeValue(match.value).then(function (ev) { return { db: e.db, store: e.store, key: e.key, value: ev }; });
-        });
-      });
-    });
-    return Promise.all(idbJobs).then(function (idbCurrent) {
-      var key = SAFETY_PREFIX + new Date().toISOString();
-      var payload = JSON.stringify({ format: FORMAT + "-safety-copy", createdAt: new Date().toISOString(),
-        localStorage: currentLocal, indexedDB: idbCurrent.filter(Boolean) });
-      global.localStorage.setItem(key, payload); // throws if storage is full: caller aborts before replacing
-      if (global.localStorage.getItem(key) !== payload) throw Error("Safety copy could not be confirmed.");
-      return key;
-    });
+    var key = SAFETY_PREFIX + new Date().toISOString();
+    var payload = JSON.stringify({ format: FORMAT + "-safety-copy", createdAt: new Date().toISOString(),
+      localStorage: entries.filter(function (e) { return e.kind === "local"; }).map(function (e) { return { key: e.key, value: e.currentAtPreview }; }),
+      indexedDB: entries.filter(function (e) { return e.kind === "idb"; }).map(function (e) { return { db: e.db, store: e.store, key: e.key, value: e.encodedAtPreview }; }) });
+    global.localStorage.setItem(key, payload); // throws if storage is full: caller stops before replacing
+    if (global.localStorage.getItem(key) !== payload) throw Error("Safety copy could not be confirmed");
+    return key;
   }
 
   // mode: "add-missing" (default) or "replace-different" (also adds missing).
   function applyRestore(plan, mode) {
-    var toWrite = plan.missing.slice(), safetyKey = null;
-    var step = Promise.resolve();
-    if (mode === "replace-different" && plan.different.length) {
-      step = saveSafetyCopy(plan.different).then(function (k) { safetyKey = k; toWrite = toWrite.concat(plan.different); });
-    }
-    return step.then(function () {
-      toWrite.filter(function (e) { return e.kind === "local"; }).forEach(function (e) { global.localStorage.setItem(e.key, e.value); });
-      return putRecords(toWrite.filter(function (e) { return e.kind === "idb"; }));
-    }).then(function () {
-      return { written: toWrite.length, keptUnchanged: mode === "replace-different" ? 0 : plan.different.length, safetyKey: safetyKey };
+    var ls = global.localStorage, skipped = [], written = 0, safetyKey = null;
+    var replacing = mode === "replace-different" ? plan.different.map(function (e) { var c = Object.assign({}, e); c.replacing = true; return c; }) : [];
+    return Promise.resolve().then(function () {
+      if (replacing.length) safetyKey = saveSafetyCopy(replacing);
+      plan.missing.concat(replacing).forEach(function (e) {
+        if (e.kind !== "local") return;
+        // Re-check at the moment of writing; check and write are synchronous with nothing in between.
+        var now = ls.getItem(e.key);
+        var allowed = e.replacing ? now === e.currentAtPreview : now === null;
+        if (!allowed) { skipped.push(e.id); return; }
+        ls.setItem(e.key, e.value); written++;
+      });
+      return putRecords(plan.missing.concat(replacing).filter(function (e) { return e.kind === "idb"; }), mode, skipped);
+    }).then(function (idbWritten) {
+      written += idbWritten;
+      return { written: written, skippedChanged: skipped, keptUnchanged: mode === "replace-different" ? 0 : plan.different.length, safetyKey: safetyKey };
     });
   }
 
@@ -358,11 +450,13 @@
         var day = new Date().toISOString().slice(0, 10);
         var blob = new Blob([JSON.stringify(backup, null, 1)], { type: "application/json" });
         var url = URL.createObjectURL(blob), a = doc.createElement("a");
-        a.href = url; a.download = "astarryia-full-learning-backup-" + day + ".json";
+        a.href = url; a.download = "astarryia-full-learning-backup-" + (backup.complete ? "" : "INCOMPLETE-") + day + ".json";
         doc.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-        text(status, "Backup ready: " + backup.summary.localItems + " saved items and " + backup.summary.databaseRecords +
-          " database records. Nothing on this device was changed." + (backup.warnings.length ? " Warning: " + backup.warnings.join("; ") : ""));
+        var counts = backup.summary.localItems + " saved items and " + backup.summary.databaseRecords + " database records";
+        if (backup.complete) text(status, "Backup ready: " + counts + ". Nothing on this device was changed.");
+        else text(status, "WARNING: this backup is INCOMPLETE and must not be relied on as a full backup. " +
+          backup.incompleteReasons.join(" ") + " It contains " + counts + ". Nothing on this device was changed.");
       }).catch(function (e) { text(status, "Backup failed: " + e.message + ". Nothing was changed."); })
         .then(function () { exportBtn.disabled = false; });
     });
@@ -374,10 +468,12 @@
       text(status, "Checking the backup. Nothing will change until you choose an option.");
       file.text().then(function (raw) { return planRestore(JSON.parse(raw)); }).then(function (plan) {
         pendingPlan = plan;
+        plan.warnings.forEach(function (w) { var d = doc.createElement("div"); d.className = "notice"; text(d, "Warning: " + w); preview.appendChild(d); });
         var p = doc.createElement("div"); p.className = "notice";
         text(p, "This backup has " + plan.missing.length + " item(s) missing on this device, " + plan.same.length +
           " already identical, and " + plan.different.length + " that differ from what is saved here." +
-          (plan.corrupted.length ? " " + plan.corrupted.length + " damaged item(s) will be skipped." : "") +
+          (plan.damaged.length ? " " + plan.damaged.length + " damaged item(s) will not be restored." : "") +
+          (plan.unverifiable.length ? " " + plan.unverifiable.length + " item(s) without a valid fingerprint will not be restored." : "") +
           (plan.refused.length ? " " + plan.refused.length + " item(s) do not belong to this app and will be ignored." : ""));
         preview.appendChild(p);
         var add = doc.createElement("button"); add.type = "button"; add.className = "btn secondary";
@@ -401,17 +497,20 @@
       var plan = pendingPlan; pendingPlan = null;
       Array.prototype.forEach.call(preview.querySelectorAll("button"), function (b) { b.disabled = true; });
       applyRestore(plan, mode).then(function (r) {
-        text(status, "Restored " + r.written + " item(s)." + (r.keptUnchanged ? " " + r.keptUnchanged + " differing item(s) were left unchanged." : "") +
-          (r.safetyKey ? " Previous versions were kept in a safety copy." : "") + " The app will now reload.");
+        text(status, "Restored " + r.written + " item(s)." +
+          (r.skippedChanged.length ? " " + r.skippedChanged.length + " item(s) changed on this device after the check and were left as they are." : "") +
+          (r.keptUnchanged ? " " + r.keptUnchanged + " differing item(s) were left unchanged." : "") +
+          (r.safetyKey ? " Previous versions were kept in a safety copy." : ""));
         input.value = "";
         // Reload so no open page keeps an older copy in memory and saves over the restored data.
         if (r.written) { global.alert("Restore complete. The app will reload so the restored progress is used."); global.location.reload(); }
-      }).catch(function (e) { text(status, "Restore stopped: " + e.message + ". Items already identical or unchanged were not touched."); });
+      }).catch(function (e) { text(status, "Restore stopped: " + e.message + ". Items that were already identical or unchanged were not touched."); });
     }
   }
 
   var api = { FORMAT: FORMAT, FORMAT_VERSION: FORMAT_VERSION, isStudentKey: isStudentKey, buildBackup: buildBackup,
-    planRestore: planRestore, applyRestore: applyRestore, SAFETY_PREFIX: SAFETY_PREFIX };
+    planRestore: planRestore, applyRestore: applyRestore, SAFETY_PREFIX: SAFETY_PREFIX,
+    DATABASE_NAMES: DATABASES.map(function (d) { return d.name; }) };
   global.AStarryiaLearningBackup = api;
   if (global.document) {
     if (global.document.readyState === "loading") global.document.addEventListener("DOMContentLoaded", function () { wireUI(global.document); });

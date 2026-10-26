@@ -101,7 +101,7 @@ def app_ready(page):
     """Wait until the planner has finished opening its saved data (no fixed sleeps)."""
     page.wait_for_function("document.getElementById('save-status').textContent !== 'Checking saved work\u2026'")
 
-def click_and_wait(page, text, expect_reload=True):
+def click_and_wait(page, text, expect_reload=True, wait_text="stopped"):
     page.on("dialog", lambda d: d.accept())  # confirm before replacing, then the "reloading" notice
     if expect_reload:
         with page.expect_navigation(timeout=20000):
@@ -109,7 +109,7 @@ def click_and_wait(page, text, expect_reload=True):
         app_ready(page)
     else:
         page.click("text=" + text)
-        page.wait_for_function("/stopped/.test(document.getElementById('full-backup-status').textContent)")
+        page.wait_for_function("t => document.getElementById('full-backup-status').textContent.includes(t)", arg=wait_text)
 
 with sync_playwright() as p:
     browser = p.chromium.launch()
@@ -225,6 +225,164 @@ with sync_playwright() as p:
         status, prev = preview_restore(page, data)
         check("Rejects " + label + " with no change", status.startswith("Could not read") and snapshot(page) == before, status)
         ctx.close()
+
+    check("Normal backup is marked complete", backup.get("complete") is True and backup.get("incompleteReasons") == [])
+
+    # ---------- Safeguard 1: newer work saved in another tab between preview and restore ----------
+    def other_tab(ctx):
+        t = ctx.new_page(); t.goto(APP); app_ready(t); return t
+    NEWER_STATE = json.dumps({"day": 5, "xp": 900, "done": [1, 2, 3], "mastery": {}, "SYNTHETIC": "newer, saved in tab B"})
+    NEWER_PLANNER = {"version": 1, "done": {"SYNTHETIC-newer": "2026-10-26T18:00:00Z"}, "custom": [], "updatedAt": "2026-10-26T18:00:00Z"}
+
+    # 10. Browser-storage item: missing at preview, saved by tab B, then "Add missing items only".
+    ctx, page = fresh(); preview_restore(page, backup)
+    tab_b = other_tab(ctx); tab_b.evaluate("v => localStorage.setItem('coach-state', v)", NEWER_STATE)
+    click_and_wait(page, "Add missing items only (safe)")
+    check("Two tabs: newer browser-storage save is not overwritten", page.evaluate("localStorage.getItem('coach-state')") == NEWER_STATE)
+    check("Two tabs: other missing items are still added", page.evaluate("localStorage.getItem('coach-notes')") == SYNTH_LOCAL["coach-notes"])
+    ctx.close()
+
+    # 11. Database record: planner snapshot missing at preview, saved by tab B, then "Add missing items only".
+    ctx, page = fresh(); preview_restore(page, backup)
+    tab_b = other_tab(ctx)
+    tab_b.evaluate("""p => new Promise((res, rej) => { const r = indexedDB.open('astarryia-learning-planner-v1');
+      r.onsuccess = () => { const tx = r.result.transaction('snapshots', 'readwrite'); tx.objectStore('snapshots').put(p, 'active');
+      tx.oncomplete = () => { r.result.close(); res(); }; tx.onerror = () => rej(tx.error); }; })""", NEWER_PLANNER)
+    click_and_wait(page, "Add missing items only (safe)")
+    rec = snapshot(page)["records"].get("astarryia-learning-planner-v1/snapshots")
+    check("Two tabs: newer planner save in the database is not overwritten", rec == [["active", NEWER_PLANNER]], str(rec)[:120])
+    ctx.close()
+
+    # 12. Nothing left to add: every missing item was saved by tab B, so nothing is written and the skip is reported.
+    one = json.loads(json.dumps(backup)); one["localStorage"] = [i for i in one["localStorage"] if i["key"] == "coach-notes"]
+    one["indexedDB"] = []; one["summary"]["localItems"] = 1; one["summary"]["databaseRecords"] = 0
+    ctx, page = fresh(); preview_restore(page, one)
+    tab_b = other_tab(ctx); tab_b.evaluate("localStorage.setItem('coach-notes', 'SYNTHETIC newer notes from tab B')")
+    click_and_wait(page, "Add missing items only (safe)", expect_reload=False, wait_text="changed on this device after the check")
+    check("Two tabs: skipped item is reported to the user", "1 item(s) changed on this device after the check" in page.inner_text("#full-backup-status"))
+    check("Two tabs: skipped item keeps the newer value", page.evaluate("localStorage.getItem('coach-notes')") == "SYNTHETIC newer notes from tab B")
+    ctx.close()
+
+    # 13. Replace: item differed at preview, tab B changed it again before replace.
+    ctx, page = fresh(); page.evaluate("v => localStorage.setItem('astarryia-unit3-v1', v)", newer)
+    preview_restore(page, backup)
+    tab_b = other_tab(ctx); tab_b.evaluate("localStorage.setItem('astarryia-unit3-v1', '{\"SYNTHETIC\":\"newest from tab B\"}')")
+    click_and_wait(page, "Replace 1 differing item")
+    check("Two tabs: replace skips an item changed again after preview",
+          page.evaluate("localStorage.getItem('astarryia-unit3-v1')") == '{"SYNTHETIC":"newest from tab B"}')
+    ctx.close()
+
+    # ---------- Safeguard 2: mandatory fingerprints ----------
+    def variant(mutate):
+        d = json.loads(json.dumps(backup))
+        for i in d["localStorage"]:
+            if i["key"] == "coach-notes": mutate(i)
+        return d
+    for label, mutate, phrase in [
+        ("missing fingerprint", lambda i: i.pop("sha256"), "without a valid fingerprint"),
+        ("malformed fingerprint", lambda i: i.__setitem__("sha256", "not-a-fingerprint"), "without a valid fingerprint"),
+        ("altered fingerprint", lambda i: i.__setitem__("sha256", "0" * 64), "damaged item"),
+    ]:
+        ctx, page = fresh(); status, prev = preview_restore(page, variant(mutate))
+        check("Fingerprint: " + label + " is reported", ("1 " + phrase) in prev or ("1 item(s) " + phrase) in prev, prev)
+        click_and_wait(page, "Add missing items only (safe)")
+        check("Fingerprint: " + label + " item is not restored", page.evaluate("localStorage.getItem('coach-notes')") is None)
+        check("Fingerprint: verified items still restore (" + label + ")", page.evaluate("localStorage.getItem('coach-state')") == SYNTH_LOCAL["coach-state"])
+        ctx.close()
+    # A database record with no fingerprint is also refused.
+    d = json.loads(json.dumps(backup))
+    for db in d["indexedDB"]:
+        for st in db["stores"]:
+            for r in st["records"]: r.pop("sha256", None)
+    ctx, page = fresh(); preview_restore(page, d); click_and_wait(page, "Add missing items only (safe)")
+    check("Fingerprint: database records without fingerprints are not restored",
+          not snapshot(page)["records"].get("astarryia-learning-planner-v1/snapshots"))
+    ctx.close()
+
+    # No SHA-256 in this browser: export makes no file, restore changes nothing.
+    NO_SHA = "Object.defineProperty(window.crypto.subtle, 'digest', {value: () => Promise.reject(new Error('no SHA-256'))});"
+    ctx = browser.new_context(accept_downloads=True); ctx.add_init_script(NO_SHA); page = ctx.new_page()
+    downloads = []; page.on("download", lambda d: downloads.append(d))
+    open_settings(page); page.click("#full-backup")
+    page.wait_for_function("document.getElementById('full-backup-status').textContent.startsWith('Backup failed')")
+    check("No SHA-256: export refuses and makes no file", not downloads and "no backup was made" in page.inner_text("#full-backup-status"))
+    before = snapshot(page); status, prev = preview_restore(page, backup)
+    check("No SHA-256: restore refuses with no change", "cannot verify" in status and snapshot(page) == before and prev.strip() == "", status)
+    ctx.close()
+
+    # ---------- Safeguard 3: never call a partial backup complete ----------
+    def export_any(page):
+        open_settings(page)
+        with page.expect_download() as dl:
+            page.click("#full-backup")
+        page.wait_for_function("/^(Backup ready|WARNING)/.test(document.getElementById('full-backup-status').textContent)")
+        return json.load(open(dl.value.path())), dl.value.suggested_filename, page.inner_text("#full-backup-status")
+
+    BREAK_OPEN = """(() => { const real = IDBFactory.prototype.open;
+      IDBFactory.prototype.open = function (name, v) {
+        if (name === 'astarryia-physiology-music-v1') { const req = {}; setTimeout(() => { req.error = new DOMException('simulated failure', 'UnknownError');
+          if (req.onerror) req.onerror({ preventDefault() {} }); }, 0); return req; }
+        return real.apply(this, arguments); }; })();"""
+    BREAK_READ = """(() => { const real = IDBDatabase.prototype.transaction;
+      IDBDatabase.prototype.transaction = function (stores, mode) {
+        if (String(stores) === 'tracks' && mode !== 'readwrite') throw new DOMException('simulated read failure', 'UnknownError');
+        return real.apply(this, arguments); }; })();"""
+    BREAK_LOCAL = """(() => { Storage.prototype.key = function () { throw new DOMException('simulated storage failure', 'SecurityError'); }; })();"""
+    for label, script, needle in [("database cannot be opened", BREAK_OPEN, "astarryia-physiology-music-v1 exists but could not be opened"),
+                                  ("database records cannot be read", BREAK_READ, "astarryia-physiology-music-v1/tracks could not be read"),
+                                  ("browser storage cannot be read", BREAK_LOCAL, "Browser storage")]:
+        ctx = browser.new_context(accept_downloads=True); page = ctx.new_page(); page.goto(APP); seed(page)
+        ctx.add_init_script(script)
+        data, name, status = export_any(page)
+        check("Incomplete (" + label + "): file says incomplete", data["complete"] is False and any(needle in r for r in data["incompleteReasons"]), str(data.get("incompleteReasons"))[:160])
+        check("Incomplete (" + label + "): file name says INCOMPLETE", "INCOMPLETE" in name, name)
+        check("Incomplete (" + label + "): message warns, never 'Backup ready'", status.startswith("WARNING") and "INCOMPLETE" in status, status[:120])
+        ctx.close()
+        if label == "database cannot be opened":
+            ctx, page = fresh(); status, prev = preview_restore(page, data)
+            check("Restoring an incomplete backup shows the warning", "This backup was INCOMPLETE" in prev, prev[:160])
+            ctx.close()
+    # A database that genuinely does not exist is not a failure.
+    ctx = browser.new_context(accept_downloads=True); page = ctx.new_page(); page.goto(APP); app_ready(page)
+    data, name, status = export_any(page)
+    phys = [d for d in data["indexedDB"] if d["name"] == "astarryia-physiology-music-v1"][0]
+    check("Absent database is recorded as absent, backup complete", phys["status"] == "absent" and data["complete"] is True and status.startswith("Backup ready"))
+    ctx.close()
+    # A file whose counts do not match its contents is flagged.
+    cut = json.loads(json.dumps(backup)); cut["localStorage"] = cut["localStorage"][:3]
+    ctx, page = fresh(); status, prev = preview_restore(page, cut)
+    check("Cut-short file is flagged", "may have been cut short" in prev, prev[:160])
+    ctx.close()
+
+    # ---------- Key coverage: every AStarryia key in the repository, and none of Michael's ----------
+    import re, glob
+    found = set()
+    for path in glob.glob(os.path.join(ROOT, "**", "*.js"), recursive=True) + glob.glob(os.path.join(ROOT, "**", "*.html"), recursive=True):
+        rel = os.path.relpath(path, ROOT)
+        if rel.startswith(("test-", "test-fixtures", ".github", "node_modules")) or "/test-" in rel or rel == "student-app/learning-backup.js":
+            continue
+        src = open(path, encoding="utf-8", errors="ignore").read()
+        found.update(re.findall(r"""(?:localStorage|sessionStorage|storage)\.setItem\(\s*['"]([^'"$]+)['"]""", src))
+        found.update(re.findall(r"""\b(?:[A-Z0-9_]*KEY|STORAGE)\s*=\s*['"]([^'"]{4,80})['"]""", src))
+    found.discard("__t")  # momentary write-test probe, removed immediately
+    found.update(["chm221.chapter1.U1-03.v1", "chm221.test1.alkane-isomers.v2", "astarryia.day4.v1", "molstage-ch4-build"])  # dynamic keys
+    ctx, page = fresh()
+    verdicts = page.evaluate("keys => keys.map(k => [k, AStarryiaLearningBackup.isStudentKey(k)])", sorted(found))
+    missed = [k for k, ok in verdicts if not ok]
+    check("Every AStarryia storage key in the repository is covered (%d keys)" % len(verdicts), not missed, str(missed))
+    michael = ["MLUL_BACKUP_V1", "MLUL_BROWSER_AUDIT_BACKUP_V1", "LEVEL_UP_BACKUP_abc_V2", "learner:123", "michael", "__healthcheck",
+               "__local_durable_backup_handle", "MLUL_WTMMTM_SCHOOL_QUEST_V1"]
+    leaked = page.evaluate("keys => keys.filter(k => AStarryiaLearningBackup.isStudentKey(k))", michael)
+    check("None of Michael's known storage keys are included", not leaked, str(leaked))
+    dbs_in_repo = set()
+    for path in glob.glob(os.path.join(ROOT, "**", "*.js"), recursive=True):
+        rel = os.path.relpath(path, ROOT)
+        if rel.startswith("test-"): continue
+        dbs_in_repo.update(re.findall(r"""DB_NAME\s*=\s*['"]([^'"]+)['"]""", open(path, encoding="utf-8", errors="ignore").read()))
+    covered = page.evaluate("AStarryiaLearningBackup.DATABASE_NAMES")
+    check("Every AStarryia database in the repository is covered", dbs_in_repo <= set(covered), "%s vs %s" % (dbs_in_repo, covered))
+    check("Michael's database is not covered", not any("Michael" in n for n in covered))
+    ctx.close()
 
     browser.close()
 server.shutdown()
