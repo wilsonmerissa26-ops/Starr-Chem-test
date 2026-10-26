@@ -44,7 +44,7 @@ function coachRecommendedTasks(){
 const SEED=[
 ["chem-1026-review","2026-10-26","chem","Unit 3: SN1/SN2/E1/E2 final review","practice",65,"Coach suggestion","Classify 12 reagents/substrates; work Unit 3 Problem Set #6, #9, #12 and correct mechanisms. Exam is Tuesday; do not count watching as mastery."],
 ["chem-1026-mock","2026-10-26","chem","Exam 3: timed past-paper practice","practice",75,"Coach suggestion","Use the 2023 practice Exam 3 under timed conditions, then explain each wrong answer from scratch. This is a historical exam, not this term's test."],
-["chem-1027-exam","2026-10-27","chem","Test 3 • Chapters 6–7 focus","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Confirm any schedule changes in Canvas. No phone, tablet, or AI during exams."],
+["chem-1027-exam","2026-10-27","chem","Test 3","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Confirm tested chapters, exam rules, and any schedule changes in Canvas."],
 ["ap-1027-muscles","2026-10-27","ap","Muscular System, Part 1","class",25,"BIO 131 syllabus","Lecture topic: Chapter 9. Prepare a muscle-tissue comparison and label major muscles from memory."],
 ["ap-1028-lab","2026-10-28","ap","Lab: Appendicular Skeleton & Joints and Movement","lab",30,"BIO 131 syllabus","Lab topic. Check Canvas for associated pre- and post-lab quizzes and due times."],
 ["chem-1029-ch8","2026-10-29","chem","Chapter 8: learn, draw, self-test","class",35,"CHM 221 syllabus","Thursday lecture: Chapter 8. Write a one-page mechanism map and retry 4 missed reactions."],
@@ -72,7 +72,7 @@ const SEED=[
 ["chem-1130-ch10","2026-11-30","chem","Chapter 10 preview","practice",35,"Coach suggestion","Make a list of structures/reaction patterns for Chapter 10; mark any unfamiliar reaction."],
 ["ap-1201-review","2026-12-01","ap","Final review lecture","class",45,"BIO 131 syllabus","Tuesday final review. Cumulative final scheduled Monday Dec 7."],
 ["chem-1201-ch10","2026-12-01","chem","Chapter 10 lecture","class",30,"CHM 221 syllabus","Tuesday Chapter 10 lecture. Use problem-solving rather than passive rereading."],
-["ap-1202-labexam","2026-12-02","ap","Lab Practical 2","exam",0,"BIO 131 syllabus","Wednesday Lab Practical 2. Confirm the structures covered in Canvas."],
+["ap-1202-labexam","2026-12-02","ap","Lab Practical 2 • Cumulative","exam",0,"BIO 131 syllabus","Wednesday cumulative Lab Practical 2. Confirm the structure list and any updates in Canvas."],
 ["chem-1203-wrap","2026-12-03","chem","Chapter 10 + course wrap-up","class",30,"CHM 221 syllabus","Thursday lecture and course wrap-up."],
 ["ap-1204-mock","2026-12-04","ap","A&P cumulative mock test","practice",60,"Coach suggestion","Mix all units and record exact concepts missed, especially identification and physiology."],
 ["ap-1206-review","2026-12-06","ap","A&P final: short recall and reset","practice",40,"Coach suggestion","Two rounds of unlabeled drawings and challenging cumulative questions; then rest."],
