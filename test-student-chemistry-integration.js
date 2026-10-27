@@ -6,6 +6,8 @@ const appHtml=fs.readFileSync("student-app/index.html","utf8");
 const appSource=fs.readFileSync("student-app/app.js","utf8");
 const coachHtml=fs.readFileSync("unit3-coach/index.html","utf8");
 assert.match(appHtml,/<section id="chemistry" class="screen">/);
+assert.match(appHtml,/<section id="resource" class="screen">/,"in-app resource classroom exists");
+for(const key of ["day1","foundation","unit1","physiology"]) assert.match(appHtml,new RegExp('data-resource="'+key+'"'),"resource "+key+" is reachable inside the app");
 assert.match(appHtml,/data-src="\.\.\/unit3-coach\/\?embed=1"/);
 assert.match(appHtml,/id="chem-weak-list"/);
 assert.match(appSource,/astarryia-unit3-v1/);
@@ -53,6 +55,14 @@ async function flush(){for(let i=0;i<8;i++)await Promise.resolve();}
  assert.match(element("#calendar-grid").innerHTML,/Learn \+ practice/,"study calendar includes coach plan");
  document.click({target:{closest(sel){return sel==="[data-go]"?{dataset:{go:"chemistry"}}:null}}});
  assert.equal(element("#coach-frame").attrs.src,"../unit3-coach/?embed=1");
+ document.click({target:{closest(sel){return sel==="[data-resource]"?{dataset:{resource:"physiology"}}:null}}});
+ assert.equal(element("#resource-frame").attrs.src,"../physiology-song-lab/","A&P lab opens in the app frame");
+ assert.match(element("#resource-title").textContent,/Anatomy & Physiology/);
+ document.click({target:{closest(sel){return sel==="[data-resource]"?{dataset:{resource:"foundation"}}:null}}});
+ assert.equal(element("#resource-frame").attrs.src,"../course-hub/","all Chemistry foundation days open in the app frame");
+ document.click({target:{closest(sel){return sel==="[data-resource]"?{dataset:{resource:"unit1"}}:null}}});
+ assert.equal(element("#resource-frame").attrs.src,"../course-units/unit1/","Unit 1 lessons open in the app frame");
+
  // Evidence as the coach saves it: module 1 answered correctly on first try, module 2 mostly wrong on first try.
  const ev=Array.from({length:8},(_,i)=>({index:i,status:"not-started",firstTry:0,firstTryCorrect:0}));
  ev[0]={index:0,status:"strong",firstTry:4,firstTryCorrect:4};ev[1]={index:1,status:"needs-review",firstTry:4,firstTryCorrect:1};
