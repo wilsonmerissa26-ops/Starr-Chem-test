@@ -6,6 +6,18 @@ const appHtml=fs.readFileSync("student-app/index.html","utf8");
 const appSource=fs.readFileSync("student-app/app.js","utf8");
 const coachHtml=fs.readFileSync("unit3-coach/index.html","utf8");
 assert.match(appHtml,/<section id="chemistry" class="screen">/);
+const sidebar = appHtml.match(/<nav aria-label="App navigation">([\s\S]*?)<\/nav>/);
+const bottomBar = appHtml.match(/<div class="mobilebar" aria-label="Bottom navigation">([\s\S]*?)<\/div>/);
+assert(sidebar && bottomBar,"both iPad and desktop navigation are present");
+for (const fragment of [sidebar[1],bottomBar[1]]) {
+ const keys=[...fragment.matchAll(/data-go="([^"]+)"/g)].map(x=>x[1]);
+ assert.deepStrictEqual(keys,["today","subjects","calendar","settings"],"four familiar navigation choices");
+}
+assert.match(appHtml,/class="grid home-classes"/,"simple class-first home screen exists");
+assert.match(appHtml,/<button[^>]*data-go="chemistry"[^>]*>Start Chemistry/,"Chemistry has a clear primary action");
+assert.match(appHtml,/<button[^>]*data-subject="ap"[^>]*>Open A&amp;P/,"A&P is visible on the home screen");
+assert.match(appHtml,/<details class="home-more">/,"optional recommendations are available without clutter");
+
 assert.match(appHtml,/<section id="resource" class="screen">/,"in-app resource classroom exists");
 for(const key of ["day1","foundation","unit1","physiology"]) assert.match(appHtml,new RegExp('data-resource="'+key+'"'),"resource "+key+" is reachable inside the app");
 assert.match(appHtml,/data-src="\.\.\/unit3-coach\/\?embed=1"/);
