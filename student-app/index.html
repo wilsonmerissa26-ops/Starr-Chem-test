@@ -49,6 +49,18 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 #save-status{font-size:.79rem;color:var(--green);font-weight:750}.mobilebar{display:none}
 @media(max-width:950px){.app{grid-template-columns:1fr}aside{display:none}main{padding:17px 16px 100px}.mobilebar{position:fixed;z-index:30;display:flex;bottom:0;left:0;right:0;background:#271536;padding:8px 6px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -8px 24px #21162a33;justify-content:space-around}.mobilebar button{border:0;color:#e8dff2;background:none;display:grid;gap:5px;justify-items:center;font-size:.72rem;font-weight:750;padding:8px 4px;min-width:55px}.mobilebar button.active{color:#ffdd9f}} 
 @media(max-width:600px){.grid,.triple,.formgrid{grid-template-columns:1fr}.field.wide{grid-column:auto}.card{padding:16px}.day{min-height:65px;padding:5px;border-radius:8px}.day .mini{font-size:.59rem}.day .num{font-size:.81rem}.calendar{gap:3px}.top{margin-bottom:15px}h1{font-size:1.9rem}}
+.home-intro{padding:5px 0 18px}.home-intro h1{margin-bottom:8px}.home-intro p{font-size:1rem;line-height:1.55;margin:0;max-width:670px}
+.home-classes{margin-bottom:16px}.home-course{display:flex;flex-direction:column;align-items:flex-start;gap:9px;box-shadow:0 4px 16px #34213e09}
+.home-course h2{font-size:1.4rem;margin:1px 0 0}.home-course p{font-size:.94rem;line-height:1.5;flex:1;margin:0 0 5px}
+.home-course .home-start{width:100%;justify-content:space-between;font-size:1rem;min-height:54px}
+.home-ap{border-left:4px solid #17768b}.home-ap .home-start{background:#176a80;border-color:#176a80}
+.home-next{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:0 0 18px;flex-wrap:wrap;padding:16px 20px}
+.home-milestone{font-weight:850;margin-top:6px;line-height:1.45}
+.home-more{margin:20px 0;border:1px solid var(--line);border-radius:14px;background:white;padding:12px 15px}
+.home-more summary{cursor:pointer;color:var(--purple);font-weight:800;min-height:44px;padding:11px 3px}
+.home-more:focus-within{outline-offset:2px}
+.home-stats{margin-top:6px}.home-stats .card{box-shadow:none}
+@media(max-width:600px){.home-course .home-start{min-height:52px}.home-next .btn{width:100%}.home-next{align-items:stretch}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
@@ -56,34 +68,63 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <div class="app">
 <aside><div class="logo"><span class="spark">✦</span><span>AStarryia<br><small style="font-weight:600;color:#c8b3de">My Learning App</small></span></div>
 <nav aria-label="App navigation">
-<button class="sidebtn active" data-go="today">🏠 Today</button>
+<button class="sidebtn active" data-go="today">🏠 Home</button>
+<button class="sidebtn" data-go="subjects">📚 My Classes</button>
 <button class="sidebtn" data-go="calendar">🗓️ Calendar</button>
-<button class="sidebtn" data-go="subjects">📚 Subjects</button>
-<button class="sidebtn" data-go="chemistry">🧪 Chemistry Coach</button>
-<button class="sidebtn" data-go="focus">🎯 Study & coach</button>
-<button class="sidebtn" data-go="settings">⚙️ My planner</button>
+<button class="sidebtn" data-go="settings">✅ My Planner</button>
 </nav>
 <div class="sidefooter">Your personalized school headquarters. Study the right thing at the right time, then prove what you know.</div></aside>
 <main>
-<div class="top"><div><div class="eyebrow">Fall 2026 • Study with purpose</div><div class="muted small" id="date-today"></div></div><div id="save-status" aria-live="polite">Checking saved work…</div></div>
+<div class="top"><div><div class="eyebrow">AStarryia Learn • My classes</div><div class="muted small" id="date-today"></div></div><div id="save-status" aria-live="polite">Checking saved work…</div></div>
 <section id="today" class="screen active">
-<div class="card hero"><div class="eyebrow" style="color:#e9d4ff">Your daily mission</div><h1>Hey, AStarryia ✦</h1><p class="muted" style="max-width:660px">One subject at a time. Learn the rule, try it without help, check your work, then come back to anything you missed.</p><div class="row"><button class="btn" data-go="focus" style="background:#fff;color:#41225c;border-color:#fff">Start a study session</button><button class="btn secondary" data-go="calendar" style="background:transparent;border-color:#cdb6eb;color:#fff">See my calendar</button></div></div>
-<div class="triple section"><div class="card"><div class="muted small">Study items today</div><div class="stat" id="today-count">—</div></div><div class="card"><div class="muted small">Finished today</div><div class="stat" id="done-count">—</div></div><div class="card"><div class="muted small">Next milestone</div><div id="next-milestone" style="font-weight:900;margin-top:9px">—</div></div></div>
-<div id="coach-today" aria-live="polite"></div><div class="section row spread"><h2>Today's work</h2><button class="btn secondary compact" data-go="settings">+ Add assignment</button></div><div id="today-tasks"></div>
-<div class="section"><h2>Up next</h2></div><div id="up-next"></div>
+<header class="home-intro">
+  <div class="eyebrow">Your learning home</div>
+  <h1>Hi, AStarryia ✦</h1>
+  <p class="muted">Choose your class. Learn one concept at a time, practice it, and come back to what you missed.</p>
+</header>
+<div class="grid home-classes" aria-label="Choose a class to study">
+  <article class="card home-course">
+    <span class="pill">CHM 221</span>
+    <h2>🧪 Chemistry</h2>
+    <p class="muted">Lessons, reaction practice, and step-by-step explanations.</p>
+    <button type="button" class="btn home-start" data-go="chemistry">Start Chemistry <span aria-hidden="true">→</span></button>
+  </article>
+  <article class="card home-course home-ap">
+    <span class="pill ap">BIO 131</span>
+    <h2>🫀 Anatomy &amp; Physiology</h2>
+    <p class="muted">Study schedule, anatomy review, and physiology music lab.</p>
+    <button type="button" class="btn home-start" data-subject="ap">Open A&amp;P <span aria-hidden="true">→</span></button>
+  </article>
+</div>
+<div class="card home-next">
+  <div><div class="eyebrow">Next important date</div><div id="next-milestone" class="home-milestone">—</div></div>
+  <button type="button" class="btn secondary" data-go="calendar">View calendar</button>
+</div>
+<div class="section row spread"><h2>My work today</h2><button type="button" class="btn secondary compact" data-go="settings">+ Add a task</button></div>
+<div id="today-tasks"></div>
+<details class="home-more">
+  <summary>Study progress and more recommendations</summary>
+  <div class="grid home-stats section">
+    <div class="card"><div class="muted small">Study items today</div><div class="stat" id="today-count">—</div></div>
+    <div class="card"><div class="muted small">Finished today</div><div class="stat" id="done-count">—</div></div>
+  </div>
+  <div id="coach-today" aria-live="polite"></div>
+  <div class="section"><h3>Coming up</h3></div><div id="up-next"></div>
+</details>
 </section>
 <section id="calendar" class="screen">
 <div class="eyebrow">Plan ahead</div><h1>Study calendar</h1><p class="muted">Class dates are labeled as syllabus dates. Suggested practice sessions are your coach's plan—not an official Canvas deadline.</p>
 <div class="card"><div class="caltools"><button class="btn secondary compact" id="prev-month" aria-label="Previous month">←</button><h2 id="month-name" style="margin:0"></h2><button class="btn secondary compact" id="next-month" aria-label="Next month">→</button></div><div id="calendar-grid" class="calendar"></div></div>
 <div class="section row spread"><h2 id="chosen-date-label">Selected date</h2><button class="btn secondary compact" id="add-selected">+ Task on this date</button></div><div id="selected-tasks"></div>
 </section>
-<section id="subjects" class="screen"><div class="eyebrow">Each class has its own lane</div><h1>My subjects</h1>
+<section id="subjects" class="screen"><div class="eyebrow">Choose a subject</div><h1>My classes</h1><p class="muted">Start a lesson, or open the study resources for your class.</p>
 <div class="grid">
-<div class="card subject"><span class="pill">CHM 221</span><h2>Organic Chemistry</h2><p class="muted small">Ch. 6–7 substitution/elimination, then Ch. 8–11 and final exam review. Original nine foundation days preserved.</p><p><button class="btn" data-go="chemistry">Open chemistry lessons in this app</button></p><div class="small muted" id="subject-chem-progress">Loading chemistry progress…</div><div class="row" style="margin-top:12px"><button type="button" class="btn secondary compact" data-resource="foundation">Open all nine foundation days here</button><button type="button" class="btn secondary compact" data-resource="unit1">Open Unit 1 lessons here</button></div></div>
-<div class="card subject ap"><span class="pill ap">BIO 131</span><h2>Anatomy & Physiology I</h2><p class="muted small">Muscular system, muscle physiology, lab anatomy, and cumulative review from the posted Fall syllabus.</p><div class="row"><button class="btn secondary" data-subject="ap">See A&P assignments</button><button type="button" class="btn secondary" data-resource="physiology">Open A&P music lab here</button></div></div>
+<div class="card subject"><span class="pill">CHM 221</span><h2>Organic Chemistry</h2><p class="muted small">Ch. 6–7 substitution/elimination, then Ch. 8–11 and final exam review. Original nine foundation days preserved.</p><p><button class="btn" data-go="chemistry">Start Chemistry</button></p><div class="small muted" id="subject-chem-progress">Loading chemistry progress…</div><div class="row" style="margin-top:12px"><button type="button" class="btn secondary compact" data-resource="foundation">Open all nine foundation days here</button><button type="button" class="btn secondary compact" data-resource="unit1">Open Unit 1 lessons here</button></div></div>
+<div class="card subject ap"><span class="pill ap">BIO 131</span><h2>Anatomy & Physiology I</h2><p class="muted small">Muscular system, muscle physiology, lab anatomy, and cumulative review from the posted Fall syllabus.</p><div class="row"><button class="btn secondary" data-subject="ap">Open A&P study plan</button><button type="button" class="btn secondary" data-resource="physiology">Open A&P music lab here</button></div></div>
 <div class="card subject other"><span class="pill">Custom</span><h2>Other classes</h2><p class="muted small">Add Biology, electives, jobs, or personal study items with their real deadlines. No invented due dates.</p><button class="btn secondary" data-go="settings">Add a task or class</button></div>
 </div>
-<div id="custom-subject-list" class="grid section"></div><div class="section"><h2>Subject assignments</h2></div><div class="filterbar" id="subject-filters"></div><div id="subject-tasks"></div>
+<div class="section"><button type="button" class="btn secondary compact" data-go="focus">More learning tools &amp; foundation lessons</button></div>
+<div id="custom-subject-list" class="grid section"></div><div class="section"><h2>Class assignments</h2></div><div class="filterbar" id="subject-filters"></div><div id="subject-tasks"></div>
 </section>
 <section id="focus" class="screen"><div class="eyebrow">Understand → Practice → Prove</div><h1>Study & coaching</h1>
 <div class="grid"><div class="card focuscard"><div class="eyebrow" style="color:#d5b8f2">Priority learning</div><h2>Organic Chemistry Unit 3</h2><p class="muted">Eight interactive modules, decision shortcuts, worked examples, and understanding checks covering Ch. 6–7.</p><button class="btn" data-go="chemistry" style="background:white;color:#392050;border-color:white">Teach me chemistry here</button><p class="small muted">A lesson is not mastered until you can work a new question independently.</p></div>
@@ -133,6 +174,9 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <p><button type="button" class="btn secondary compact" data-resource="foundation">Open existing CHM 221 course support inside this app</button></p></div></div></section>
 </main></div>
 <div class="mobilebar" aria-label="Bottom navigation">
-<button data-go="today" class="active">🏠<span>Today</span></button><button data-go="calendar">🗓️<span>Calendar</span></button><button data-go="subjects">📚<span>Subjects</span></button><button data-go="chemistry">🧪<span>Chemistry</span></button><button data-go="focus">🎯<span>Study</span></button><button data-go="settings">⚙️<span>Planner</span></button></div>
+<button data-go="today" class="active">🏠<span>Home</span></button>
+<button data-go="subjects">📚<span>Classes</span></button>
+<button data-go="calendar">🗓️<span>Calendar</span></button>
+<button data-go="settings">✅<span>Planner</span></button></div>
 <script src="./app.js" defer></script>
 </body></html>
