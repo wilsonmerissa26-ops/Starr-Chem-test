@@ -62,6 +62,7 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 .home-stats{margin-top:6px}.home-stats .card{box-shadow:none}
 @media(max-width:600px){.home-course .home-start{min-height:52px}.home-next .btn{width:100%}.home-next{align-items:stretch}}
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -88,14 +89,17 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
     <h2>🧪 Chemistry</h2>
     <p class="muted">Lessons, reaction practice, and step-by-step explanations.</p>
     <button type="button" class="btn home-start" data-go="chemistry">Start Chemistry <span aria-hidden="true">→</span></button>
+    <button type="button" class="btn secondary compact" data-resource="chem-ch8" style="margin-top:8px">New lesson: Chapter 8, adding HBr to alkenes</button>
   </article>
   <article class="card home-course home-ap">
     <span class="pill ap">BIO 131</span>
     <h2>🫀 Anatomy &amp; Physiology</h2>
     <p class="muted">Study schedule, anatomy review, and physiology music lab.</p>
     <button type="button" class="btn home-start" data-subject="ap">Open A&amp;P <span aria-hidden="true">→</span></button>
+    <button type="button" class="btn secondary compact" data-resource="ap-muscles" style="margin-top:8px">New lesson: head and neck muscles</button>
   </article>
 </div>
+<div class="card home-next" id="next-up" hidden aria-live="polite"></div>
 <div class="card home-next">
   <div><div class="eyebrow">Next important date</div><div id="next-milestone" class="home-milestone">—</div></div>
   <button type="button" class="btn secondary" data-go="calendar">View calendar</button>
@@ -120,7 +124,7 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <section id="subjects" class="screen"><div class="eyebrow">Choose a subject</div><h1>My classes</h1><p class="muted">Start a lesson, or open the study resources for your class.</p>
 <div class="grid">
 <div class="card subject"><span class="pill">CHM 221</span><h2>Organic Chemistry</h2><p class="muted small">Ch. 6–7 substitution/elimination, then Ch. 8–11 and final exam review. Original nine foundation days preserved.</p><p><button class="btn" data-go="chemistry">Start Chemistry</button></p><div class="small muted" id="subject-chem-progress">Loading chemistry progress…</div><div class="row" style="margin-top:12px"><button type="button" class="btn secondary compact" data-resource="foundation">Open all nine foundation days here</button><button type="button" class="btn secondary compact" data-resource="unit1">Open Unit 1 lessons here</button></div></div>
-<div class="card subject ap"><span class="pill ap">BIO 131</span><h2>Anatomy & Physiology I</h2><p class="muted small">Muscular system, muscle physiology, lab anatomy, and cumulative review from the posted Fall syllabus.</p><div class="row"><button class="btn secondary" data-subject="ap">Open A&P study plan</button><button type="button" class="btn secondary" data-resource="physiology">Open A&P music lab here</button></div></div>
+<div class="card subject ap"><span class="pill ap">BIO 131</span><h2>Anatomy & Physiology I</h2><p class="muted small">Muscular system, muscle physiology, lab anatomy, and cumulative review from the posted Fall syllabus.</p><div class="row"><button class="btn secondary" data-subject="ap">Open A&P study plan</button><button type="button" class="btn secondary" data-resource="physiology">Open A&P music lab here</button><button type="button" class="btn" data-resource="ap-muscles">Muscle lesson</button></div></div>
 <div class="card subject other"><span class="pill">Custom</span><h2>Other classes</h2><p class="muted small">Add Biology, electives, jobs, or personal study items with their real deadlines. No invented due dates.</p><button class="btn secondary" data-go="settings">Add a task or class</button></div>
 </div>
 <div class="section"><button type="button" class="btn secondary compact" data-go="focus">More learning tools &amp; foundation lessons</button></div>
@@ -146,6 +150,7 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <div class="eyebrow">Inside AStarryia's Learning App • CHM 221</div>
 <h1>My Organic Chemistry Coach</h1>
 <p class="muted">Stay in the learning app while you learn, practice, and check what you understand. The study calendar automatically prioritizes weak lessons from actual quiz answers.</p>
+<div class="card" style="margin-bottom:16px;border-left:5px solid #6c3fa0"><div class="row spread"><div><div class="eyebrow">New · Chapter 8 · Preparatory</div><h2 style="margin:4px 0">Adding HBr and HCl to alkenes</h2><p class="small muted" style="margin:0">Learn, try a guided problem, then solve a new one on your own.</p></div><button type="button" class="btn" data-resource="chem-ch8">Start lesson →</button></div></div>
 <div class="card" style="margin-bottom:16px">
  <div class="row spread"><div><div class="eyebrow">Unit 3 practice evidence</div><div class="chem-metric" id="chem-progress-title">Checking your chemistry progress…</div></div><button class="btn secondary compact" data-go="today">← Back to Today</button></div>
  <div class="progress"><div id="chem-progress-bar" style="width:0%"></div></div>
@@ -180,6 +185,7 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <button data-go="subjects">📚<span>Classes</span></button>
 <button data-go="calendar">🗓️<span>Calendar</span></button>
 <button data-go="settings">✅<span>Planner</span></button></div>
+<script src="./learning-record.js" defer></script>
 <script src="./app.js" defer></script>
 <script src="./learning-backup.js" defer></script>
 </body></html>

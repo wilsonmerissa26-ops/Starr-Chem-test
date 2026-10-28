@@ -352,8 +352,8 @@ with sync_playwright() as p:
             page.evaluate("d => document.querySelector('#calendar-grid [data-date=\"' + d + '\"]').click()", date)
             return page.evaluate("document.getElementById('selected-tasks').textContent")
         t3, t4, final, bio = tasks_on("2026-10-27"), tasks_on("2026-11-19"), tasks_on("2026-12-10"), tasks_on("2026-12-07")
-        check("Test 3 (Oct 27) is not described as cumulative", "Test 3" in t3 and "umulative" not in t3.split("Muscular")[0], t3[:160])
-        check("Test 4 (Nov 19) is not described as cumulative", "Test 4" in t4 and "umulative" not in t4, t4[:160])
+        check("Test 3 (Oct 27) is labeled cumulative with Dr. Meadows' syllabus as the source", "Test 3 • Cumulative" in t3 and "all four written unit tests are cumulative" in t3, t3[:160])
+        check("Test 4 (Nov 19) is labeled cumulative with Dr. Meadows' syllabus as the source", "Test 4 • Cumulative" in t4 and "all four written unit tests are cumulative" in t4, t4[:160])
         check("Dec 10 uses the syllabus title 'Test 5 & Final Exam' at 7 PM, without unconfirmed descriptors",
               "Test 5 & Final Exam • 7 PM" in final and "umulative" not in final and "mandatory" not in final, final[:160])
         check("BIO 131 final keeps the syllabus listing: Dec 7, 7–10 PM", "7–10 PM" in bio and "Final" in bio, bio[:160])

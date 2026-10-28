@@ -44,7 +44,7 @@ function coachRecommendedTasks(){
 const SEED=[
 ["chem-1026-review","2026-10-26","chem","Unit 3: SN1/SN2/E1/E2 final review","practice",65,"Coach suggestion","Classify 12 reagents/substrates; work Unit 3 Problem Set #6, #9, #12 and correct mechanisms. Exam is Tuesday; do not count watching as mastery."],
 ["chem-1026-mock","2026-10-26","chem","Exam 3: timed past-paper practice","practice",75,"Coach suggestion","Use the 2023 practice Exam 3 under timed conditions, then explain each wrong answer from scratch. This is a historical exam, not this term's test."],
-["chem-1027-exam","2026-10-27","chem","Test 3","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Confirm tested chapters, exam rules, and any schedule changes in Canvas."],
+["chem-1027-exam","2026-10-27","chem","Test 3 • Cumulative","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Dr. Meadows' syllabus states that all four written unit tests are cumulative. Confirm exam rules and any schedule changes in Canvas."],
 ["ap-1027-muscles","2026-10-27","ap","Muscular System, Part 1","class",25,"BIO 131 syllabus","Lecture topic: Chapter 9. Prepare a muscle-tissue comparison and label major muscles from memory."],
 ["ap-1028-lab","2026-10-28","ap","Lab: Appendicular Skeleton & Joints and Movement","lab",30,"BIO 131 syllabus","Lab topic. Check Canvas for associated pre- and post-lab quizzes and due times."],
 ["chem-1029-ch8","2026-10-29","chem","Chapter 8: learn, draw, self-test","class",35,"CHM 221 syllabus","Thursday lecture: Chapter 8. Write a one-page mechanism map and retry 4 missed reactions."],
@@ -61,12 +61,12 @@ const SEED=[
 ["chem-1112-ch9","2026-11-12","chem","Chapter 9 lecture + retrieval","class",35,"CHM 221 syllabus","After lecture, solve unfamiliar problems before checking answers."],
 ["ap-1114-mock","2026-11-14","ap","A&P Exam 3 practice quiz","practice",50,"Coach suggestion","Make a closed-note quiz across Chapters 8–10; explain the missed questions."],
 ["ap-1116-final","2026-11-16","ap","A&P Exam 3: targeted repair","practice",40,"Coach suggestion","Redo weak muscle/physiology questions. Avoid reading answers without attempting first."],
-["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Practice writing products and mechanisms from blank paper for the chapters Test 4 covers. Confirm those chapters in Canvas."],
+["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Test 4 is cumulative: mix earlier chapters with the newest material and practice writing products and mechanisms from blank paper."],
 ["ap-1117-exam","2026-11-17","ap","Exam 3 • Chapters 8–10","exam",0,"BIO 131 syllabus","Tuesday lecture Exam 3."],
 ["chem-1117-ch9","2026-11-17","chem","Chapter 9 practice lecture","class",30,"CHM 221 syllabus","Course focus: Chapter 9 + practice. Prepare Test 4 review questions."],
 ["ap-1118-lab","2026-11-18","ap","Lab: Muscles of Lower Limb","lab",30,"BIO 131 syllabus","Lab topic; check Canvas quizzes and deadlines."],
 ["chem-1118-mock","2026-11-18","chem","Test 4: timed mixed practice","practice",70,"Coach suggestion","Practice under a time limit, then redraw all missed products and arrow mechanisms."],
-["chem-1119-test4","2026-11-19","chem","Test 4","exam",0,"CHM 221 syllabus","Thursday in-class Test 4. Confirm the chapters covered and any calendar changes in Canvas."],
+["chem-1119-test4","2026-11-19","chem","Test 4 • Cumulative","exam",0,"CHM 221 syllabus","Thursday in-class Test 4. Dr. Meadows' syllabus states that all four written unit tests are cumulative. Confirm any calendar changes in Canvas."],
 ["chem-1123-ch11","2026-11-23","chem","Chapter 11 preview","practice",35,"Coach suggestion","Preview Chapter 11 for Tuesday's lecture; recall earlier mechanisms."],
 ["chem-1124-ch11","2026-11-24","chem","Chapter 11 lecture","class",25,"CHM 221 syllabus","Tuesday lecture; Thanksgiving week."],
 ["chem-1130-ch10","2026-11-30","chem","Chapter 10 preview","practice",35,"Coach suggestion","Make a list of structures/reaction patterns for Chapter 10; mark any unfamiliar reaction."],
@@ -98,7 +98,20 @@ function dbWrite(snapshot){return new Promise(function(resolve,reject){try{const
 function mirrorWrite(next){localStorage.setItem(MIRROR_KEY,JSON.stringify(next));}
 function parseSaved(raw){try{const v=typeof raw==="string"?JSON.parse(raw):raw;if(!v||v.version!==1||!v.done||!Array.isArray(v.custom))return null;return {version:1,done:v.done,custom:v.custom,updatedAt:v.updatedAt||null};}catch(_){return null;}}
 async function load(){let stored=null;try{await storeOpen();const a=await dbRead();let b=null;try{b=parseSaved(localStorage.getItem(MIRROR_KEY));}catch(_){}const aa=parseSaved(a);stored=aa&&b?(String(aa.updatedAt||"")>=String(b.updatedAt||"")?aa:b):(aa||b);storageMode="indexeddb";}catch(e){try{stored=parseSaved(localStorage.getItem(MIRROR_KEY));localStorage.setItem("astarryia-storage-probe",iso());storageMode="local-only";}catch(_){storageMode="unavailable";}}if(stored)state=stored;setSaveStatus(storageMode==="indexeddb"?"Saved on this iPad":"Browser-only storage — export backups",storageMode==="indexeddb");$("#storage-details").textContent=storageMode==="indexeddb"?"IndexedDB + browser snapshot available on this device.":"Limited local browser storage. Export a backup after meaningful work.";render();}
-async function commit(mutator){if(writing || storageMode==="unavailable"){if(storageMode==="unavailable")alert("Saving is unavailable. Export work from a working device; avoid entering more tasks.");return;}writing=true;const old=JSON.parse(JSON.stringify(state)),next=JSON.parse(JSON.stringify(state));mutator(next);next.updatedAt=new Date().toISOString();setSaveStatus("Saving…",false);try{if(db)await dbWrite(next);mirrorWrite(next);state=next;setSaveStatus("Saved on this iPad",true);render();}catch(e){state=old;setSaveStatus("Save failed — change was not recorded",false);alert("The app could not reliably save this change. Export a backup before continuing. "+e.message);}finally{writing=false;}}
+// Planner saves: each change is applied to the LATEST saved copy inside one IndexedDB read-write
+// transaction, so a change made in another tab is never overwritten. Changes are queued, never dropped.
+const PLANNER_CHANNEL=(function(){try{return typeof BroadcastChannel==="function"?new BroadcastChannel("astarryia-planner"):null}catch(_){return null}})();
+function emptyPlanner(){return {version:1,done:{},custom:[],updatedAt:null};}
+function dbReadModifyWrite(mutator){return new Promise(function(resolve,reject){try{const tx=db.transaction("snapshots","readwrite"),os=tx.objectStore("snapshots");let result=null;const r=os.get("active");r.onsuccess=function(){const base=parseSaved(r.result)||JSON.parse(JSON.stringify(state))||emptyPlanner();const next=JSON.parse(JSON.stringify(base));mutator(next);next.updatedAt=new Date().toISOString();os.put(next,"active");result=next;};tx.oncomplete=function(){resolve(result);};tx.onerror=function(){reject(tx.error||Error("Write failed"));};tx.onabort=function(){reject(tx.error||Error("Write aborted"));};}catch(e){reject(e);}});}
+function localReadModifyWrite(mutator){let base=null;try{base=parseSaved(localStorage.getItem(MIRROR_KEY));}catch(_){}const next=JSON.parse(JSON.stringify(base||state||emptyPlanner()));mutator(next);next.updatedAt=new Date().toISOString();return next;}
+let commitQueue=Promise.resolve();
+function commit(mutator){if(storageMode==="unavailable"){alert("Saving is unavailable. Export work from a working device; avoid entering more tasks.");return Promise.resolve();}
+ commitQueue=commitQueue.then(async function(){const old=JSON.parse(JSON.stringify(state));setSaveStatus("Saving…",false);
+  try{const next=db?await dbReadModifyWrite(mutator):localReadModifyWrite(mutator);mirrorWrite(next);state=next;setSaveStatus("Saved on this iPad",true);try{if(PLANNER_CHANNEL)PLANNER_CHANNEL.postMessage({type:"planner-saved",at:next.updatedAt});}catch(_){}render();}
+  catch(e){state=old;setSaveStatus("Save failed: change was not recorded",false);alert("The app could not reliably save this change. Export a backup before continuing. "+e.message);render();}});
+ return commitQueue;}
+// Another tab saved the planner: reload the latest copy so this tab never works from an old one.
+if(PLANNER_CHANNEL)PLANNER_CHANNEL.onmessage=function(){if(!db)return;dbRead().then(function(v){const latest=parseSaved(v);if(latest){state=latest;render();}}).catch(function(){});};
 function badge(t){const cls=t.kind==="exam"?"exam":t.kind==="lab"?"lab":t.subject==="ap"?"ap":"";return '<span class="pill '+cls+'">'+esc(t.kind==="practice"?"Study plan":t.kind==="class"?"Class":t.kind.toUpperCase())+'</span>';}
 function taskHTML(t){
  if(t.coach)return '<div class="task" style="border-left:4px solid #8552c1"><div class="task-content"><div class="tasktitle">🎯 '+esc(t.title)+'</div><div class="taskmeta">'+esc(fmt(t.date))+' · '+esc(t.source)+' · '+t.minutes+' min</div><p class="tasknotes">'+esc(t.notes)+'</p><button type="button" class="btn compact" data-coach-module="'+t.module+'" data-coach-mode="'+t.mode+'">'+(t.mode==="quiz"?"Review this lesson →":"Start teaching →")+'</button></div></div>';
@@ -120,12 +133,33 @@ function renderCoach(){
 function renderToday(){const tasks=allTasks().filter(function(t){return t.date===today || (t.date<today && t.date>=addDays(today,-14) && !markDone(t.id) && (t.kind==="assignment"||t.kind==="practice"));});const actual=allTasks().filter(t=>t.date===today);$("#today-count").textContent=actual.length;$("#done-count").textContent=actual.filter(t=>markDone(t.id)).length;const ev=nextEvents()[0];$("#next-milestone").innerHTML=ev?esc(fmt(ev.date))+'<div class="small muted" style="font-weight:550;margin-top:5px">'+esc(ev.title)+'</div>':"All major events reviewed";renderTaskList("#today-tasks",tasks,"Nothing scheduled for today. Add one focused learning task in My planner.");renderTaskList("#up-next",allTasks().filter(t=>t.date>today&&!markDone(t.id)).slice(0,5),"No upcoming tasks saved.");}
 function renderCalendar(){const y=month.getFullYear(),m=month.getMonth();$("#month-name").textContent=month.toLocaleDateString(undefined,{month:"long",year:"numeric"});let html=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>'<div class="weekday">'+x+'</div>').join("");const first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++)html+='<div class="day blank"></div>';for(let d=1;d<=last;d++){const date=iso(new Date(y,m,d)),events=allTasks().filter(t=>t.date===date);html+='<button type="button" class="day '+(date===today?"today ":"")+(date===selected?"selected":"")+'" data-date="'+date+'" aria-label="'+esc(fmt(date,true))+'"><span class="num">'+d+'</span>'+events.slice(0,3).map(function(t){return '<span class="mini '+(markDone(t.id)?"done":t.subject==="ap"?"ap":t.subject==="other"?"other":"")+'">'+esc(t.title)+'</span>';}).join("")+(events.length>3?'<span class="small">+'+(events.length-3)+' more</span>':"")+'</button>';}$("#calendar-grid").innerHTML=html;$("#chosen-date-label").textContent=fmt(selected,true);renderTaskList("#selected-tasks",allTasks().filter(t=>t.date===selected),"No tasks on this date. Add a study block or deadline.");}
 function renderSubjects(){const filters=[["all","All subjects"],["chem","Organic Chemistry"],["ap","A&P I"],["other","Other"]]; const courseNames=[...new Set(state.custom.filter(t=>t.subject==="other"&&t.courseName).map(t=>t.courseName))].sort();courseNames.forEach(name=>filters.push(["custom:"+encodeURIComponent(name),name]));$("#custom-subject-list").innerHTML=courseNames.map(name=>'<div class="card subject other"><span class="pill">My class</span><h3>'+esc(name)+'</h3><p class="muted small">Custom deadlines and study sessions.</p><button type="button" class="btn secondary compact" data-filter="custom:'+encodeURIComponent(name)+'">Show class tasks</button></div>').join("");$("#subject-filters").innerHTML=filters.map(f=>'<button type="button" class="chip '+(subjectFilter===f[0]?"on":"")+'" data-filter="'+f[0]+'">'+f[1]+'</button>').join("");const x=allTasks().filter(t=>t.date>=today && !markDone(t.id) && (subjectFilter==="all"||t.subject===subjectFilter||(subjectFilter.startsWith("custom:")&&t.subject==="other"&&t.courseName===decodeURIComponent(subjectFilter.slice(7)))));renderTaskList("#subject-tasks",x,"No upcoming open tasks for this subject.");}
-function render(){renderToday();renderCalendar();renderSubjects();renderCoach();}
+// ---------- "Next up" from the shared learning record (both courses) ----------
+const PILOT_OBJECTIVES=[
+ {id:"chm221.ch8.hx-addition",course:"CHM221",subject:"chem",title:"Chemistry: adding HBr and HCl to alkenes",resource:"chem-ch8"},
+ {id:"bio131.ch9.facial-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify facial muscles",resource:"ap-muscles"},
+ {id:"bio131.ch9.head-neck-actions",course:"BIO131",subject:"ap",title:"A&P: head and neck muscle actions",resource:"ap-muscles"}
+];
+function daysToNextExam(subject){const e=SEED.filter(t=>t.subject===subject&&t.kind==="exam"&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];if(!e)return 999;return Math.round((parse(e.date)-parse(today))/86400000);}
+function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)return;
+ window.LearningRecord.events().then(function(list){
+  const rows=PILOT_OBJECTIVES.map(function(o){const st=window.LearningRecord.statusFromEvents(list,o.id,today);return Object.assign({},o,{st:st,exam:daysToNextExam(o.subject)});});
+  // 0 review due, 1 missed last time, 2 started but unfinished, 3 not started; shown-on-own and not due are left alone.
+  const rank=function(r){const s=r.st.status;if(s!=="not-started"&&r.st.due)return 0;if(s==="needs-review")return 1;if(s==="learning"||s==="practicing")return 2;if(s==="not-started")return 3;return 9;};
+  const pick=rows.filter(r=>rank(r)<9).sort((a,b)=>rank(a)-rank(b)||a.exam-b.exam)[0];
+  if(!pick){box.hidden=true;return;}
+  const r0=rank(pick),why=r0===0?"Review due today":r0===1?"Needs review: you missed this last time":r0===2?"Continue where you left off":"Not started yet";
+  box.hidden=false;
+  box.innerHTML='<div><div class="eyebrow">Next up for you</div><div class="home-milestone">'+esc(pick.title)+'</div><div class="small muted">'+esc(why)+(pick.exam<999?" · next "+(pick.subject==="chem"?"CHM 221":"BIO 131")+" exam in "+pick.exam+" day"+(pick.exam===1?"":"s"):"")+'</div></div><button type="button" class="btn" data-resource="'+pick.resource+'">Start →</button>';
+ }).catch(function(){box.hidden=true;});}
+if(window.LearningRecord)window.LearningRecord.onChange(function(){if(today)renderNextUp();});
+function render(){renderNextUp();renderToday();renderCalendar();renderSubjects();renderCoach();}
 const RESOURCE_LIBRARY=Object.freeze({
   day1:{title:"Chemistry · Foundation Day 1",src:"../day1/"},
   foundation:{title:"Chemistry · All nine foundation days",src:"../course-hub/"},
   unit1:{title:"Chemistry · Unit 1 lessons",src:"../course-units/unit1/"},
-  physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"}
+  physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"},
+  "chem-ch8":{title:"Chemistry · Chapter 8: Adding HBr and HCl to alkenes",src:"./lessons/chem-ch8/"},
+  "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"}
 });
 function openResource(key){
   if(!Object.prototype.hasOwnProperty.call(RESOURCE_LIBRARY,key))return false;

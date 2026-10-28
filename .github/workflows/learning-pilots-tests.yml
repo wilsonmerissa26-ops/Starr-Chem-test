@@ -1,0 +1,35 @@
+name: AStarryia Learning Record and Pilot Lessons Tests
+
+on:
+  push:
+    branches: [ "main", "learning-pilots-ab" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  learning-pilots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax-check app, learning record and lessons
+        run: |
+          for f in student-app/app.js student-app/sw.js student-app/learning-record.js student-app/learning-backup.js student-app/lessons/chem-ch8/*.js student-app/lessons/ap-muscles/*.js; do node --check "$f"; done
+      - name: Install headless Chromium and OCR
+        run: |
+          sudo apt-get update && sudo apt-get install -y tesseract-ocr
+          pip install playwright pytesseract pillow
+          python -m playwright install --with-deps chromium
+      - name: Shared learning record and both pilot lessons (real browser, synthetic data)
+        run: python test-learning-pilots.py
+      - name: Earlier suites still pass
+        run: |
+          python test-full-learning-backup.py
+          python test-phase1-chemistry.py
+          node test-student-chemistry-integration.js

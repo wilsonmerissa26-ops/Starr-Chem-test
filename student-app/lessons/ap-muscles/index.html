@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chapter 9: Head and Neck Muscles</title>
+<link rel="stylesheet" href="../lessons.css">
+<style>
+.fig{position:relative;margin:10px auto;max-width:640px}
+.fig img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff}
+.pin{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;border:3px solid #fff;background:var(--purple);color:#fff;font-weight:800;font-size:1rem;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0}
+.pin[aria-current="true"]{background:#d2427f;outline:3px solid #ffd3e6}
+.pin.good{background:var(--good)}.pin.bad{background:var(--bad)}
+.musclecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.mcard{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.mcard h3{margin:0 0 6px}.mcard p{margin:4px 0;font-size:.92rem}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}.compare>div{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+@media(max-width:560px){.compare{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="eyebrow">BIO 131 · Chapter 9 · Muscular system · Amerman, Human Anatomy and Physiology, 3rd ed.</div>
+  <h1>Head and neck muscles</h1>
+  <p class="badge">Preparatory set for the Nov 4 Head, Neck and Trunk lab. These are common lab muscles, not Dr. Granger's official structure list. Trunk muscles come next.</p>
+  <div class="row" style="margin-top:10px"><span class="chip" id="status-chip">Checking your progress…</span><span class="small muted" id="review-note"></span></div>
+  <nav class="steps" aria-label="Lesson steps" id="stepnav"></nav>
+  <section id="screen" aria-live="polite"></section>
+  <p class="source">Images: OpenStax, <i>Anatomy and Physiology 2e</i>, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>; cropped, with labels covered for practice. Muscle actions follow OpenStax <i>Anatomy and Physiology 2e</i>, section on axial muscles of the head, neck and back. Names use standard anatomical terms; confirm spelling and required detail against Amerman 3rd ed. and your lab handout. Non-commercial study use only.</p>
+</main>
+<script src="../../learning-record.js"></script>
+<script src="./muscles.js"></script>
+<script src="./lesson.js"></script>
+</body>
+</html>

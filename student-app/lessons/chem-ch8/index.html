@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chapter 8: Adding HBr and HCl to Alkenes</title>
+<link rel="stylesheet" href="../lessons.css">
+<style>
+.mol{display:block;margin:6px auto;width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.tap{fill:rgba(108,63,160,.06);stroke:rgba(108,63,160,.35);stroke-width:1.5;stroke-dasharray:4 3;cursor:pointer}
+.tap:hover{fill:rgba(108,63,160,.16)}
+.tap.good{fill:rgba(23,113,76,.22);stroke:#17714c;stroke-dasharray:none;stroke-width:2.5}
+.tap.bad{fill:rgba(162,51,63,.18);stroke:#a2333f;stroke-dasharray:none;stroke-width:2.5}
+.tap.picked{fill:rgba(108,63,160,.25);stroke:#6c3fa0;stroke-dasharray:none;stroke-width:2.5}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pair>div{border:1px solid var(--line);border-radius:12px;padding:10px;background:#fff;text-align:center}
+.pair .win{border-color:var(--good);background:var(--good-bg)}
+.ladder{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.ladder span{padding:6px 10px;border-radius:10px;background:var(--lav);font-weight:700;font-size:.9rem}
+.partlist{margin:6px 0 0;padding-left:20px}.partlist li{margin:6px 0}
+@media(max-width:560px){.pair{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="eyebrow">CHM 221 · Chapter 8 · Klein, Organic Chemistry, 5th ed.</div>
+  <h1>Adding HBr and HCl to alkenes</h1>
+  <p class="badge">Preparatory lesson: based on Klein Chapter 8. Not yet checked against Dr. Meadows' Chapter 8 objectives.</p>
+  <div class="row" style="margin-top:10px"><span class="chip" id="status-chip">Checking your progress…</span><span class="small muted" id="review-note"></span></div>
+  <nav class="steps" aria-label="Lesson steps" id="stepnav"></nav>
+  <section id="screen" aria-live="polite"></section>
+  <p class="source">Chemistry follows standard mechanisms for electrophilic addition of HX to alkenes, with carbocation stability and 1,2-shifts as in your Unit 3 objectives (Ch 6 SLO #8 and #9). Answers to every independent problem are checked by an automated structure analysis before release. Practice support only: follow your instructor's rules for graded work.</p>
+</main>
+<script src="../../learning-record.js"></script>
+<script src="./molecules.js"></script>
+<script src="./lesson.js"></script>
+</body>
+</html>
