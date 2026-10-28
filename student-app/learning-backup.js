@@ -39,7 +39,8 @@
     /^starr-chem-/,        // older day 1 records
     /^ochem-diagnostic-/,  // readiness diagnostic
     /^molstage-/,          // molecule stage work
-    /^coach-(state|notes)$/ // original nine-day coach and whiteboard
+    /^coach-(state|notes)$/, // original nine-day coach and whiteboard
+    /^coach-state-damaged-/ // raw copies of damaged original-coach records, kept by the coach
   ];
 
   // IndexedDB databases written by pages in this repository, with the schema those pages create.

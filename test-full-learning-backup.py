@@ -165,7 +165,7 @@ with sync_playwright() as p:
     page.goto(APP + "#today"); page.reload(); app_ready(page)
     check("Planner shows the restored custom task as done", page.evaluate("!!(document.querySelector(\"#today-tasks [data-check='own-1']\")||{}).checked"))
     page.goto(APP + "#chemistry"); page.reload(); app_ready(page)
-    check("Learning App reads the restored quiz history", "1 / 8" in page.inner_text("#chem-progress-title"))
+    check("Learning App reads the restored quiz history", "4 practice answers" in page.inner_text("#chem-progress-detail"), page.inner_text("#chem-progress-detail")[:80])
     ctx.close()
 
     # 4. Additive restore never overwrites newer work on the device.

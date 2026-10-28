@@ -5,38 +5,46 @@ const SUBJECTS={chem:"Organic Chemistry",ap:"Anatomy & Physiology I",other:"Othe
 const U3_TITLES=["The 5-check reaction triage","Energy diagrams + thermodynamics","Reagents, solvents + leaving groups","SN2: one-step swap + flip","E2: anti H + LG → alkene","SN1/E1 + carbocation rearrangements","Regio, stereo + mechanism drawings","Reaction maps + exam transfer"];
 const U3_STORAGE="astarryia-unit3-v1";
 function coachState(){try{const x=JSON.parse(localStorage.getItem(U3_STORAGE)||"null");return x&&typeof x==="object"&&x.attempts&&typeof x.attempts==="object"?x:null;}catch(_){return null;}}
+// Practice evidence comes from the coach. Only a question's first-ever answer counts; retakes are practice.
+const EVIDENCE_LABEL={"not-started":"Not started","strong":"Strong first-try evidence","needs-review":"Needs review","in-progress":"In progress","needs-new-questions":"Needs new questions","practiced":"Practiced (no first-try evidence yet)"};
 function coachMetrics(){
- const s=coachState(),data=U3_TITLES.map((title,i)=>{
- const a=s&&s.attempts&&s.attempts[i]||{};
- const n=Number.isFinite(Number(a.n))?Math.max(0,Math.min(100000,Number(a.n))):0;
- const c=Number.isFinite(Number(a.c))?Math.max(0,Math.min(n,Number(a.c))):0;
- const latest=s&&s.latestByModule&&s.latestByModule[i],roundTotal=latest&&Number(latest.total),roundCorrect=latest&&Number(latest.correct);
- const validRound=Number.isFinite(roundTotal)&&roundTotal>=4&&Number.isFinite(roundCorrect)&&roundCorrect>=0&&roundCorrect<=roundTotal;
- const rate=validRound?roundCorrect/roundTotal:(n?c/n:0);
- return {index:i,title,n,c,rate,latest:validRound?{correct:roundCorrect,total:roundTotal}:null,milestone:validRound?(rate>=.8):(n>=4&&c/n>=.8)};
+ const s=coachState(),saved=s&&Array.isArray(s.evidence)?s.evidence:null;
+ const data=U3_TITLES.map((title,i)=>{
+  const a=s&&s.attempts&&s.attempts[i]||{};
+  const n=Number.isFinite(Number(a.n))?Math.max(0,Math.min(100000,Number(a.n))):0;
+  const c=Number.isFinite(Number(a.c))?Math.max(0,Math.min(n,Number(a.c))):0;
+  const e=saved&&saved[i]&&typeof saved[i]==="object"?saved[i]:null;
+  const known=e&&Object.prototype.hasOwnProperty.call(EVIDENCE_LABEL,e.status);
+  const fresh=known&&Number.isFinite(Number(e.firstTry))?Math.max(0,Number(e.firstTry)):0;
+  const right=known&&Number.isFinite(Number(e.firstTryCorrect))?Math.max(0,Math.min(fresh,Number(e.firstTryCorrect))):0;
+  // Records saved before the evidence system existed have no first-try information: show them as practice only.
+  const status=known?e.status:(n?"practiced":"not-started");
+  return {index:i,title,n,c,fresh,right,status,rate:fresh?right/fresh:(n?c/n:0)};
  });
- const milestones=data.filter(m=>m.milestone).length,attempts=data.reduce((n,m)=>n+m.n,0),
+ const strong=data.filter(m=>m.status==="strong").length,attempts=data.reduce((n,m)=>n+m.n,0),
  right=data.reduce((n,m)=>n+m.c,0),last=s&&s.lastQuiz&&typeof s.lastQuiz==="object"?s.lastQuiz:null;
- return {data,milestones,attempts,right,last};
+ return {data,strong,attempts,right,last};
 }
 function coachRecommendedTasks(){
  if(!today)return[];
- const m=coachMetrics(),attemptedWeak=m.data.filter(x=>x.n>0&&!x.milestone)
- .sort((a,b)=>a.rate-b.rate||a.index-b.index);
- const notStarted=m.data.filter(x=>!x.n);
+ const order={"needs-review":0,"in-progress":1,"practiced":2,"needs-new-questions":3};
+ const m=coachMetrics(),attemptedWeak=m.data.filter(x=>x.status in order)
+ .sort((a,b)=>order[a.status]-order[b.status]||a.rate-b.rate||a.index-b.index);
+ const notStarted=m.data.filter(x=>x.status==="not-started");
  const picks=attemptedWeak.concat(notStarted).slice(0,2);
  return picks.map((item,i)=>({
   id:"u3-coach-"+item.index,date:addDays(today,i),
-  subject:"chem",title:(item.n?"Review weak lesson: ":"Learn + practice: ")+item.title,
+  subject:"chem",title:(item.status==="not-started"?"Learn + practice: ":"Review weak lesson: ")+item.title,
   kind:"practice",minutes:25,source:"Chemistry Coach · adaptive study",
-  notes:item.n?("Quiz checks: "+(item.latest?item.latest.correct+"/"+item.latest.total+" latest round; ":"")+item.c+"/"+item.n+" cumulative. Relearn the rule, retry without notes, then draw 2 fresh examples."):"Teach the rule, use the example, then take the independent check.",
-  coach:true,module:item.index,mode:item.n?"quiz":"teach",fixed:true
+  notes:item.status==="not-started"?"Teach the rule, use the example, then take the independent check.":
+   (EVIDENCE_LABEL[item.status]+". "+(item.fresh?"First try: "+item.right+"/"+item.fresh+". ":"")+"All practice including retakes: "+item.c+"/"+item.n+". Relearn the rule, then draw 2 fresh examples without notes."),
+  coach:true,module:item.index,mode:item.status==="not-started"?"teach":"quiz",fixed:true
  }));
 }
 const SEED=[
 ["chem-1026-review","2026-10-26","chem","Unit 3: SN1/SN2/E1/E2 final review","practice",65,"Coach suggestion","Classify 12 reagents/substrates; work Unit 3 Problem Set #6, #9, #12 and correct mechanisms. Exam is Tuesday; do not count watching as mastery."],
 ["chem-1026-mock","2026-10-26","chem","Exam 3: timed past-paper practice","practice",75,"Coach suggestion","Use the 2023 practice Exam 3 under timed conditions, then explain each wrong answer from scratch. This is a historical exam, not this term's test."],
-["chem-1027-exam","2026-10-27","chem","Test 3 • Chapters 6–7 focus","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Cumulative; confirm any schedule changes in Canvas. No phone, tablet, or AI during exams."],
+["chem-1027-exam","2026-10-27","chem","Test 3","exam",0,"CHM 221 syllabus","Tuesday in-class Test 3. Confirm tested chapters, exam rules, and any schedule changes in Canvas."],
 ["ap-1027-muscles","2026-10-27","ap","Muscular System, Part 1","class",25,"BIO 131 syllabus","Lecture topic: Chapter 9. Prepare a muscle-tissue comparison and label major muscles from memory."],
 ["ap-1028-lab","2026-10-28","ap","Lab: Appendicular Skeleton & Joints and Movement","lab",30,"BIO 131 syllabus","Lab topic. Check Canvas for associated pre- and post-lab quizzes and due times."],
 ["chem-1029-ch8","2026-10-29","chem","Chapter 8: learn, draw, self-test","class",35,"CHM 221 syllabus","Thursday lecture: Chapter 8. Write a one-page mechanism map and retry 4 missed reactions."],
@@ -53,25 +61,25 @@ const SEED=[
 ["chem-1112-ch9","2026-11-12","chem","Chapter 9 lecture + retrieval","class",35,"CHM 221 syllabus","After lecture, solve unfamiliar problems before checking answers."],
 ["ap-1114-mock","2026-11-14","ap","A&P Exam 3 practice quiz","practice",50,"Coach suggestion","Make a closed-note quiz across Chapters 8–10; explain the missed questions."],
 ["ap-1116-final","2026-11-16","ap","A&P Exam 3: targeted repair","practice",40,"Coach suggestion","Redo weak muscle/physiology questions. Avoid reading answers without attempting first."],
-["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Mix Chapters 6–9 and practice writing products and mechanisms from blank paper."],
+["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Practice writing products and mechanisms from blank paper for the chapters Test 4 covers. Confirm those chapters in Canvas."],
 ["ap-1117-exam","2026-11-17","ap","Exam 3 • Chapters 8–10","exam",0,"BIO 131 syllabus","Tuesday lecture Exam 3."],
 ["chem-1117-ch9","2026-11-17","chem","Chapter 9 practice lecture","class",30,"CHM 221 syllabus","Course focus: Chapter 9 + practice. Prepare Test 4 review questions."],
 ["ap-1118-lab","2026-11-18","ap","Lab: Muscles of Lower Limb","lab",30,"BIO 131 syllabus","Lab topic; check Canvas quizzes and deadlines."],
 ["chem-1118-mock","2026-11-18","chem","Test 4: timed mixed practice","practice",70,"Coach suggestion","Practice under a time limit, then redraw all missed products and arrow mechanisms."],
-["chem-1119-test4","2026-11-19","chem","Test 4 • cumulative course test","exam",0,"CHM 221 syllabus","Thursday in-class Test 4; confirm in Canvas if calendar is revised."],
+["chem-1119-test4","2026-11-19","chem","Test 4","exam",0,"CHM 221 syllabus","Thursday in-class Test 4. Confirm the chapters covered and any calendar changes in Canvas."],
 ["chem-1123-ch11","2026-11-23","chem","Chapter 11 preview","practice",35,"Coach suggestion","Preview Chapter 11 for Tuesday's lecture; recall earlier mechanisms."],
 ["chem-1124-ch11","2026-11-24","chem","Chapter 11 lecture","class",25,"CHM 221 syllabus","Tuesday lecture; Thanksgiving week."],
 ["chem-1130-ch10","2026-11-30","chem","Chapter 10 preview","practice",35,"Coach suggestion","Make a list of structures/reaction patterns for Chapter 10; mark any unfamiliar reaction."],
 ["ap-1201-review","2026-12-01","ap","Final review lecture","class",45,"BIO 131 syllabus","Tuesday final review. Cumulative final scheduled Monday Dec 7."],
 ["chem-1201-ch10","2026-12-01","chem","Chapter 10 lecture","class",30,"CHM 221 syllabus","Tuesday Chapter 10 lecture. Use problem-solving rather than passive rereading."],
-["ap-1202-labexam","2026-12-02","ap","Lab Practical 2","exam",0,"BIO 131 syllabus","Wednesday Lab Practical 2; cumulative practical."],
+["ap-1202-labexam","2026-12-02","ap","Lab Practical 2 • Cumulative","exam",0,"BIO 131 syllabus","Wednesday cumulative Lab Practical 2. Confirm the structure list and any updates in Canvas."],
 ["chem-1203-wrap","2026-12-03","chem","Chapter 10 + course wrap-up","class",30,"CHM 221 syllabus","Thursday lecture and course wrap-up."],
 ["ap-1204-mock","2026-12-04","ap","A&P cumulative mock test","practice",60,"Coach suggestion","Mix all units and record exact concepts missed, especially identification and physiology."],
 ["ap-1206-review","2026-12-06","ap","A&P final: short recall and reset","practice",40,"Coach suggestion","Two rounds of unlabeled drawings and challenging cumulative questions; then rest."],
 ["ap-1207-final","2026-12-07","ap","Cumulative Final • 7–10 PM","exam",0,"BIO 131 syllabus","Monday cumulative final, 7:00–10:00 PM. Verify location and updates in Canvas."],
-["chem-1208-review","2026-12-08","chem","Organic Chemistry cumulative final practice","practice",60,"Coach suggestion","Timed mixed problem set covering previous chapters, then targeted review."],
+["chem-1208-review","2026-12-08","chem","Test 5 & Final Exam practice","practice",60,"Coach suggestion","Timed mixed problem set, then targeted review of missed patterns."],
 ["chem-1209-final-prep","2026-12-09","chem","Final prep: only weak patterns","practice",40,"Coach suggestion","Focus on missed mechanisms, kinetics and structure drawing. No all-night rereading."],
-["chem-1210-final","2026-12-10","chem","Test 5 + Cumulative Final • 7 PM","exam",0,"CHM 221 syllabus","Thursday cumulative final at 7:00 PM; mandatory. No devices during test."]
+["chem-1210-final","2026-12-10","chem","Test 5 & Final Exam • 7 PM","exam",0,"CHM 221 syllabus","Thursday, 7:00 PM. Confirm the location and any changes in Canvas."]
 ].map(function(a){return {id:a[0],date:a[1],subject:a[2],title:a[3],kind:a[4],minutes:a[5],source:a[6],notes:a[7],fixed:true};});
 const $=s=>document.querySelector(s);
 let state={version:1,done:{},custom:[],updatedAt:null},today="",selected="",month=null,subjectFilter="all",db=null,storageMode="starting",writing=false;
@@ -97,25 +105,42 @@ function taskHTML(t){
  const finished=markDone(t.id);return '<div class="task '+(finished?"done":"")+'"><input type="checkbox" class="check" data-check="'+esc(t.id)+'" aria-label="Mark '+esc(t.title)+' complete" '+(finished?"checked":"")+'><div class="task-content"><div class="tasktitle">'+esc(t.title)+'</div><div class="taskmeta">'+esc(fmt(t.date))+' · '+esc(t.subject==="other"&&t.courseName?t.courseName:(SUBJECTS[t.subject]||t.subject))+' · '+esc(t.source)+(t.minutes?" · "+t.minutes+" min":"")+'</div><div class="row" style="margin-top:7px">'+badge(t)+'</div>'+(t.notes?'<div class="tasknotes">'+esc(t.notes)+'</div>':"")+'</div>'+(t.fixed?"":'<div class="task-actions"><button type="button" data-remove="'+esc(t.id)+'">Delete</button></div>')+'</div>';}
 function renderTaskList(selector,list,empty){$(selector).innerHTML=list.length?list.map(taskHTML).join(""):'<div class="empty">'+esc(empty)+'</div>';}
 function renderCoach(){
- const stats=coachMetrics(),pct=Math.round(stats.milestones/U3_TITLES.length*100);
- $("#chem-progress-title").textContent=stats.milestones+" / 8 practice milestones";
+ const stats=coachMetrics(),pct=Math.round(stats.strong/U3_TITLES.length*100);
+ $("#chem-progress-title").textContent=stats.strong+" / 8 modules with strong first-try evidence";
  $("#chem-progress-bar").style.width=pct+"%";
- $("#chem-progress-detail").textContent=stats.attempts+" quiz checks · "+(stats.attempts?Math.round(100*stats.right/stats.attempts):0)+"% cumulative accuracy. Passing a practice milestone does not verify drawn mechanisms.";
- $("#subject-chem-progress").textContent=stats.attempts?(stats.milestones+"/8 practice milestones · "+stats.attempts+" quiz checks"):"Not assessed yet · open Chemistry to begin";
+ $("#chem-progress-detail").textContent=stats.attempts+" practice answers in total. Only a question's first-ever answer counts as evidence; retakes are practice. Strong first-try evidence is not yet mastery and does not verify drawn mechanisms.";
+ $("#subject-chem-progress").textContent=stats.attempts?(stats.strong+"/8 modules with strong first-try evidence · "+stats.attempts+" practice answers"):"Not assessed yet · open Chemistry to begin";
  const recommendations=coachRecommendedTasks(),last=stats.last;
  const lastInfo=last&&Number.isInteger(last.module)&&last.module>=0&&last.module<8&&Number.isFinite(Number(last.correct))&&Number.isFinite(Number(last.total))
- ?'<p class="small muted">Most recent completed quiz: '+esc(U3_TITLES[last.module])+' · '+esc(last.correct)+'/'+esc(last.total)+' correct.</p>':"";
- $("#chem-weak-list").innerHTML='<h3 style="margin-top:17px">Recommended next</h3>'+ (recommendations.length?recommendations.map(item=>'<div class="coach-row"><h3>'+esc(item.title)+'</h3><p class="small">'+esc(item.notes)+'</p><button class="btn compact" data-coach-module="'+item.module+'" data-coach-mode="'+item.mode+'">Practice this topic →</button></div>').join(""):'<div class="coach-row">All eight quiz milestones reached! Now test independent handwritten mechanisms and mixed reaction maps.</div>')+lastInfo;
- $("#chem-module-list").innerHTML=stats.data.map(item=>'<div class="chem-unit"><div><b>'+esc((item.index+1)+". "+item.title)+'</b><div class="small muted">'+(item.n?(item.latest?"Latest round "+item.latest.correct+"/"+item.latest.total+" · ":"")+item.c+"/"+item.n+" lifetime checks":"No checks yet")+'</div></div><div class="row"><span class="pill '+(item.milestone?"done":"")+'">'+(item.milestone?"Practice milestone":item.n?"Needs review":"Not assessed")+'</span><button class="btn secondary compact" data-coach-module="'+item.index+'" data-coach-mode="'+(item.n?"quiz":"teach")+'">Open</button></div></div>').join("");
- $("#coach-today").innerHTML=recommendations.length?'<div class="card" style="margin-top:15px;border-left:5px solid #8855bc"><div class="eyebrow">Automatically personalized from chemistry quizzes</div><h3>'+esc(recommendations[0].title)+'</h3><p class="small muted">'+esc(recommendations[0].notes)+'</p><button class="btn compact" data-coach-module="'+recommendations[0].module+'" data-coach-mode="'+recommendations[0].mode+'">Continue my Chemistry Coach →</button></div>':'<div class="card" style="margin-top:15px"><b>Unit 3 quiz milestones reached.</b><p class="small muted">Next: prove the mechanisms with independent drawn problems.</p><button class="btn secondary compact" data-go="chemistry">Open Chemistry</button></div>';
+ ?'<p class="small muted">Most recent completed round: '+esc(U3_TITLES[last.module])+' · '+esc(last.correct)+'/'+esc(last.total)+' correct (includes any retaken questions).</p>':"";
+ $("#chem-weak-list").innerHTML='<h3 style="margin-top:17px">Recommended next</h3>'+ (recommendations.length?recommendations.map(item=>'<div class="coach-row"><h3>'+esc(item.title)+'</h3><p class="small">'+esc(item.notes)+'</p><button class="btn compact" data-coach-module="'+item.module+'" data-coach-mode="'+item.mode+'">Practice this topic →</button></div>').join(""):'<div class="coach-row">All eight modules show strong first-try evidence. That is not yet mastery: next, test independent handwritten mechanisms and mixed reaction maps.</div>')+lastInfo;
+ $("#chem-module-list").innerHTML=stats.data.map(item=>'<div class="chem-unit"><div><b>'+esc((item.index+1)+". "+item.title)+'</b><div class="small muted">'+(item.n?(item.fresh?"First try "+item.right+"/"+item.fresh+" · ":"")+item.c+"/"+item.n+" all practice":"No practice yet")+'</div></div><div class="row"><span class="pill '+(item.status==="strong"?"done":"")+'">'+esc(EVIDENCE_LABEL[item.status])+'</span><button class="btn secondary compact" data-coach-module="'+item.index+'" data-coach-mode="'+(item.n?"quiz":"teach")+'">Open</button></div></div>').join("");
+ $("#coach-today").innerHTML=recommendations.length?'<div class="card" style="margin-top:15px;border-left:5px solid #8855bc"><div class="eyebrow">Personalized from your chemistry practice</div><h3>'+esc(recommendations[0].title)+'</h3><p class="small muted">'+esc(recommendations[0].notes)+'</p><button class="btn compact" data-coach-module="'+recommendations[0].module+'" data-coach-mode="'+recommendations[0].mode+'">Continue my Chemistry Coach →</button></div>':'<div class="card" style="margin-top:15px"><b>All Unit 3 modules show strong first-try evidence.</b><p class="small muted">Next: prove the mechanisms with independent drawn problems.</p><button class="btn secondary compact" data-go="chemistry">Open Chemistry</button></div>';
 }
 function renderToday(){const tasks=allTasks().filter(function(t){return t.date===today || (t.date<today && t.date>=addDays(today,-14) && !markDone(t.id) && (t.kind==="assignment"||t.kind==="practice"));});const actual=allTasks().filter(t=>t.date===today);$("#today-count").textContent=actual.length;$("#done-count").textContent=actual.filter(t=>markDone(t.id)).length;const ev=nextEvents()[0];$("#next-milestone").innerHTML=ev?esc(fmt(ev.date))+'<div class="small muted" style="font-weight:550;margin-top:5px">'+esc(ev.title)+'</div>':"All major events reviewed";renderTaskList("#today-tasks",tasks,"Nothing scheduled for today. Add one focused learning task in My planner.");renderTaskList("#up-next",allTasks().filter(t=>t.date>today&&!markDone(t.id)).slice(0,5),"No upcoming tasks saved.");}
 function renderCalendar(){const y=month.getFullYear(),m=month.getMonth();$("#month-name").textContent=month.toLocaleDateString(undefined,{month:"long",year:"numeric"});let html=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>'<div class="weekday">'+x+'</div>').join("");const first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++)html+='<div class="day blank"></div>';for(let d=1;d<=last;d++){const date=iso(new Date(y,m,d)),events=allTasks().filter(t=>t.date===date);html+='<button type="button" class="day '+(date===today?"today ":"")+(date===selected?"selected":"")+'" data-date="'+date+'" aria-label="'+esc(fmt(date,true))+'"><span class="num">'+d+'</span>'+events.slice(0,3).map(function(t){return '<span class="mini '+(markDone(t.id)?"done":t.subject==="ap"?"ap":t.subject==="other"?"other":"")+'">'+esc(t.title)+'</span>';}).join("")+(events.length>3?'<span class="small">+'+(events.length-3)+' more</span>':"")+'</button>';}$("#calendar-grid").innerHTML=html;$("#chosen-date-label").textContent=fmt(selected,true);renderTaskList("#selected-tasks",allTasks().filter(t=>t.date===selected),"No tasks on this date. Add a study block or deadline.");}
 function renderSubjects(){const filters=[["all","All subjects"],["chem","Organic Chemistry"],["ap","A&P I"],["other","Other"]]; const courseNames=[...new Set(state.custom.filter(t=>t.subject==="other"&&t.courseName).map(t=>t.courseName))].sort();courseNames.forEach(name=>filters.push(["custom:"+encodeURIComponent(name),name]));$("#custom-subject-list").innerHTML=courseNames.map(name=>'<div class="card subject other"><span class="pill">My class</span><h3>'+esc(name)+'</h3><p class="muted small">Custom deadlines and study sessions.</p><button type="button" class="btn secondary compact" data-filter="custom:'+encodeURIComponent(name)+'">Show class tasks</button></div>').join("");$("#subject-filters").innerHTML=filters.map(f=>'<button type="button" class="chip '+(subjectFilter===f[0]?"on":"")+'" data-filter="'+f[0]+'">'+f[1]+'</button>').join("");const x=allTasks().filter(t=>t.date>=today && !markDone(t.id) && (subjectFilter==="all"||t.subject===subjectFilter||(subjectFilter.startsWith("custom:")&&t.subject==="other"&&t.courseName===decodeURIComponent(subjectFilter.slice(7)))));renderTaskList("#subject-tasks",x,"No upcoming open tasks for this subject.");}
 function render(){renderToday();renderCalendar();renderSubjects();renderCoach();}
-function show(view){document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el.id===view));document.querySelectorAll("[data-go]").forEach(el=>el.classList.toggle("active",el.dataset.go===view));if(view==="calendar")renderCalendar();if(view==="subjects")renderSubjects();if(view==="chemistry"){const frame=$("#coach-frame");if(frame&&!frame.getAttribute("src"))frame.setAttribute("src",frame.dataset.src);else if(frame&&frame.contentWindow&&typeof frame.contentWindow.u3BridgeHeight==="function")frame.contentWindow.u3BridgeHeight();renderCoach();}window.scrollTo({top:0,behavior:"auto"});history.replaceState(null,"","#"+view);}
+const RESOURCE_LIBRARY=Object.freeze({
+  day1:{title:"Chemistry · Foundation Day 1",src:"../day1/"},
+  foundation:{title:"Chemistry · All nine foundation days",src:"../course-hub/"},
+  unit1:{title:"Chemistry · Unit 1 lessons",src:"../course-units/unit1/"},
+  physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"}
+});
+function openResource(key){
+  if(!Object.prototype.hasOwnProperty.call(RESOURCE_LIBRARY,key))return false;
+  const item=RESOURCE_LIBRARY[key],frame=$("#resource-frame");
+  $("#resource-title").textContent=item.title;
+  frame.title=item.title+" inside AStarryia Learn";
+  // Keep the same lesson iframe when returning from another main-app tab.
+  if(frame.getAttribute("src")!==item.src)frame.setAttribute("src",item.src);
+  show("resource");
+  history.replaceState(null,"","#resource-"+key);
+  return true;
+}
+function show(view){document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el.id===view));const mainTab=["chemistry","focus","resource"].includes(view)?"subjects":view;document.querySelectorAll("[data-go]").forEach(el=>el.classList.toggle("active",el.dataset.go===mainTab));if(view==="calendar")renderCalendar();if(view==="subjects")renderSubjects();if(view==="chemistry"){const frame=$("#coach-frame");if(frame&&!frame.getAttribute("src"))frame.setAttribute("src",frame.dataset.src);else if(frame&&frame.contentWindow&&typeof frame.contentWindow.u3BridgeHeight==="function")frame.contentWindow.u3BridgeHeight();renderCoach();}window.scrollTo({top:0,behavior:"auto"});history.replaceState(null,"","#"+view);}
 function changeDate(d){selected=d;month=new Date(parse(d).getFullYear(),parse(d).getMonth(),1);renderCalendar();}
-document.addEventListener("click",function(e){const nav=e.target.closest("[data-go]");if(nav){show(nav.dataset.go);return;}const coach=e.target.closest("[data-coach-module]");if(coach){const i=Number(coach.dataset.coachModule);if(Number.isInteger(i)&&i>=0&&i<U3_TITLES.length){show("chemistry");const frame=$("#coach-frame");frame.setAttribute("src","../unit3-coach/?embed=1&module="+i+"&mode="+(coach.dataset.coachMode==="quiz"?"quiz":"teach"));}return;}const date=e.target.closest("[data-date]");if(date){changeDate(date.dataset.date);return;}const filter=e.target.closest("[data-filter]");if(filter){subjectFilter=filter.dataset.filter;renderSubjects();return;}const subject=e.target.closest("[data-subject]");if(subject){subjectFilter=subject.dataset.subject;show("subjects");return;}const del=e.target.closest("[data-remove]");if(del){if(confirm("Delete this custom task?"))commit(s=>{s.custom=s.custom.filter(t=>t.id!==del.dataset.remove);delete s.done[del.dataset.remove];});return;}});
+document.addEventListener("click",function(e){const nav=e.target.closest("[data-go]");if(nav){show(nav.dataset.go);return;}const resource=e.target.closest("[data-resource]");if(resource){openResource(resource.dataset.resource);return;}const coach=e.target.closest("[data-coach-module]");if(coach){const i=Number(coach.dataset.coachModule);if(Number.isInteger(i)&&i>=0&&i<U3_TITLES.length){show("chemistry");const frame=$("#coach-frame");frame.setAttribute("src","../unit3-coach/?embed=1&module="+i+"&mode="+(coach.dataset.coachMode==="quiz"?"quiz":"teach"));}return;}const date=e.target.closest("[data-date]");if(date){changeDate(date.dataset.date);return;}const filter=e.target.closest("[data-filter]");if(filter){subjectFilter=filter.dataset.filter;renderSubjects();return;}const subject=e.target.closest("[data-subject]");if(subject){subjectFilter=subject.dataset.subject;show("subjects");return;}const del=e.target.closest("[data-remove]");if(del){if(confirm("Delete this custom task?"))commit(s=>{s.custom=s.custom.filter(t=>t.id!==del.dataset.remove);delete s.done[del.dataset.remove];});return;}});
 document.addEventListener("change",function(e){const checked=e.target.closest("[data-check]");if(checked){const id=checked.dataset.check;const val=checked.checked;commit(s=>{if(val)s.done[id]=new Date().toISOString();else delete s.done[id];});}});
 $("#prev-month").addEventListener("click",function(){month=new Date(month.getFullYear(),month.getMonth()-1,1);selected=iso(new Date(month.getFullYear(),month.getMonth(),1));renderCalendar();});
 $("#next-month").addEventListener("click",function(){month=new Date(month.getFullYear(),month.getMonth()+1,1);selected=iso(new Date(month.getFullYear(),month.getMonth(),1));renderCalendar();});
@@ -132,6 +157,6 @@ window.addEventListener("message",function(event){
 });
 window.addEventListener("pageshow",function(){if(today)render();});
 window.addEventListener("focus",function(){if(today)render();});
-function init(){today=iso(new Date());selected=today;month=new Date(new Date().getFullYear(),new Date().getMonth(),1);$("#date-today").textContent=fmt(today,true);$("#f-date").value=today;const hash=location.hash.replace("#","");const view=["today","calendar","subjects","focus","chemistry","settings"].includes(hash)?hash:"today";show(view);load();if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("./sw.js").catch(()=>{});}}
+function init(){today=iso(new Date());selected=today;month=new Date(new Date().getFullYear(),new Date().getMonth(),1);$("#date-today").textContent=fmt(today,true);$("#f-date").value=today;const hash=location.hash.replace("#","");const view=["today","calendar","subjects","focus","chemistry","settings"].includes(hash)?hash:"today";if(!hash.startsWith("resource-")||!openResource(hash.slice(9)))show(view);load();if("serviceWorker" in navigator&&location.protocol==="https:"){navigator.serviceWorker.register("./sw.js").catch(()=>{});}}
 init();
 })();
