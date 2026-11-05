@@ -11,9 +11,10 @@ Tests: `test-learning-pilots.py` (104 real-browser checks on synthetic data). Im
 - Never infer mastery from confidence, repetition, or viewing a lesson.
 - Preserve existing learning history. Nothing existing is deleted, renamed or overwritten.
 - Course sources: CHM 221 uses Klein, *Organic Chemistry*, 5th ed. BIO 131 uses Amerman, *Human Anatomy and Physiology*, 3rd ed.
-- Content waiting on instructor files is labeled "Preparatory" in the app until checked:
-  - Chemistry: Dr. Meadows' Chapter 8 SLOs (not yet supplied).
-  - A&P: Dr. Granger's official Lab Practical 2 structure list (not yet supplied).
+- Lesson content is labeled by source, and development does not wait on new instructor files:
+  - Confirmed from course materials: textbooks (Klein 5e, Amerman 3e), syllabus dates and topics, the Unit 3 SLOs, practice problems and decision tree, and that all four written CHM unit tests are cumulative.
+  - Textbook-based preparation: Chapter 8 lesson content (no separate Chapter 8 SLO document has been issued) and the muscle set (no instructor muscle checklist has been issued).
+  - The app never presents textbook-based content as what an exam covers. Instructor handouts are added if they become available.
 
 ## 2. Phase A: shared learning record
 
@@ -106,7 +107,7 @@ The first session must complete teaching before the independent problem unlocks.
 
 ### 3.1 Chemistry pilot: adding HBr or HCl to alkenes
 
-**Preparatory.** The topic is from Klein 5e Chapter 8. It is not yet checked against Dr. Meadows' Chapter 8 SLOs.
+**Textbook-based preparation.** Klein 5e Chapter 8, on the syllabus for Oct 29 and Nov 3 to 5. No separate Chapter 8 SLO document exists.
 
 **Concept:** an alkene's π bond attacks H–X, which forms the more stable carbocation. The halide then bonds to that carbocation carbon. This is Markovnikov regiochemistry, explained by carbocation stability (Unit 3, Ch 6 SLO #9). If a new stereocenter forms, the product is racemic. A 1,2-shift happens when it gives a more stable carbocation.
 
@@ -128,7 +129,7 @@ The first session must complete teaching before the independent problem unlocks.
 
 ### 3.2 A&P pilot: head and neck muscles (Chapter 9)
 
-**Preparatory.** These are standard muscles for a head, neck and trunk lab. They are not yet checked against Dr. Granger's official list.
+**Textbook-based preparation.** The syllabus lab is Muscles of Head, Neck, and Trunk (Nov 4), and Lab Practical 2 (Dec 2) is cumulative. No instructor muscle checklist exists, so the set follows standard Chapter 9 coverage. Scope: head, neck and trunk; this first set covers head and neck.
 
 **Muscles:** occipitofrontalis (frontal belly), orbicularis oculi, orbicularis oris, buccinator, temporalis, masseter, sternocleidomastoid. Trunk muscles come in the next set.
 
