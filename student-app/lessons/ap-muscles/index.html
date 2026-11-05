@@ -20,6 +20,10 @@
 .roots{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .root{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;display:grid;gap:2px}
 .song audio{width:100%}
+.stages{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:4px 0 14px}.stages li{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.85rem;color:var(--muted)}.stages li.now{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}.stages li.done{color:var(--good);border-color:var(--good)}
+.kicker{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted);margin:0}
+.root-word{color:var(--purple)}
+.check-pt{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;min-height:44px}.check-pt input{width:22px;height:22px;flex:none;margin-top:2px}
 </style>
 </head>
 <body>
@@ -37,6 +41,7 @@
 <script src="./muscles.js"></script>
 <script src="./names.js"></script>
 <script src="./songs.js"></script>
+<script src="./deep.js"></script>
 <script src="./lesson.js"></script>
 </body>
 </html>

@@ -402,7 +402,10 @@ with sync_playwright() as p:
         return out
     def t_ap_guided():
         ctx, page, errs = fresh(url=AP); page.wait_for_selector("#screen h2")
-        check("The lesson opens on teaching with labeled figures", "Seven head and neck muscles" in page.inner_text("#screen h2") and page.locator("#screen img[src*='labeled']").count() >= 3)
+        check("The lesson opens on teaching (Start here: two muscles step by step), with no question on screen",
+              "Start here" in page.inner_text("#screen h2") and not page.query_selector("#ans") and not page.query_selector("#dcheck"))
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Seven head and neck muscles")
+        check("The all-muscles step teaches with labeled figures", page.locator("#screen img[src*='labeled']").count() >= 3)
         check("'On your own' is locked until the guided pins are done", page.is_disabled("[data-step='independent']"))
         out = ap_guided(page, wrong=True)
         check("Choosing a look-alike names the confusion and shows a comparison", "look-alike" in out["pair"] and "Oculi surrounds the eye" in out["pair"], out["pair"][:120])
@@ -524,7 +527,9 @@ with sync_playwright() as p:
         part = page.evaluate("Muscles.match('occipitofrontalis', 'frontal-belly').note")
         check("'Occipitofrontalis' alone is accepted with a note to add 'frontal belly'", part and "frontal belly" in part)
         pins_file = json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins.json")))
-        check("Pin positions in the lesson match the image build output exactly", page.evaluate("Muscles.PINS") == pins_file)
+        lesson_pins = page.evaluate("Muscles.PINS"); deep_pins = json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-deep.json")))
+        check("Pin positions in the lesson match the image build output exactly",
+              {k: v for k, v in lesson_pins.items() if k not in deep_pins} == pins_file and {k: lesson_pins[k] for k in deep_pins} == deep_pins)
         actions = page.evaluate("Object.fromEntries(Object.entries(Muscles.MUSCLES).map(([k, m]) => [k, m.action]))")
         expect = {"frontal-belly": "Raises the eyebrows", "orbicularis-oculi": "Closes the eyelids", "orbicularis-oris": "shapes the lips",
                   "buccinator": "Compresses the cheek", "temporalis": "retracts the mandible", "masseter": "Elevates the mandible",
@@ -690,7 +695,7 @@ with sync_playwright() as p:
         ctx, page, errs = fresh()
         page.route("**/ap-muscles/songs.js", lambda r: r.fulfill(content_type="application/javascript",
             body='window.StudySongs=[{id:"test-song",set:"head",title:"Test Song",src:"songs/none.mp3",muscles:["masseter"],lyrics:"la la"},{id:"trunk-song",set:"trunk",title:"Trunk Song",src:"songs/none2.mp3"}];'))
-        page.goto(AP); page.wait_for_selector("#screen h2")
+        page.goto(AP); page.wait_for_selector("#screen h2"); page.click("[data-step='learn']"); page.wait_for_selector("text=Seven head and neck muscles")
         check("A song added to songs.js appears on its own set's learn step, with lyrics", page.locator("audio[data-song='test-song']").count() == 1 and "Test Song" in page.inner_text("#screen") and page.locator("audio[data-song='trunk-song']").count() == 0)
         page.evaluate("document.querySelector('audio[data-song=test-song]').dispatchEvent(new Event('play'))"); page.wait_for_timeout(400)
         s = [e for e in evs(page, {"course": "BIO131"}) if "song-" in e["itemId"]]
@@ -727,6 +732,94 @@ with sync_playwright() as p:
                 check("Head set: the full facial figure (front and side views together) is gone from every screen", not [x for x in shown if "face-labeled.jpg" in x], sorted(shown))
             ctx.close()
     guarded("view leak", t_no_view_leak)
+
+    section("A&P in-depth lesson: Decode → See → Move → Explain → Recall → Apply (criteria 2 to 5, 7)")
+    def deep_walk(page, k, wrong_recall=None, conf="location", typed_apply=None):
+        """Walk one in-depth muscle to the Apply screen. Returns image srcs shown before Apply and the stage order seen."""
+        L = page.evaluate("i => DeepLesson.LESSONS[i]", k)
+        page.click("[data-deep='%d']" % k); page.wait_for_selector(".stages")
+        shown, stages = set(), []
+        def snap():
+            shown.update(page.eval_on_selector_all("#screen img", "els => els.map(e => e.getAttribute('src'))"))
+            cur = page.inner_text(".stages [aria-current]") if page.query_selector(".stages [aria-current]") else None
+            if cur and (not stages or stages[-1] != cur): stages.append(cur)
+        for _ in L["decode"]["parts"]:
+            snap(); page.click("#dnext"); page.wait_for_timeout(80)
+        snap()
+        for o in L["decode"]["check"]["answer"]: page.click("[data-o='%s']" % o)
+        page.click("#dck"); page.wait_for_timeout(150); page.click("#dnext"); page.wait_for_timeout(120); snap()   # See
+        page.click("#dnext"); page.wait_for_timeout(120); snap()                                                     # Move
+        page.click("#dnext"); page.wait_for_timeout(120); snap()                                                     # Explain
+        page.fill("#dexp", "It attaches here and pulls."); page.click("#dcmp"); page.wait_for_timeout(100)
+        page.click("[data-pt='0']"); page.click("#dsc"); page.wait_for_timeout(250); snap()
+        page.click("#dnext"); page.wait_for_timeout(150); snap()                                                     # Recall name
+        page.fill("#ans", wrong_recall or L["name"]); page.click("#dchk"); page.wait_for_timeout(250)
+        conf_text = None
+        if wrong_recall:
+            page.click("[data-conf='%s']" % conf); page.wait_for_timeout(200); conf_text = page.inner_text("#dconf-fb")
+        page.click("#dnext"); page.wait_for_timeout(150); snap()                                                     # Recall action
+        page.click("[data-a='%s']" % L["recall"]["action"]["answer"]); page.wait_for_timeout(200)
+        page.click("#dnext"); page.wait_for_selector("text=Apply it"); page.wait_for_timeout(200)
+        before_apply = set(shown); snap()
+        if typed_apply is not None:
+            page.fill("#ans", typed_apply); page.click("#dchk"); page.wait_for_selector("#dback")
+        return L, before_apply, stages, conf_text
+    def t_deep():
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("text=Start here")
+        D = page.evaluate("DeepLesson")
+        check("The head set starts with the in-depth lesson; it covers sternocleidomastoid and masseter",
+              page.evaluate("MuscleSets.head.SET.steps[0].id") == "deep" and [l["key"] for l in D["LESSONS"]] == ["sternocleidomastoid", "masseter"])
+        L, before, stages, conf_text = deep_walk(page, 0, wrong_recall="trapezius", conf="location", typed_apply="sternocleidomastoid")
+        check("Stages run in order: Decode, See, Move, Explain, Recall, Apply", stages == ["Decode", "See", "Move", "Explain", "Recall", "Apply"], stages)
+        check("Decode teaches each root with its landmark picture before any question", len(L["decode"]["parts"]) == 3 and "img/deep-neck-landmarks.jpg" in before and "img/deep-skull-landmarks.jpg" in before)
+        check("The Apply picture is never shown before the Apply step", "img/deep-body-head-unlabeled.jpg" not in before, sorted(before))
+        l = [e for e in evs(page, {"course": "BIO131"}) if "deep" in e["itemId"]]
+        pre = [e for e in l if e["itemId"] != L["apply"]["id"]]
+        check("Everything before Apply is learning or practice, never independent", pre and not any(e["independent"] for e in pre), [(e["itemId"], e["independent"]) for e in pre if e["independent"]])
+        ex = [e for e in l if e["itemId"] == L["explain"]["id"]][0]
+        check("Explain is self-checked against a model and stored as practice with the points she covered (not auto-graded)",
+              ex["correct"] is None and ex["response"]["pointsCovered"] == [0] and ex["response"]["pointsTotal"] == 3 and not ex["independent"])
+        cf = [e for e in l if e["itemId"] == L["recall"]["id"] + "-confusion"]
+        check("After a wrong recall, her 'what tripped you up' answer is stored under that question", len(cf) == 1 and cf[0]["response"]["confusedBy"] == "location", [e["itemId"] for e in l if "confusion" in e["itemId"]])
+        check("The reteach matches what confused her", L["recall"]["action"]["explain"]["location"][:40] in conf_text, conf_text[:80])
+        ap = [e for e in l if e["itemId"] == L["apply"]["id"]]
+        check("Apply on a never-seen picture, first try, no help, counts as independent", len(ap) == 1 and ap[0]["independent"] and ap[0]["correct"])
+        check("The SCM Apply result shows in the jaw and neck status", status(page, "bio131.ch9.jaw-neck-id")["status"] == "shown-once" and "Jaw and neck: Shown" in page.inner_text("#status-chip"))
+        page.click("#dback"); page.wait_for_selector("text=Start here")
+        L2, _, _, _ = deep_walk(page, 0, typed_apply="sternocleidomastoid")
+        ap2 = [e for e in evs(page, {"course": "BIO131"}) if e["itemId"] == L["apply"]["id"]]
+        check("Repeating Apply counts as practice, and she is told so", len(ap2) == 2 and ap2[1]["activity"] == "check" and not ap2[1]["independent"] and "counts as practice" in page.inner_text("#screen"))
+        page.click("#dback"); page.wait_for_selector("text=Start here")
+        L3, _, _, _ = deep_walk(page, 1, typed_apply="buccinator")
+        m = [e for e in evs(page, {"course": "BIO131"}) if e["itemId"] == L3["apply"]["id"]][0]
+        check("Masseter Apply is a new case; naming the buccinator is diagnosed as the look-alike and shown the reasoning",
+              m["independent"] and not m["correct"] and m["errorType"] == "lookalike-buccinator-vs-masseter" and "How you could know" in page.inner_text("#screen"), m["errorType"])
+        check("No page errors", not errs, errs[:1]); ctx.close()
+        # Content and data
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("text=Start here")
+        D = page.evaluate("DeepLesson"); H = page.evaluate("MuscleSets.head")
+        conf_ok = all(len(set(L["recall"]["action"]["explain"].values())) == 4 and set(L["recall"]["action"]["explain"]) == {"location", "name", "action", "question"} for L in D["LESSONS"])
+        check("Each kind of confusion (location, name, action, question) gets its own explanation, for both muscles", conf_ok)
+        check("Each explanation checklist has three essential points and a model answer", all(len(L["explain"]["points"]) == 3 and len(L["explain"]["model"]) > 100 for L in D["LESSONS"]))
+        check("Anatomy anchors: SCM one side turns the head to the opposite side; masseter elevates the mandible",
+              "opposite side" in H["MUSCLES"]["sternocleidomastoid"]["action"] and "Elevates the mandible" in H["MUSCLES"]["masseter"]["action"]
+              and D["LESSONS"][0]["decode"]["check"]["answer"] == ["Sternum", "Clavicle", "Mastoid process"] and D["LESSONS"][1]["decode"]["check"]["answer"] == ["Zygomatic arch", "Mandible"])
+        check("The masseter Apply step says honestly why it is a case, not a new picture", "only one labeled picture" in D["LESSONS"][1]["apply"]["note"])
+        ctx.close()
+        try:
+            import pytesseract
+            from PIL import Image
+            practice = ["sternohyoid", "omohyoid", "digastric", "levator", "depressor", "splenius", "corrugator", "sternocleidomastoid", "masseter"]
+            found = {}
+            for f in ["deep-neck-landmarks", "deep-skull-landmarks", "deep-body-head-unlabeled"]:
+                im = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s.jpg" % f))
+                t = (pytesseract.image_to_string(im) + pytesseract.image_to_string(im.resize((im.width * 2, im.height * 2)))).lower()
+                hit = [w for w in practice if w in t]
+                if hit: found[f] = hit
+            check("Landmark images show no practice name and no muscle answer; the Apply picture has no text", not found, found)
+        except ImportError:
+            check("OCR check of in-depth images (skipped: pytesseract not installed)", True)
+    guarded("deep lesson", t_deep)
 
     # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")

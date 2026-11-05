@@ -43,7 +43,7 @@
   }
   nav.addEventListener("click", function (e) { var b = e.target.closest("[data-step]"); if (b && !b.disabled) go(b.dataset.step); });
   screen.addEventListener("click", function (e) { var b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
-  function go(id) { current = id; renderNav(); ({ learn: learn, names: names, feel: feel, find: find, guided: guided, lookalikes: lookalikes, independent: independent })[id](); window.scrollTo({ top: 0, behavior: "auto" }); }
+  function go(id) { current = id; renderNav(); ({ deep: deep, learn: learn, names: names, feel: feel, find: find, guided: guided, lookalikes: lookalikes, independent: independent })[id](); window.scrollTo({ top: 0, behavior: "auto" }); }
   function nextAfter(id) { var i = STEPS.map(function (s) { return s.id; }).indexOf(id); return STEPS[i + 1] ? STEPS[i + 1].id : null; }
   function nextBtn(to, text) { return '<div class="row" style="margin-top:14px"><button class="btn" type="button" data-go="' + to + '">' + esc(text) + " →</button></div>"; }
   function markViewed(id, activity, objKey) {
@@ -69,6 +69,193 @@
     var note = M.LOOKALIKE_NOTES[M.pairKey(a, b)];
     if (!note) return "";
     return '<div class="reteach"><b>' + esc(M.MUSCLES[a].name) + " vs. " + esc(M.MUSCLES[b].name) + "</b><p>" + esc(note) + "</p></div>";
+  }
+
+  // ---------- Start here: one muscle at a time (Decode → See → Move → Explain → Recall → Apply) ----------
+  var D = window.DeepLesson && SET.key === "head" ? window.DeepLesson : null;
+  if (D) { Object.keys(D.FIGURES).forEach(function (k) { M.FIGURES[k] = D.FIGURES[k]; M.PINS[k] = D.PINS[k]; }); }
+  var STAGES = [["decode", "Decode"], ["see", "See"], ["move", "Move"], ["explain", "Explain"], ["recall", "Recall"], ["apply", "Apply"]];
+  function stageBar(cur) {
+    return '<ol class="stages" aria-label="Stages">' + STAGES.map(function (s, i) {
+      var idx = STAGES.map(function (x) { return x[0]; }).indexOf(cur);
+      return '<li class="' + (i < idx ? "done" : i === idx ? "now" : "") + '"' + (i === idx ? ' aria-current="step"' : "") + ">" + esc(s[1]) + "</li>";
+    }).join("") + "</ol>";
+  }
+  function deepImg(k) { var f = D.FIG[k]; return '<div class="fig"><img src="' + f.img + '" alt="' + esc(f.alt) + '"></div>'; }
+  function deep() {
+    LR.events({ course: "BIO131" }).then(function (list) {
+      var seen = {}; list.forEach(function (e) { seen[e.itemId] = e; });
+      screen.innerHTML = '<div class="card"><h2>Start here: two muscles, step by step</h2>' +
+        "<p>Learn one muscle completely before the next. Each one goes through six stages: <b>Decode</b> the name, <b>See</b> it, <b>Move</b> it, <b>Explain</b> why it works, <b>Recall</b> it without labels, then <b>Apply</b> it to something new.</p>" +
+        '<div class="musclecards">' + D.LESSONS.map(function (L, i) {
+          var applied = seen[L.apply.id];
+          return '<div class="mcard"><h3>' + (i + 1) + ". " + esc(L.name) + "</h3><p>" + esc(L.why) + "</p>" +
+            '<p class="small muted">' + (applied ? "Apply step done" + (applied.correct ? "." : ": worth another look.") : "Not finished yet.") + "</p>" +
+            '<button type="button" class="btn" data-deep="' + i + '">' + (applied ? "Go through it again" : "Start " + esc(L.name)) + "</button></div>";
+        }).join("") + "</div>" +
+        '<p class="small muted" style="margin-top:10px">Only the Apply step can count as showing it on your own, and only on the first try without help. Everything before it is learning and practice.</p></div>' +
+        nextBtn(nextAfter("deep"), "Next: all seven head and neck muscles");
+      screen.querySelectorAll("[data-deep]").forEach(function (b) { b.onclick = function () { deepRun(D.LESSONS[Number(b.dataset.deep)], 0); }; });
+    });
+  }
+  function deepShell(L, stage, body) {
+    screen.innerHTML = '<div class="card"><p class="kicker">' + esc(L.name) + "</p>" + stageBar(stage) + body + "</div>";
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+  function deepNext(L, stage, label) {
+    return '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dnext">' + esc(label || "Next") + " →</button></div>";
+  }
+  function deepRun(L, partIdx) { deepDecode(L, partIdx || 0); }
+  // Decode: one landmark or meaning at a time, then a check.
+  function deepDecode(L, i) {
+    var parts = L.decode.parts;
+    if (i < parts.length) {
+      var p = parts[i];
+      deepShell(L, "decode", "<h2>Decode: <span class=\"root-word\">" + esc(p.root) + "</span></h2><p><b>" + esc(p.root) + "</b> means <b>" + esc(p.means) + "</b>.</p>" +
+        deepImg(p.fig) + "<p>" + esc(p.look) + '</p><p class="small muted">Part ' + (i + 1) + " of " + parts.length + "</p>" + deepNext(L, "decode", i + 1 < parts.length ? "Next part" : "Check the name"));
+      markViewed("deep-" + L.key + "-decode-" + i, "teach", L.objective);
+      document.getElementById("dnext").onclick = function () { deepDecode(L, i + 1); };
+      return;
+    }
+    var c = L.decode.check, picked = {};
+    deepShell(L, "decode", "<h2>Decode check</h2><p class=\"prompt\">" + esc(c.prompt) + '</p><div id="dopts">' + c.options.map(function (o) {
+      return '<button type="button" class="choice" data-o="' + esc(o) + '" aria-pressed="false">' + esc(o) + "</button>";
+    }).join("") + '</div><div class="row" style="margin-top:10px"><button class="btn" type="button" id="dck" disabled>Check</button></div><div id="dfb"></div>');
+    var need = c.answer.length;
+    screen.querySelectorAll("[data-o]").forEach(function (b) {
+      b.onclick = function () {
+        if (screen.querySelector("#dck").dataset.done) return;
+        var o = b.dataset.o; picked[o] = !picked[o]; b.classList.toggle("picked", picked[o]); b.setAttribute("aria-pressed", picked[o] ? "true" : "false");
+        document.getElementById("dck").disabled = Object.keys(picked).filter(function (k) { return picked[k]; }).length !== need;
+      };
+    });
+    document.getElementById("dck").onclick = function () {
+      var ck = this; ck.dataset.done = "1"; ck.disabled = true;
+      var chosen = Object.keys(picked).filter(function (k) { return picked[k]; });
+      var ok = chosen.length === need && c.answer.every(function (a) { return chosen.indexOf(a) >= 0; });
+      screen.querySelectorAll("[data-o]").forEach(function (b) {
+        b.classList.remove("picked"); b.disabled = true;
+        if (c.answer.indexOf(b.dataset.o) >= 0) b.classList.add("good"); else if (picked[b.dataset.o]) b.classList.add("bad");
+      });
+      save({ objectiveId: objectiveId(L.objective), itemId: c.id, itemVersion: 1, activity: "guided", correct: ok, errorType: ok ? null : "decode-landmarks",
+        response: { chosen: chosen }, assistance: { guided: true } }).catch(function () {});
+      document.getElementById("dfb").innerHTML = (ok ? fb("good", "Correct.", "<p>" + esc(c.answer.join(", ")) + ".</p>") : fb("bad", "Not quite.", "<p>" + esc(c.wrong) + "</p>")) +
+        deepNext(L, "decode", "See it");
+      document.getElementById("dnext").onclick = function () { deepSee(L); };
+    };
+  }
+  function deepSee(L) {
+    markViewed("deep-" + L.key + "-see", "teach", L.objective);
+    deepShell(L, "see", "<h2>See it</h2>" + figure(L.see.fig, { labeled: true }) + "<p>" + esc(L.see.text) + "</p>" + card(L.key) + deepNext(L, "see", "Move it"));
+    document.getElementById("dnext").onclick = function () { deepMove(L); };
+  }
+  function deepMove(L) {
+    markViewed("deep-" + L.key + "-move", "teach", L.objective);
+    var m = M.MUSCLES[L.key];
+    deepShell(L, "move", "<h2>Move it</h2><p><b>What it does:</b> " + esc(L.move.action) + "</p>" +
+      '<div class="feedback info"><strong>Why the location gives that movement</strong>' + esc(L.move.demo) + "</div>" +
+      '<div class="mcard" style="margin-top:12px"><h3>Try it on yourself</h3><p><b>Do this:</b> ' + esc(m.feel.do) + "</p><p><b>Notice:</b> " + esc(m.feel.notice) + "</p></div>" +
+      deepNext(L, "move", "Explain it"));
+    document.getElementById("dnext").onclick = function () { deepExplain(L); };
+  }
+  // Explain: she writes her own explanation, then compares it with a model and ticks the points she covered.
+  // The app does not grade free writing; it records her self-check as practice.
+  function deepExplain(L) {
+    var X = L.explain;
+    deepShell(L, "explain", "<h2>Explain it</h2><p class=\"prompt\">" + esc(X.prompt) + '</p><label class="small muted" for="dexp">Your explanation</label>' +
+      '<textarea id="dexp" rows="5" style="width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line)"></textarea>' +
+      '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dcmp">Compare with a model answer</button></div><div id="dfb"></div>');
+    document.getElementById("dcmp").onclick = function () {
+      var text = document.getElementById("dexp").value.trim();
+      this.disabled = true; document.getElementById("dexp").readOnly = true;
+      document.getElementById("dfb").innerHTML = '<div class="feedback info"><strong>Model answer</strong>' + esc(X.model) + "</div>" +
+        "<p style=\"margin-top:12px\"><b>Which of these did your explanation include?</b> Be honest: this is for you, not a score.</p>" +
+        X.points.map(function (pt, i) { return '<label class="check-pt"><input type="checkbox" data-pt="' + i + '"> ' + esc(pt) + "</label>"; }).join("") +
+        '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dsc">Save my check</button></div><div id="dfb2"></div>';
+      document.getElementById("dsc").onclick = function () {
+        this.disabled = true;
+        var got = [].slice.call(screen.querySelectorAll("[data-pt]")).filter(function (c) { return c.checked; }).map(function (c) { return Number(c.dataset.pt); });
+        save({ objectiveId: objectiveId(L.objective), itemId: X.id, itemVersion: 1, activity: "guided", correct: null,
+          response: { wrote: text.length > 0, chars: text.length, pointsCovered: got, pointsTotal: X.points.length }, assistance: { guided: true, answerShown: true } }).catch(function () {});
+        var missing = X.points.filter(function (p, i) { return got.indexOf(i) < 0; });
+        document.getElementById("dfb2").innerHTML = (missing.length ? fb("info", "Add these to your explanation:", "<ul>" + missing.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul><p>Say the full explanation out loud once before you move on.</p>")
+          : fb("good", "Your explanation covered every point.", "")) + deepNext(L, "explain", "Recall it");
+        document.getElementById("dnext").onclick = function () { deepRecall(L, 0); };
+      };
+    };
+  }
+  // Recall: name on the studied picture without labels, then the action. Practice, not independent.
+  // After a wrong answer she says what confused her, and the reteach changes with her answer.
+  function confusionAsk(L, A, host, onDone, forId) {
+    host.insertAdjacentHTML("beforeend", '<div class="mcard" id="dconf" style="margin-top:10px"><p><b>What tripped you up?</b></p>' +
+      D.CONFUSION.map(function (c) { return '<button type="button" class="choice" data-conf="' + c.id + '">' + esc(c.label) + "</button>"; }).join("") + '</div><div id="dconf-fb"></div>');
+    host.querySelectorAll("[data-conf]").forEach(function (b) {
+      b.onclick = function () {
+        host.querySelectorAll("[data-conf]").forEach(function (x) { x.disabled = true; x.classList.toggle("picked", x === b); });
+        save({ objectiveId: objectiveId(L.objective), itemId: (forId || A.id) + "-confusion", itemVersion: 1, activity: "teach", correct: null, response: { confusedBy: b.dataset.conf } }).catch(function () {});
+        document.getElementById("dconf-fb").innerHTML = '<div class="reteach"><b>Another way to see it</b><p>' + esc(A.explain[b.dataset.conf]) + "</p></div>";
+        onDone();
+      };
+    });
+  }
+  function deepRecall(L, part) {
+    var R = L.recall;
+    if (part === 0) {
+      deepShell(L, "recall", "<h2>Recall: name it without labels</h2>" + figure(R.fig, { pins: [L.key], current: L.key }) +
+        '<p class="prompt">Name the pinned muscle.</p><label class="small muted" for="ans">Muscle name</label><input type="text" id="ans" autocomplete="off" autocapitalize="none" spellcheck="false">' +
+        '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dchk">Check</button></div><div id="dfb"></div>');
+      document.getElementById("dchk").onclick = function () {
+        var r = M.match(document.getElementById("ans").value, L.key); this.disabled = true; document.getElementById("ans").readOnly = true;
+        save({ objectiveId: objectiveId(L.objective), itemId: R.id, itemVersion: 1, activity: "check", correct: r.correct, errorType: r.errorType,
+          response: { typed: document.getElementById("ans").value }, unfamiliar: false }).catch(function () {});
+        var host = document.getElementById("dfb");
+        host.innerHTML = r.correct ? fb("good", "Correct.", r.note ? "<p>" + esc(r.note) + "</p>" : "") : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", r.note ? "<p>" + esc(r.note) + "</p>" : "");
+        if (r.correct) { host.insertAdjacentHTML("beforeend", deepNext(L, "recall", "Next question")); document.getElementById("dnext").onclick = function () { deepRecall(L, 1); }; }
+        else confusionAsk(L, R.action, host, function () { host.insertAdjacentHTML("beforeend", deepNext(L, "recall", "Next question")); document.getElementById("dnext").onclick = function () { deepRecall(L, 1); }; }, R.id);
+      };
+      return;
+    }
+    var A = R.action;
+    deepShell(L, "recall", "<h2>Recall: what it does</h2><p class=\"prompt\">" + esc(A.prompt) + "</p>" + A.options.map(function (o) {
+      return '<button type="button" class="choice" data-a="' + esc(o) + '">' + esc(o) + "</button>"; }).join("") + '<div id="dfb"></div>');
+    screen.querySelectorAll("[data-a]").forEach(function (b) {
+      b.onclick = function () {
+        var ok = b.dataset.a === A.answer;
+        screen.querySelectorAll("[data-a]").forEach(function (x) { x.disabled = true; if (x.dataset.a === A.answer) x.classList.add("good"); else if (x === b) x.classList.add("bad"); });
+        save({ objectiveId: objectiveId("actions"), itemId: A.id, itemVersion: 1, activity: "check", correct: ok, errorType: ok ? null : "action-wrong",
+          response: { chose: b.dataset.a }, unfamiliar: false }).catch(function () {});
+        var host = document.getElementById("dfb");
+        host.innerHTML = ok ? fb("good", "Correct.", "") : fb("bad", "The answer is: " + A.answer + ".", "");
+        var go2 = function () { host.insertAdjacentHTML("beforeend", deepNext(L, "recall", "Apply it to something new")); document.getElementById("dnext").onclick = function () { deepApply(L); }; };
+        if (ok) go2(); else confusionAsk(L, A, host, go2);
+      };
+    });
+  }
+  // Apply: a new picture or a new case. First try, no help: this is the only stage that can count as independent.
+  function deepApply(L) {
+    var P2 = L.apply;
+    LR.events({ course: "BIO131" }).then(function (list) {
+      var before = list.filter(function (e) { return e.itemId === P2.id; });
+      var fresh = before.length === 0;
+      deepShell(L, "apply", "<h2>Apply it</h2>" + (P2.kind === "pin" ? figure(P2.fig, { pins: [L.key], current: L.key }) : "") +
+        '<p class="prompt">' + esc(P2.prompt) + "</p>" + (P2.note ? '<p class="small muted">' + esc(P2.note) + "</p>" : "") +
+        '<label class="small muted" for="ans">Muscle name</label><input type="text" id="ans" autocomplete="off" autocapitalize="none" spellcheck="false">' +
+        '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dchk">Check</button></div><div id="dfb"></div>' +
+        (fresh ? "" : '<p class="small muted">You have answered this one before, so this time it counts as practice.</p>'));
+      document.getElementById("dchk").onclick = function () {
+        var typed = document.getElementById("ans").value, r = M.match(typed, L.key);
+        this.disabled = true; document.getElementById("ans").readOnly = true;
+        save({ objectiveId: objectiveId(P2.objective), itemId: P2.id, itemVersion: 1, activity: fresh ? "independent" : "check", correct: r.correct, errorType: r.errorType,
+          response: { typed: typed }, unfamiliar: fresh, assistance: { hints: 0 } }).then(function (ev) {
+          var host = document.getElementById("dfb");
+          host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), r.note ? "<p>" + esc(r.note) + "</p>" : "")
+            : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + (P2.kind === "pin" ? figure(L.see.fig, { labeled: true }) : ""))) +
+            '<div class="mcard" style="margin-top:10px"><p><b>How you could know:</b></p><ul>' + P2.how.map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("") + "</ul></div>" +
+            '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dback">Back to the two muscles →</button></div>';
+          document.getElementById("dback").onclick = deep;
+        }, function () {});
+      };
+    });
   }
 
   // ---------- Learn ----------

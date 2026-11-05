@@ -31,7 +31,7 @@
       cue: "The thick muscle that bulges at the angle of your jaw when you clench your teeth.", feel: { do: "Place your fingertips on the angle of your jaw, in front of your ear lobe, and gently clench your teeth.", notice: "A thick block of muscle bulges out. It is one of the easiest muscles to feel." }, lookalike: "buccinator" },
     "sternocleidomastoid": { name: "Sternocleidomastoid", region: "neck",
       accept: ["sternocleidomastoid"], location: "The long diagonal muscle on the side of the neck, from the sternum and clavicle up to the mastoid process behind the ear.",
-      action: "One side: rotates the head to the opposite side. Both sides together: flex the neck.",
+      action: "One side: rotates the head to the opposite side (and tilts it toward the same shoulder). Both sides together: flex the neck.",
       cue: "Read the name: sterno (sternum), cleido (clavicle), mastoid (mastoid process).", feel: { do: "Look in a mirror and gently turn your head to the right.", notice: "The LEFT muscle stands out as a cord from behind your ear down to your sternum and clavicle. One side turns the head to the opposite side." }, lookalike: null }
   };
   var LOOKALIKE_NOTES = {
@@ -97,9 +97,9 @@
 
   var SET = {
     key: "head", title: "Head and neck muscles", learnItem: "learn",
-    steps: [{ id: "learn", label: "1 · Learn the muscles" }, { id: "names", label: "2 · Decode the names" }, { id: "feel", label: "3 · Feel it" },
+    steps: [{ id: "deep", label: "Start here · Two muscles step by step" }, { id: "learn", label: "1 · All seven muscles" }, { id: "names", label: "2 · Decode more names" }, { id: "feel", label: "3 · Feel it" },
       { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
-    status: [{ key: "face", label: "Facial muscles" }, { key: "actions", label: "Actions" }],
+    status: [{ key: "face", label: "Facial muscles" }, { key: "jawneck", label: "Jaw and neck" }, { key: "actions", label: "Actions" }],
     learnIntro: "Study each labeled figure. For each muscle, learn where it is, what it does, and one feature that tells it apart.",
     learnTitle: "Seven head and neck muscles",
     learn: [{ h: "Muscles of facial expression", fig: "face-anterior", muscles: ["frontal-belly", "orbicularis-oculi", "orbicularis-oris", "buccinator"] },
