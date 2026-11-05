@@ -10,40 +10,39 @@
       partial: { "occipitofrontalis": "Add \"frontal belly\" to be complete: this muscle has a frontal and an occipital belly." },
       location: "The broad, vertical sheet over the forehead, above the eyes.",
       action: "Raises the eyebrows, as when showing surprise.",
-      cue: "Find the eyes, then look straight up at the forehead.", lookalike: "temporalis" },
+      cue: "Find the eyes, then look straight up at the forehead.", feel: { do: "Rest your fingertips on your forehead and raise your eyebrows as if surprised.", notice: "The skin of the forehead slides up and wrinkles under your fingers." }, lookalike: "temporalis" },
     "orbicularis-oculi": { name: "Orbicularis oculi", region: "eye",
       accept: ["orbicularis oculi"], location: "A ring of muscle around each eye.",
-      action: "Closes the eyelids.", cue: "Circular fibers around the eye. \"Oculi\" = eye.", lookalike: "orbicularis-oris" },
+      action: "Closes the eyelids.", cue: "Circular fibers around the eye. \"Oculi\" = eye.", feel: { do: "Lay a fingertip lightly beside the outer corner of one eye, then squeeze both eyes shut tightly.", notice: "The ring of muscle around the eye tightens and the skin beside the eye wrinkles." }, lookalike: "orbicularis-oris" },
     "orbicularis-oris": { name: "Orbicularis oris", region: "mouth",
       accept: ["orbicularis oris"], location: "A ring of muscle around the mouth, within the lips.",
-      action: "Moves and shapes the lips, as during speech.", cue: "Circular fibers around the lips. \"Oris\" = mouth.", lookalike: "orbicularis-oculi" },
+      action: "Moves and shapes the lips, as during speech.", cue: "Circular fibers around the lips. \"Oris\" = mouth.", feel: { do: "Put two fingertips just above and below your lips, then pucker as if to whistle or kiss.", notice: "The lips tighten and push forward as the ring around the mouth contracts." }, lookalike: "orbicularis-oculi" },
     "buccinator": { name: "Buccinator", region: "cheek",
       accept: ["buccinator"], location: "In the cheek, with horizontal fibers running forward to the corner of the mouth.",
       action: "Compresses the cheek, as when blowing, whistling, or sucking through a straw.",
-      cue: "Horizontal cheek fibers that run into the corner of the mouth.", lookalike: "masseter" },
+      cue: "Horizontal cheek fibers that run into the corner of the mouth.", feel: { do: "Press a fingertip on the middle of one cheek, puff your cheeks with air, then blow it out hard.", notice: "The cheek wall tightens and pushes the air out. That is the buccinator compressing the cheek." }, lookalike: "masseter" },
     "temporalis": { name: "Temporalis", region: "side of skull",
       accept: ["temporalis"], location: "A fan-shaped muscle on the side of the skull, over the temple and above the ear.",
       action: "Closes the mouth (elevates the mandible) and pulls the lower jaw back under the upper jaw (retracts the mandible).",
-      cue: "A fan over the temple. Feel it tighten above your ear when you clench.", lookalike: "frontal-belly" },
+      cue: "A fan over the temple. Feel it tighten above your ear when you clench.", feel: { do: "Place your fingertips on your temple, above and in front of your ear, and clench your teeth.", notice: "A broad, fan-shaped area hardens under your fingers, then relaxes when you unclench." }, lookalike: "frontal-belly" },
     "masseter": { name: "Masseter", region: "jaw",
       accept: ["masseter"], location: "On the side of the face over the back of the lower jaw (mandible), in front of the ear.",
       action: "Elevates the mandible to close the mouth; the prime mover for chewing.",
-      cue: "The thick muscle that bulges at the angle of your jaw when you clench your teeth.", lookalike: "buccinator" },
+      cue: "The thick muscle that bulges at the angle of your jaw when you clench your teeth.", feel: { do: "Place your fingertips on the angle of your jaw, in front of your ear lobe, and clench your teeth.", notice: "A thick block of muscle bulges out. It is one of the easiest muscles to feel." }, lookalike: "buccinator" },
     "sternocleidomastoid": { name: "Sternocleidomastoid", region: "neck",
       accept: ["sternocleidomastoid"], location: "The long diagonal muscle on the side of the neck, from the sternum and clavicle up to the mastoid process behind the ear.",
       action: "One side: rotates the head to the opposite side. Both sides together: flex the neck.",
-      cue: "Read the name: sterno (sternum), cleido (clavicle), mastoid (mastoid process).", lookalike: null }
+      cue: "Read the name: sterno (sternum), cleido (clavicle), mastoid (mastoid process).", feel: { do: "Look in a mirror and turn your head to the right.", notice: "The LEFT muscle stands out as a cord from behind your ear down to your sternum and clavicle. One side turns the head to the opposite side." }, lookalike: null }
   };
   var LOOKALIKE_NOTES = {
     "orbicularis-oculi|orbicularis-oris": "Both are ring-shaped muscles. Oculi surrounds the eye and closes the eyelids. Oris surrounds the mouth and moves the lips.",
     "buccinator|masseter": "Both sit in the cheek area. Masseter is thick, over the back of the jaw near the ear, and closes the jaw. Buccinator is thinner, nearer the mouth, with horizontal fibers, and compresses the cheek.",
     "frontal-belly|temporalis": "Both are broad muscles on the head. The frontal belly is on the forehead and raises the eyebrows. Temporalis is on the side of the skull over the temple and closes the jaw."
   };
-  function pairKey(a, b) { return [a, b].sort().join("|"); }
 
   var FIGURES = {
-    "face-anterior": { img: "img/face-anterior-unlabeled.jpg", alt: "Facial muscles, anterior view, labels covered", labeled: "img/face-labeled.jpg" },
-    "face-lateral": { img: "img/face-lateral-unlabeled.jpg", alt: "Facial muscles, lateral view, labels covered", labeled: "img/face-labeled.jpg" },
+    "face-anterior": { img: "img/face-anterior-unlabeled.jpg", alt: "Facial muscles, anterior view, labels covered", labeled: "img/face-anterior-labeled.jpg" },
+    "face-lateral": { img: "img/face-lateral-unlabeled.jpg", alt: "Facial muscles, lateral view, labels covered", labeled: "img/face-anterior-labeled.jpg" },
     "jaw": { img: "img/jaw-unlabeled.jpg", alt: "Chewing muscles, superficial lateral view, labels covered", labeled: "img/jaw-labeled.jpg" },
     "neck": { img: "img/neck-unlabeled.jpg", alt: "Neck muscles, left lateral view, labels covered", labeled: "img/neck-labeled.jpg" }
   };
@@ -62,9 +61,9 @@
 
   // Guided practice (assisted): anterior face, jaw and neck figures.
   var GUIDED = [
-    { fig: "face-anterior", muscle: "frontal-belly" }, { fig: "face-anterior", muscle: "orbicularis-oculi" },
-    { fig: "face-anterior", muscle: "orbicularis-oris" }, { fig: "face-anterior", muscle: "buccinator" },
-    { fig: "jaw", muscle: "temporalis" }, { fig: "jaw", muscle: "masseter" }, { fig: "neck", muscle: "sternocleidomastoid" }
+    { fig: "face-anterior", muscle: "frontal-belly", objective: "face" }, { fig: "face-anterior", muscle: "orbicularis-oculi", objective: "face" },
+    { fig: "face-anterior", muscle: "orbicularis-oris", objective: "face" }, { fig: "face-anterior", muscle: "buccinator", objective: "face" },
+    { fig: "jaw", muscle: "temporalis", objective: "jawneck" }, { fig: "jaw", muscle: "masseter", objective: "jawneck" }, { fig: "neck", muscle: "sternocleidomastoid", objective: "jawneck" }
   ];
 
   // Independent items. "unfamiliar" items use a view or question never shown in teaching or guided practice.
@@ -96,44 +95,24 @@
       prompt: "Name the ring-shaped muscle that moves and shapes the lips during speech." }
   ];
 
-  // ---------- typed-name matching ----------
-  function norm(s) {
-    return String(s || "").toLowerCase().replace(/[()\-,.;:'"]/g, " ").split(/\s+/)
-      .filter(function (w) { return w && ["the", "of", "muscle", "m"].indexOf(w) < 0; }).join(" ");
-  }
-  function lev(a, b) {
-    var d = [], i, j;
-    for (i = 0; i <= a.length; i++) { d[i] = [i]; }
-    for (j = 1; j <= b.length; j++) d[0][j] = j;
-    for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++)
-      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    return d[a.length][b.length];
-  }
-  function closeTo(text, accepted) {
-    var tol = accepted.length >= 8 ? 2 : 1;
-    return lev(text, accepted) <= tol;
-  }
-  // Returns {correct, errorType, note, matched}
-  function match(typed, target) {
-    var t = norm(typed), m = MUSCLES[target];
-    if (!t) return { correct: false, errorType: "no-answer", note: null, matched: null };
-    var acc = m.accept.map(norm);
-    if (acc.indexOf(t) >= 0) return { correct: true, errorType: null, note: m.partial && m.partial[t] ? m.partial[t] : null, matched: target };
-    for (var i = 0; i < acc.length; i++) if (closeTo(t, acc[i])) return { correct: true, errorType: "spelling-close", note: "Check the spelling: " + m.name + ".", matched: target };
-    // Did she name a different lesson muscle?
-    var other = null;
-    Object.keys(MUSCLES).forEach(function (k) {
-      if (k === target || other) return;
-      var a2 = MUSCLES[k].accept.map(norm);
-      if (a2.indexOf(t) >= 0 || a2.some(function (x) { return closeTo(t, x); })) other = k;
-    });
-    if (other) {
-      var isPair = MUSCLES[target].lookalike === other || MUSCLES[other].lookalike === target;
-      return { correct: false, errorType: isPair ? "lookalike-" + pairKey(target, other).replace("|", "-vs-") : "wrong-muscle", note: null, matched: other };
-    }
-    if (t === "orbicularis") return { correct: false, errorType: "incomplete-name", note: "Orbicularis what? There are two: oculi (eye) and oris (mouth).", matched: null };
-    return { correct: false, errorType: "not-recognized", note: null, matched: null };
-  }
+  var SET = {
+    key: "head", title: "Head and neck muscles", learnItem: "learn",
+    steps: [{ id: "learn", label: "1 · Learn the muscles" }, { id: "names", label: "2 · Decode the names" }, { id: "feel", label: "3 · Feel it" },
+      { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
+    status: [{ key: "face", label: "Facial muscles" }, { key: "actions", label: "Actions" }],
+    learnIntro: "Study each labeled figure. For each muscle, learn where it is, what it does, and one feature that tells it apart.",
+    learnTitle: "Seven head and neck muscles",
+    learn: [{ h: "Muscles of facial expression", fig: "face-anterior", muscles: ["frontal-belly", "orbicularis-oculi", "orbicularis-oris", "buccinator"] },
+      { h: "Chewing muscles", fig: "jaw", muscles: ["temporalis", "masseter"] }, { h: "Neck", fig: "neck", muscles: ["sternocleidomastoid"] }],
+    find: { fig: "face-anterior", pins: ["frontal-belly", "orbicularis-oculi", "orbicularis-oris", "buccinator"], current: "buccinator", title: "Worked example: pin 4 on this front view",
+      landmarks: "eye, mouth, ear, angle of the jaw, sternum, or clavicle",
+      fibers: "rings (orbicularis), vertical sheet (frontal belly), fan (temporalis), thick block at the jaw (masseter), horizontal cheek fibers (buccinator), long diagonal band (sternocleidomastoid)",
+      think: "Pin 4's line runs to the cheek beside the mouth (landmark: the corner of the mouth). The fibers there run horizontally toward the corner of the mouth. A cheek muscle beside the mouth that compresses the cheek is the <b>buccinator</b>. The masseter is farther back near the ear and is not shown in this front view." },
+    pairs: [["orbicularis-oculi", "orbicularis-oris"], ["masseter", "buccinator"], ["frontal-belly", "temporalis"]],
+    incompleteNames: { "orbicularis": "Orbicularis what? There are two: oculi (eye) and oris (mouth)." }
+  };
 
-  global.Muscles = { MUSCLES: MUSCLES, LOOKALIKE_NOTES: LOOKALIKE_NOTES, pairKey: pairKey, FIGURES: FIGURES, PINS: PINS, OBJ: OBJ, GUIDED: GUIDED, ITEMS: ITEMS, match: match, norm: norm };
+  var built = MuscleCore.build({ MUSCLES: MUSCLES, LOOKALIKE_NOTES: LOOKALIKE_NOTES, FIGURES: FIGURES, PINS: PINS, OBJ: OBJ, GUIDED: GUIDED, ITEMS: ITEMS, SET: SET, INCOMPLETE: SET.incompleteNames });
+  global.MuscleSets.head = built;
+  global.Muscles = built; // the head and neck set is the default
 })(window);

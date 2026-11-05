@@ -40,7 +40,9 @@ VIEWS = {
     "neck": {"fig": FIG_NECK, "crop": (0, 0, 760, 850), "labels": NECK_LABELS,
              "pins": {"sternocleidomastoid": (580, 209)}},
 }
-LABELED = {"face-labeled": (FIG_FACE, (0, 0, 2407, 1460)), "jaw-labeled": (FIG_JAW, (0, 0, 1000, 1067)), "neck-labeled": (FIG_NECK, (0, 0, 1010, 850))}
+# The facial figure shows the front and side views together. The labeled teaching image keeps only the front view and the
+# label column, with the side view blanked, because the side view is the one she is tested on as a never-practiced view.
+LABELED = {"face-anterior-labeled": (FIG_FACE, (0, 0, 1370, 1460)), "jaw-labeled": (FIG_JAW, (0, 0, 1000, 1067)), "neck-labeled": (FIG_NECK, (0, 0, 1010, 850))}
 
 def fit(im):
     if im.width > MAX_W:
@@ -51,7 +53,15 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     pins = {}
     for name, (fig, box) in LABELED.items():
-        fit(Image.open(os.path.join(SRC, fig)).convert("RGB").crop(box)).save(os.path.join(OUT, name + ".jpg"), quality=84, optimize=True)
+        im = Image.open(os.path.join(SRC, fig)).convert("RGB")
+        if name == "face-anterior-labeled":
+            src = im.copy(); d = ImageDraw.Draw(im)
+            d.rectangle((1290, 0, 2407, 1460), fill="white")          # blank the side view
+            d.rectangle((993, 500, 1370, 880), fill="white")          # labels whose lines point only to the side view
+            for k, (x0, y0, x1, y1) in FACE_LABELS.items():          # put back labels whose lines reach the front view
+                if k in ("corrugator-supercilii", "occipital-belly"): continue
+                im.paste(src.crop((x0 - PAD, y0 - PAD, x1 + PAD, y1 + PAD)), (x0 - PAD, y0 - PAD))
+        fit(im.crop(box)).save(os.path.join(OUT, name + ".jpg"), quality=84, optimize=True)
     for view, v in VIEWS.items():
         im = Image.open(os.path.join(SRC, v["fig"])).convert("RGB")
         d = ImageDraw.Draw(im)

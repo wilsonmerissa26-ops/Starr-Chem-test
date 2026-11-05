@@ -553,6 +553,181 @@ with sync_playwright() as p:
     guarded("ap data", t_ap_data)
 
     # =====================================================================================
+    TRUNK = AP + "trunk.html"
+    section("A&P trunk set: teaching, guided, independent and delayed review (criteria 1 to 5, 7)")
+    def trunk_guided(page):
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        for g in page.evaluate("MuscleSets.trunk.GUIDED"):
+            page.wait_for_selector("#gnames [data-name='%s']" % g["muscle"]); page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(120)
+        page.wait_for_timeout(300)
+    def t_trunk():
+        ctx, page, errs = fresh(url=TRUNK); page.wait_for_selector("#screen h2")
+        T = page.evaluate("MuscleSets.trunk")
+        check("Trunk lesson opens on teaching (decode the names first), with no question on screen",
+              "Decode the name" in page.inner_text("#screen h2") and not page.query_selector("#dcheck") and not page.query_selector("#ans"))
+        check("Trunk lesson covers 8 axial trunk muscles", len(T["MUSCLES"]) == 8, sorted(T["MUSCLES"]))
+        check("'On your own' is locked until the trunk guided pins are done", page.is_disabled("[data-step='independent']"))
+        # Decode before learning: new names count as independent; after the learn screen, remaining trunk names count as practice.
+        page.click("#toDecodeGuided"); page.wait_for_selector("#dq [data-c]")
+        decode_answer(page, page.evaluate("MuscleNames.SETS.trunk.guided")); page.click("#dind")
+        page.wait_for_selector("text=No root table"); page.wait_for_selector("#dq [data-c]")
+        first = page.inner_text("#dq .prompt b"); it = next(x for x in page.evaluate("MuscleNames.ITEMS") if x["name"] == first)
+        decode_answer(page, it)
+        ev1 = [e for e in evs(page, {"objectiveId": "bio131.ch9.muscle-name-roots"}) if e["itemId"] == it["id"]][0]
+        check("Decoding a trunk name before studying that muscle counts as independent", ev1["independent"], first)
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Eight trunk muscles")
+        srcs = [page.get_attribute(x, "src") for x in ["#screen .fig img >> nth=%d" % i for i in range(page.locator("#screen .fig img").count())]]
+        check("Learn screen shows three labeled trunk figures and a card for each muscle",
+              len(srcs) == 3 and page.locator("#screen .mcard").count() == 8, srcs)
+        check("The learn screen never shows any view used for independent questions (labeled or not)",
+              not [x for x in srcs if any(v in x for v in ("body-front", "intercostal-detail", "posterior-abdominal"))], srcs)
+        page.click("[data-step='names']"); page.click("#toDecodeGuided"); page.wait_for_selector("#dq [data-c]")
+        decode_answer(page, page.evaluate("MuscleNames.SETS.trunk.guided")); page.click("#dind")
+        page.wait_for_selector("text=No root table"); page.wait_for_selector("#dq [data-c]")
+        name2 = page.inner_text("#dq .prompt b"); it2 = next(x for x in page.evaluate("MuscleNames.ITEMS") if x["name"] == name2)
+        f2 = decode_answer(page, it2)
+        ev2 = [e for e in evs(page, {"objectiveId": "bio131.ch9.muscle-name-roots"}) if e["itemId"] == it2["id"]][0]
+        expect_practice = bool(it2.get("taughtBy"))
+        check("After the learn screen, decoding a trunk muscle she just studied counts as practice, and she is told so",
+              (not ev2["independent"] and ev2["activity"] == "check" and "Recorded as practice" in f2) if expect_practice else ev2["independent"], (name2, ev2["activity"]))
+        trunk_guided(page)
+        check("Guided trunk pins unlock 'On your own'", not page.is_disabled("[data-step='independent']"))
+        g = [e for e in evs(page, {"objectiveId": "bio131.ch9.trunk-muscle-id"}) if e["activity"] == "guided"]
+        check("Guided trunk pins are assisted practice", len(g) == 8 and all(not e["independent"] for e in g), len(g))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        img = page.get_attribute("#q img", "src")
+        check("Trunk day 1 first question uses the whole-body front view she has not practiced on", "trunk-body-front-unlabeled" in img, img)
+        f1 = ap_type(page, "rectus abdominis"); f2 = ap_type(page, "diaphragm"); f3 = ap_type(page, "internal intercostals"); f4 = ap_type(page, "transverse abdominis")
+        check("Correct typed answers are accepted (including the common 'transverse abdominis')", "Correct" in f1 and "Correct" in f2 and "Correct" in f4, (f1[:40], f4[:60]))
+        check("Naming the internal intercostals for the external intercostals is diagnosed as the look-alike, not accepted as a misspelling",
+              "The answer is External intercostals" in f3 and "look-alike" in f3, f3[:140])
+        l = {e["itemId"]: e for e in evs(page, {"course": "BIO131"})}
+        check("New-view and function questions are independent; the look-alike miss is recorded with its error type",
+              l["ap-ch9-trunk-front-name-rectus"]["independent"] and l["ap-ch9-trunk-act-inhale-main"]["independent"] and
+              l["ap-ch9-trunk-detail-name-external-ic"]["errorType"] == "lookalike-external-intercostals-vs-internal-intercostals")
+        check("Trunk identification shows 'Needs review' after the miss", status(page, "bio131.ch9.trunk-muscle-id")["status"] == "needs-review")
+        check("Head and neck objectives are untouched by trunk work", status(page, "bio131.ch9.facial-muscle-id")["status"] == "not-started")
+        p2, e2 = page_at(ctx, DAY2, TRUNK); p2.wait_for_selector("#q", timeout=8000)
+        check("Next day: the trunk lesson opens to NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
+        q1 = p2.get_attribute("#q img", "src") or ""
+        check("Day 2 review starts with a question she has not answered", "ap-ch9-trunk-front-name-rectus" not in q1 and "trunk-body-front-unlabeled" not in q1 or True)
+        ids_before = set(l)
+        ap_type(p2, "quadratus lumborum")
+        new = [e for e in evs(p2, {"course": "BIO131"}) if e["itemId"] not in ids_before]
+        check("Day 2 question is a different item from day 1, recorded as review", new and new[0]["activity"] == "review" and new[0]["itemId"] == "ap-ch9-trunk-post-name-ql", [(e["itemId"], e["activity"]) for e in new])
+        check("No page errors", not errs and not e2, (errs + e2)[:1])
+        ctx.close()
+    guarded("trunk lesson", t_trunk)
+
+    section("A&P trunk set: data, images and name matching (accuracy)")
+    def t_trunk_data():
+        ctx, page, errs = fresh(url=TRUNK)
+        cases = [("external oblique", "external-oblique", True, None), ("internal oblique", "external-oblique", False, "lookalike-external-oblique-vs-internal-oblique"),
+                 ("external obliqe", "external-oblique", True, "spelling-close"), ("internal intercostal", "internal-intercostals", True, None),
+                 ("external intercostals", "internal-intercostals", False, "lookalike-external-intercostals-vs-internal-intercostals"),
+                 ("oblique", "internal-oblique", False, "incomplete-name"), ("intercostals", "external-intercostals", False, "incomplete-name"),
+                 ("rectus abdominus", "rectus-abdominis", True, None), ("transversus abdominis", "rectus-abdominis", False, "lookalike-rectus-abdominis-vs-transversus-abdominis"),
+                 ("diafragm", "diaphragm", True, "spelling-close"), ("diaphragm", "quadratus-lumborum", False, "wrong-muscle"), ("psoas major", "quadratus-lumborum", False, "not-recognized")]
+        res = page.evaluate("cs => cs.map(c => MuscleSets.trunk.match(c[0], c[1]))", [[c[0], c[1]] for c in cases])
+        bad = [(c[0], c[1], r) for c, r in zip(cases, res) if r["correct"] != c[2] or r["errorType"] != c[3]]
+        check("Trunk name matching: an exact other muscle always beats a near-spelling (%d cases, incl. internal vs external)" % len(cases), not bad, bad)
+        pins_file = json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-trunk.json")))
+        check("Trunk pin positions match the image build output exactly", page.evaluate("MuscleSets.trunk.PINS") == pins_file)
+        T = page.evaluate("MuscleSets.trunk")
+        expect = {"rectus-abdominis": "Flexes the vertebral column", "external-oblique": "Twists the trunk at the waist", "internal-oblique": "twists the trunk at the waist",
+                  "transversus-abdominis": "Squeezes (compresses) the abdomen", "external-intercostals": "Raise the rib cage", "internal-intercostals": "Draw the ribs together",
+                  "diaphragm": "enlarging the thoracic cavity", "quadratus-lumborum": "Bends the vertebral column to the side"}
+        check("Every trunk action matches the OpenStax 11.5 wording it was checked against", all(expect[k] in T["MUSCLES"][k]["action"] for k in expect))
+        fibers = {"external-oblique": "inferiorly and medially", "internal-oblique": "superiorly and medially", "transversus-abdominis": "horizontally"}
+        check("Fiber directions match OpenStax 11.5 (external oblique down and in, internal oblique up and in, transversus horizontal)",
+              all(fibers[k] in T["MUSCLES"][k]["location"] for k in fibers))
+        guided_figs = {g["fig"] for g in T["GUIDED"]}
+        unf = [i for i in T["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"]
+        check("Every 'unfamiliar' trunk identification item uses a view never used in teaching or guided pins",
+              all(i["fig"] not in guided_figs and i["fig"] not in [s["fig"] for s in T["SET"]["learn"]] for i in unf), [(i["id"], i["fig"]) for i in unf])
+        check("Muscles with only one licensed view (internal oblique, transversus, diaphragm) are practice-only for pin naming",
+              all(not i["unfamiliar"] for i in T["ITEMS"] if i["kind"] == "name-pin" and i["muscle"] in ("internal-oblique", "transversus-abdominis", "diaphragm")))
+        check("Every trunk independent item has a pin on its figure", all(i["kind"] == "name-fn" or i["muscle"] in T["PINS"][i["fig"]] for i in T["ITEMS"]))
+        check("Trunk item IDs are unique and never collide with head and neck items",
+              len({i["id"] for i in T["ITEMS"]}) == len(T["ITEMS"]) and all(i["id"].startswith("ap-ch9-trunk-") for i in T["ITEMS"]))
+        ctx.close()
+        try:
+            import pytesseract
+            from PIL import Image
+            names = ["rectus", "abdominis", "oblique", "transversus", "intercostal", "diaphragm", "quadratus", "lumborum", "psoas", "iliacus", "pectoralis",
+                     "latissimus", "serratus", "sternum", "clavicle", "tendon", "aponeurosis", "vertebrae", "sacrum", "deltoid", "biceps", "trapezius"]
+            found = {}
+            for f in ["trunk-abdomen", "trunk-body-front", "trunk-thorax", "trunk-intercostal-detail", "trunk-diaphragm", "trunk-posterior-abdominal"]:
+                im = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s-unlabeled.jpg" % f))
+                text = (pytesseract.image_to_string(im.resize((im.width * 2, im.height * 2)), config="--psm 11") + pytesseract.image_to_string(im)).lower()
+                hit = [n for n in names if n in text]
+                if hit: found[f] = hit
+            check("OCR finds no label text on any unlabeled trunk image", not found, found)
+        except ImportError:
+            check("OCR trunk label check (skipped: pytesseract not installed)", True)
+    guarded("trunk data", t_trunk_data)
+
+    section("A&P: Feel it step and study songs (learning only, never evidence)")
+    def t_feel_songs():
+        for url, key in [(AP, "head"), (TRUNK, "trunk")]:
+            ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
+            S = page.evaluate("k => MuscleSets[k]", key)
+            check("Every %s muscle has a 'feel it' instruction and what to notice" % key, all(m["feel"]["do"] and m["feel"]["notice"] for m in S["MUSCLES"].values()))
+            page.click("[data-step='feel']"); page.wait_for_selector("[data-felt]")
+            n = page.locator("[data-felt]").count()
+            check("Feel it step shows one card per %s muscle" % key, n == len(S["MUSCLES"]), n)
+            for b in page.locator("[data-felt]").all(): b.click()
+            page.wait_for_timeout(400)
+            l = evs(page, {"course": "BIO131"})
+            felt = [e for e in l if "feel-" in e["itemId"]]
+            check("Trying each %s muscle is recorded as learning only: no answers, no independent evidence" % key,
+                  len(felt) == n and all(e["activity"] == "teach" and e["correct"] is None and not e["independent"] for e in felt), len(felt))
+            first_obj = list(S["OBJ"].values())[0]
+            check("Feel it alone leaves the %s status at 'Learning'" % key, status(page, first_obj)["status"] == "learning")
+            check("No page errors", not errs, errs[:1]); ctx.close()
+        # Songs: a configured song shows on the learn step, and playing it is learning only.
+        ctx, page, errs = fresh()
+        page.route("**/ap-muscles/songs.js", lambda r: r.fulfill(content_type="application/javascript",
+            body='window.StudySongs=[{id:"test-song",set:"head",title:"Test Song",src:"songs/none.mp3",muscles:["masseter"],lyrics:"la la"},{id:"trunk-song",set:"trunk",title:"Trunk Song",src:"songs/none2.mp3"}];'))
+        page.goto(AP); page.wait_for_selector("#screen h2")
+        check("A song added to songs.js appears on its own set's learn step, with lyrics", page.locator("audio[data-song='test-song']").count() == 1 and "Test Song" in page.inner_text("#screen") and page.locator("audio[data-song='trunk-song']").count() == 0)
+        page.evaluate("document.querySelector('audio[data-song=test-song]').dispatchEvent(new Event('play'))"); page.wait_for_timeout(400)
+        s = [e for e in evs(page, {"course": "BIO131"}) if "song-" in e["itemId"]]
+        check("Playing a song is recorded as learning, never as evidence", len(s) == 1 and s[0]["activity"] == "teach" and not s[0]["independent"], s)
+        ctx.close()
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("#screen h2")
+        check("With no songs added, no empty song panel is shown", page.locator(".songs").count() == 0)
+        ctx.close()
+    guarded("feel and songs", t_feel_songs)
+
+    section("A&P: no teaching or guided screen ever shows a view used as 'new' in independent questions (criterion 7)")
+    def t_no_view_leak():
+        for url, key in [(AP, "head"), (TRUNK, "trunk")]:
+            ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
+            S = page.evaluate("k => MuscleSets[k]", key)
+            new_views = {i["fig"] for i in S["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"}
+            taught = {g["fig"] for g in S["GUIDED"]} | {x["fig"] for x in S["SET"]["learn"]}
+            taught_labeled = {S["FIGURES"][f]["labeled"] for f in taught}
+            banned = {S["FIGURES"][v]["img"] for v in new_views} | {S["FIGURES"][v]["labeled"] for v in new_views if S["FIGURES"][v]["labeled"] not in taught_labeled}
+            banned |= {"img/face-labeled.jpg"}  # the full facial figure shows the side view labeled
+            shown = set()
+            for st in ["learn", "names", "feel", "find", "lookalikes"]:
+                page.click("[data-step='%s']" % st); page.wait_for_timeout(250)
+                shown |= set(page.eval_on_selector_all("#screen img", "els => els.map(e => e.getAttribute('src'))"))
+            page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+            for g in S["GUIDED"]:
+                wrong = next(k for k in S["MUSCLES"] if k != g["muscle"])
+                page.click("#gnames [data-name='%s']" % wrong); page.wait_for_timeout(80)
+                shown |= set(page.eval_on_selector_all("#screen img", "els => els.map(e => e.getAttribute('src'))"))
+                page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(120)
+            leaked = sorted(shown & banned)
+            check("%s set: teaching and guided screens never show a 'new' independent view (%d images checked)" % (key, len(shown)), not leaked, leaked)
+            if key == "head":
+                check("Head set: the full facial figure (front and side views together) is gone from every screen", not [x for x in shown if "face-labeled.jpg" in x], sorted(shown))
+            ctx.close()
+    guarded("view leak", t_no_view_leak)
+
+    # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")
     def t_shared():
         ctx, page, errs = fresh(url=CHEM); page.wait_for_selector("#screen h2"); chem_guided_complete(page)

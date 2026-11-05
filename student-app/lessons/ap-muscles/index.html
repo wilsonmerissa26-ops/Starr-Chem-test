@@ -19,21 +19,24 @@
 @media(max-width:560px){.compare{grid-template-columns:1fr}}
 .roots{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .root{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;display:grid;gap:2px}
+.song audio{width:100%}
 </style>
 </head>
 <body>
 <main class="wrap" id="app">
   <div class="eyebrow">BIO 131 · Chapter 9 · Muscular system · Amerman, Human Anatomy and Physiology, 3rd ed.</div>
   <h1>Head and neck muscles</h1>
-  <p class="badge">Textbook-based preparation for the Head, Neck and Trunk lab and the cumulative Lab Practical 2 (Dec 2). These are common Chapter 9 muscles. Dr. Granger has not issued a muscle checklist, so this is not a list of what the practical covers. Trunk muscles come next.</p>
+  <p class="badge">Textbook-based preparation for the Head, Neck and Trunk lab and the cumulative Lab Practical 2 (Dec 2). These are common Chapter 9 muscles. Dr. Granger has not issued a muscle checklist, so this is not a list of what the practical covers. Trunk muscles are in their own lesson.</p>
   <div class="row" style="margin-top:10px"><span class="chip" id="status-chip">Checking your progress…</span><span class="small muted" id="review-note"></span></div>
   <nav class="steps" aria-label="Lesson steps" id="stepnav"></nav>
   <section id="screen" aria-live="polite"></section>
   <p class="source">Images: OpenStax, <i>Anatomy and Physiology 2e</i>, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>; cropped, with labels covered for practice. Muscle actions follow OpenStax <i>Anatomy and Physiology 2e</i>, section on axial muscles of the head, neck and back. Names use standard anatomical terms; confirm spelling and required detail against Amerman 3rd ed. and your lab handout. Non-commercial study use only.</p>
 </main>
 <script src="../../learning-record.js"></script>
+<script src="./muscle-core.js"></script>
 <script src="./muscles.js"></script>
 <script src="./names.js"></script>
+<script src="./songs.js"></script>
 <script src="./lesson.js"></script>
 </body>
 </html>

@@ -138,7 +138,9 @@ const PILOT_OBJECTIVES=[
  {id:"chm221.ch8.hx-addition",course:"CHM221",subject:"chem",title:"Chemistry: adding HBr and HCl to alkenes",resource:"chem-ch8"},
  {id:"bio131.ch9.facial-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify facial muscles",resource:"ap-muscles"},
  {id:"bio131.ch9.head-neck-actions",course:"BIO131",subject:"ap",title:"A&P: head and neck muscle actions",resource:"ap-muscles"},
- {id:"bio131.ch9.muscle-name-roots",course:"BIO131",subject:"ap",title:"A&P: decode muscle names",resource:"ap-muscles"}
+ {id:"bio131.ch9.muscle-name-roots",course:"BIO131",subject:"ap",title:"A&P: decode muscle names",resource:"ap-muscles"},
+ {id:"bio131.ch9.trunk-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify trunk muscles",resource:"ap-trunk"},
+ {id:"bio131.ch9.trunk-actions",course:"BIO131",subject:"ap",title:"A&P: trunk muscle actions",resource:"ap-trunk"}
 ];
 function daysToNextExam(subject){const e=SEED.filter(t=>t.subject===subject&&t.kind==="exam"&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];if(!e)return 999;return Math.round((parse(e.date)-parse(today))/86400000);}
 function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)return;
@@ -160,7 +162,8 @@ const RESOURCE_LIBRARY=Object.freeze({
   unit1:{title:"Chemistry · Unit 1 lessons",src:"../course-units/unit1/"},
   physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"},
   "chem-ch8":{title:"Chemistry · Chapter 8: Adding HBr and HCl to alkenes",src:"./lessons/chem-ch8/"},
-  "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"}
+  "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"},
+  "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"}
 });
 function openResource(key){
   if(!Object.prototype.hasOwnProperty.call(RESOURCE_LIBRARY,key))return false;

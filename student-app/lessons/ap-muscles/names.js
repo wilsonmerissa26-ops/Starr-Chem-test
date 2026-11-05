@@ -34,6 +34,7 @@
     "inferioris": { m: "lower", cat: "position", ex: "" },
     "anterior": { m: "front", cat: "position", ex: "tibialis anterior" },
     "external": { m: "outer (closer to the surface)", cat: "position", ex: "" },
+    "internal": { m: "inner (deeper)", cat: "position", ex: "" },
     "inter": { m: "between", cat: "position", ex: "interossei" },
     // Shape
     "orbicularis": { m: "circular, a ring", cat: "shape", ex: "orbicularis oculi" },
@@ -72,24 +73,37 @@
   var GUIDED = { id: "ap-ch9-names-guided-zygomaticus-major", name: "Zygomaticus major", parts: ["zygomaticus", "major"],
     tells: "The larger muscle that attaches to the cheekbone. (It pulls the corner of the mouth up and out when you smile; the name gives the place, not the action.)" };
   // Independent items: names not used anywhere else in the lesson. Each part must be decoded; all parts right = correct.
-  var ITEMS = [
+  // taughtBy: the teaching screen that shows this muscle. Once she has viewed it, the name is no longer new, so it counts as practice.
+  var TRUNK_TAUGHT = "ap-ch9-teach-trunk-learn";
+  var HEAD_ITEMS = [
     { id: "ap-ch9-names-levator-labii-superioris", name: "Levator labii superioris", parts: ["levator", "labii", "superioris"], tells: "It raises the upper lip." },
-    { id: "ap-ch9-names-rectus-abdominis", name: "Rectus abdominis", parts: ["rectus", "abdominis"], tells: "The abdominal muscle whose fibers run straight up and down." },
     { id: "ap-ch9-names-sternohyoid", name: "Sternohyoid", parts: ["sterno", "hyoid"], tells: "It runs between the sternum and the hyoid bone." },
     { id: "ap-ch9-names-depressor-anguli-oris", name: "Depressor anguli oris", parts: ["depressor", "anguli", "oris"], tells: "It pulls the corner of the mouth down." },
-    { id: "ap-ch9-names-external-oblique", name: "External oblique", parts: ["external", "oblique"], tells: "The outer abdominal muscle whose fibers run diagonally." },
     { id: "ap-ch9-names-splenius-capitis", name: "Splenius capitis", parts: ["splenius", "capitis"], tells: "A bandage-like muscle of the back of the neck that acts on the head." },
     { id: "ap-ch9-names-corrugator-supercilii", name: "Corrugator supercilii", parts: ["corrugator", "supercilii"], tells: "It wrinkles the eyebrow, drawing the brows together as in a frown." },
-    { id: "ap-ch9-names-transversus-abdominis", name: "Transversus abdominis", parts: ["transversus", "abdominis"], tells: "The abdominal muscle whose fibers run side to side across the abdomen." },
     { id: "ap-ch9-names-digastric", name: "Digastric", parts: ["di", "gastric"], tells: "A muscle with two bellies, below the jaw." },
-    { id: "ap-ch9-names-erector-spinae", name: "Erector spinae", parts: ["erector", "spinae"], tells: "A muscle group along the spine that holds the back upright." },
     { id: "ap-ch9-names-omohyoid", name: "Omohyoid", parts: ["omo", "hyoid"], tells: "It runs from the shoulder (the scapula) to the hyoid bone." },
-    { id: "ap-ch9-names-quadratus-lumborum", name: "Quadratus lumborum", parts: ["quadratus", "lumborum"], tells: "A four-sided muscle of the lower back." },
-    { id: "ap-ch9-names-external-intercostals", name: "External intercostals", parts: ["external", "inter", "costal"], tells: "The outer layer of muscles between the ribs." },
-    { id: "ap-ch9-names-serratus-anterior", name: "Serratus anterior", parts: ["serratus", "anterior"], tells: "A saw-toothed muscle on the front and side of the chest wall." },
     { id: "ap-ch9-names-depressor-labii-inferioris", name: "Depressor labii inferioris", parts: ["depressor", "labii", "inferioris"], tells: "It lowers the lower lip." },
     { id: "ap-ch9-names-levator-scapulae", name: "Levator scapulae", parts: ["levator", "scapulae"], tells: "It raises the scapula (shoulder blade)." }
   ];
+  var TRUNK_GUIDED = { id: "ap-ch9-names-guided-transversus-abdominis", name: "Transversus abdominis", parts: ["transversus", "abdominis"],
+    tells: "The abdominal muscle whose fibers run across, side to side, like a belt." };
+  var TRUNK_ITEMS = [
+    { id: "ap-ch9-names-rectus-abdominis", name: "Rectus abdominis", parts: ["rectus", "abdominis"], tells: "The abdominal muscle whose fibers run straight up and down.", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-external-oblique", name: "External oblique", parts: ["external", "oblique"], tells: "The outer abdominal muscle whose fibers run diagonally.", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-quadratus-lumborum", name: "Quadratus lumborum", parts: ["quadratus", "lumborum"], tells: "A four-sided muscle of the lower back.", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-external-intercostals", name: "External intercostals", parts: ["external", "inter", "costal"], tells: "The outer layer of muscles between the ribs.", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-internal-oblique", name: "Internal oblique", parts: ["internal", "oblique"], tells: "The deeper of the two slanted side muscles of the abdomen.", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-internal-intercostals", name: "Internal intercostals", parts: ["internal", "inter", "costal"], tells: "The deeper layer of muscles between the ribs.", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-erector-spinae", name: "Erector spinae", parts: ["erector", "spinae"], tells: "A muscle group along the spine that holds the back upright." },
+    { id: "ap-ch9-names-serratus-anterior", name: "Serratus anterior", parts: ["serratus", "anterior"], tells: "A saw-toothed muscle on the front and side of the chest wall." }
+  ];
+  var SETS = {
+    head: { worked: WORKED, guided: GUIDED, items: HEAD_ITEMS, after: "feel", afterLabel: "Next: feel each muscle work" },
+    trunk: { worked: [WORKED[1], { name: "Pectoralis major", parts: ["pectoralis", "major"], tells: "The larger chest muscle. The name gives the place and the size, not the action (it moves the arm)." }],
+      guided: TRUNK_GUIDED, items: TRUNK_ITEMS, after: "learn", afterLabel: "Next: see the trunk muscles you just decoded" }
+  };
+  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS);
   // Four choices per part: the right meaning plus three from the same clue category (then others), in a fixed order per item.
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function choices(itemId, root) {
@@ -103,5 +117,5 @@
     var d = pick(best).concat(pick(same), pick(other)).slice(0, 3);
     return [root].concat(d).sort(function (a, b) { return hash(seed + "o" + a) - hash(seed + "o" + b); });
   }
-  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, choices: choices, OBJ: "bio131.ch9.muscle-name-roots" };
+  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED], choices: choices, OBJ: "bio131.ch9.muscle-name-roots" };
 })(window);
