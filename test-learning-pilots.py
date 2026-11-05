@@ -27,7 +27,7 @@ def check(name, ok, detail=""):
     if not ok: failures.append(name)
 def guarded(name, fn):
     try: fn()
-    except Exception as e: check(name, False, "crashed: " + str(e).splitlines()[0][:200])
+    except Exception as e: check(name, False, "crashed: " + ((str(e).splitlines() or [repr(e)])[0])[:200])
 
 # ---------------- Independent chemistry check (Python, separate from the app's JS engine) ----------------
 def py_verify(mol, item):
@@ -482,20 +482,22 @@ with sync_playwright() as p:
         g = [e for e in evs(page, {"objectiveId": N["OBJ"]}) if e["activity"] == "guided"]
         check("Guided decoding is assisted practice, and opening the root table is recorded as a hint",
               len(g) == 2 and all(not e["independent"] for e in g) and g[0]["assistance"]["hints"] >= 1 and g[0]["errorType"] == "root-zygomaticus", [(e["errorType"], e["assistance"]) for e in g])
-        page.click("#dind"); page.wait_for_selector("#dq [data-c]")
+        page.click("#dind"); page.wait_for_selector("text=No root table"); page.wait_for_selector("#dq [data-c]")
         check("On-your-own decoding hides the root table", "No root table" in page.inner_text("#screen") and not page.query_selector("#dtable"))
         day1 = []
         for k in range(3):
             name = page.inner_text("#dq .prompt b"); it = next(x for x in N["ITEMS"] if x["name"] == name); day1.append(it["id"])
             f = decode_answer(page, it, wrong_part=0 if k == 1 else None)
             if k == 1: check("Wrong part gets specific feedback and a second explanation", "You chose" in f and "build the meaning one part at a time" in f.lower(), f[:160])
-            page.click("#dnext"); page.wait_for_timeout(250)
+            page.click("#dnext")
+            if k < 2: page.wait_for_function("n => { const b = document.querySelector('#dq .prompt b'); return b && b.textContent !== n; }", arg=name)
+            else: page.wait_for_selector("#dq h3")
         l = [e for e in evs(page, {"objectiveId": N["OBJ"]}) if e["activity"] in ("independent", "review")]
         check("Three new names, each a first try with no help, are recorded as independent", len(l) == 3 and all(e["independent"] for e in l), [(e["itemId"], e["independent"]) for e in l])
         check("A missed part is recorded with its root as the error type", any(e["errorType"] == "root-" + next(x for x in N["ITEMS"] if x["id"] == e["itemId"])["parts"][0] for e in l if not e["correct"]))
         p2, e2 = page_at(ctx, DAY2, AP); p2.wait_for_selector("#stepnav [data-step='names']")
         p2.click("[data-step='names']"); p2.click("#toDecodeGuided"); p2.wait_for_selector("#dq [data-c]")
-        decode_answer(p2, N["GUIDED"]); p2.click("#dind"); p2.wait_for_selector("#dq [data-c]")
+        decode_answer(p2, N["GUIDED"]); p2.click("#dind"); p2.wait_for_selector("text=Review: decode new names"); p2.wait_for_selector("#dq [data-c]")
         name2 = p2.inner_text("#dq .prompt b"); it2 = next(x for x in N["ITEMS"] if x["name"] == name2)
         check("Next day: review gives a name she has not seen before", it2["id"] not in day1, name2)
         decode_answer(p2, it2)
