@@ -133,6 +133,8 @@ The first session must complete teaching before the independent problem unlocks.
 
 **Muscles:** occipitofrontalis (frontal belly), orbicularis oculi, orbicularis oris, buccinator, temporalis, masseter, sternocleidomastoid. Trunk muscles come in the next set.
 
+**Decode the names (step 2).** Objective `bio131.ch9.muscle-name-roots`. Teaches 45 Latin and Greek word roots grouped by the OpenStax 11.2 naming categories (place or attachment, position, shape, size, fiber direction, number of parts, action), with two worked examples on muscles already studied and a note that names are clues, not the whole story (masseter means "chewer"). Guided: one name with an optional root table, which counts as a hint. On your own: three new names per session; she picks the meaning of every word part, and all parts must be right. Four choices per part, matched to the answer's category and grammar ("of the ..." or not) so wording never gives the answer away. Root-table examples never show a practice name. Next day: different names, recorded as review. Error type: `root-<part>` for the first missed part.
+
 **Steps:**
 
 1. **Teach:** labeled figure, plus location, action and a "how to recognize it" cue for each muscle.

@@ -457,6 +457,56 @@ with sync_playwright() as p:
         ctx.close()
     guarded("ap independent", t_ap_independent)
 
+    section("A&P pilot: decoding muscle names (criteria 2, 3, 4, 5, 7)")
+    def decode_answer(page, item, wrong_part=None):
+        for i, part in enumerate(item["parts"]):
+            sel = f"#dq .part[data-part='{i}'] [data-c]" + (f":not([data-c='{part}'])" if i == wrong_part else f"[data-c='{part}']")
+            page.locator(sel).first.click()
+        page.click("#dcheck"); page.wait_for_timeout(300)
+        return page.inner_text("#dfb")
+    def t_ap_decode():
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("#screen h2")
+        page.click("[data-step='names']"); page.wait_for_selector("#toDecodeGuided")
+        teach = page.inner_text("#screen").lower()
+        N = page.evaluate("MuscleNames")
+        check("Decode step teaches first: the root table and worked examples come before any question", "worked examples" in teach and "root words" in teach and not page.query_selector("#dcheck"))
+        used = {p for it in N["ITEMS"] + [N["GUIDED"]] for p in it["parts"]}
+        check("Every root used in a practice name is taught in the table", all(f"\n{r}\n" in "\n" + page.inner_text("#screen") + "\n" or r in teach for r in used) and used <= set(N["ROOTS"]), sorted(used - set(N["ROOTS"])))
+        leaked = [it["name"] for it in N["ITEMS"] if it["name"].lower() in teach]
+        check("No practice name appears on the teaching screen, so every practice name is new", not leaked, leaked)
+        page.click("#toDecodeGuided"); page.wait_for_selector("#dq [data-c]")
+        page.click("#dtable"); f1 = decode_answer(page, N["GUIDED"], wrong_part=0)
+        check("Guided wrong answer names the right meaning and what she actually chose", "zygomaticus means" in f1 and "You chose" in f1, f1[:160])
+        page.click("#dagain"); f2 = decode_answer(page, N["GUIDED"])
+        check("Guided retry works after a wrong answer", "Correct" in f2, f2[:80])
+        g = [e for e in evs(page, {"objectiveId": N["OBJ"]}) if e["activity"] == "guided"]
+        check("Guided decoding is assisted practice, and opening the root table is recorded as a hint",
+              len(g) == 2 and all(not e["independent"] for e in g) and g[0]["assistance"]["hints"] >= 1 and g[0]["errorType"] == "root-zygomaticus", [(e["errorType"], e["assistance"]) for e in g])
+        page.click("#dind"); page.wait_for_selector("#dq [data-c]")
+        check("On-your-own decoding hides the root table", "No root table" in page.inner_text("#screen") and not page.query_selector("#dtable"))
+        day1 = []
+        for k in range(3):
+            name = page.inner_text("#dq .prompt b"); it = next(x for x in N["ITEMS"] if x["name"] == name); day1.append(it["id"])
+            f = decode_answer(page, it, wrong_part=0 if k == 1 else None)
+            if k == 1: check("Wrong part gets specific feedback and a second explanation", "You chose" in f and "build the meaning one part at a time" in f.lower(), f[:160])
+            page.click("#dnext"); page.wait_for_timeout(250)
+        l = [e for e in evs(page, {"objectiveId": N["OBJ"]}) if e["activity"] in ("independent", "review")]
+        check("Three new names, each a first try with no help, are recorded as independent", len(l) == 3 and all(e["independent"] for e in l), [(e["itemId"], e["independent"]) for e in l])
+        check("A missed part is recorded with its root as the error type", any(e["errorType"] == "root-" + next(x for x in N["ITEMS"] if x["id"] == e["itemId"])["parts"][0] for e in l if not e["correct"]))
+        p2, e2 = page_at(ctx, DAY2, AP); p2.wait_for_selector("#stepnav [data-step='names']")
+        p2.click("[data-step='names']"); p2.click("#toDecodeGuided"); p2.wait_for_selector("#dq [data-c]")
+        decode_answer(p2, N["GUIDED"]); p2.click("#dind"); p2.wait_for_selector("#dq [data-c]")
+        name2 = p2.inner_text("#dq .prompt b"); it2 = next(x for x in N["ITEMS"] if x["name"] == name2)
+        check("Next day: review gives a name she has not seen before", it2["id"] not in day1, name2)
+        decode_answer(p2, it2)
+        r2 = [e for e in evs(p2, {"objectiveId": N["OBJ"]}) if e["itemId"] == it2["id"]][0]
+        check("Next-day decoding is recorded as a review, still independent", r2["activity"] == "review" and r2["independent"], r2["activity"])
+        check("Grammar never gives away the answer: every choice set matches 'of the …' form",
+              page.evaluate("() => { const N=MuscleNames; return N.ITEMS.concat([N.GUIDED]).every(it => it.parts.every(p => { const c=N.choices(it.id,p); return c.length===4 && new Set(c.map(k=>/^of the /.test(N.ROOTS[k].m))).size===1; })); }"))
+        check("No page errors", not errs and not e2, (errs + e2)[:1])
+        ctx.close()
+    guarded("ap decode", t_ap_decode)
+
     section("A&P pilot: name matching, images and anatomy data (accuracy)")
     def t_ap_data():
         ctx, page, errs = fresh(url=AP)
