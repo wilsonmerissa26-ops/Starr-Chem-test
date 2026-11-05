@@ -209,8 +209,10 @@
       };
       var p1 = P(pts[m.alkene[0]]), p2 = P(pts[m.alkene[1]]);
       var bx = (p1[0] + p2[0]) / 2, by = (p1[1] + p2[1]) / 2, ang = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]) * 180 / Math.PI;
-      if (!opts.noPi) add("pi", el("rect", { x: bx - 22, y: by - 15, width: 44, height: 30, rx: 14, transform: "rotate(" + ang + " " + bx + " " + by + ")" }), "The C=C double bond (pi bond)");
       m.atoms.forEach(function (a) { var q = P(pts[a.id]); add("C" + a.id, el("circle", { cx: q[0], cy: q[1], r: 24 }), "Carbon " + a.id); });
+      // The pi target is added after the carbons so it sits on top and covers the visible middle of the double bond.
+      var blen = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]), pw = Math.max(44, blen - 30);
+      if (!opts.noPi) add("pi", el("rect", { x: bx - pw / 2, y: by - 18, width: pw, height: 36, rx: 16, transform: "rotate(" + ang + " " + bx + " " + by + ")" }), "The C=C double bond (pi bond)");
       if (reagentAt) {
         var hq2 = P(pts.H), xq2 = P(pts.X);
         add("H", el("circle", { cx: hq2[0], cy: hq2[1], r: 22 }), "The H of H" + xName);

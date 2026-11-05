@@ -288,6 +288,10 @@ with sync_playwright() as p:
         ctx, page, errs = fresh(url=CHEM); page.wait_for_selector("#screen h2")
         check("The lesson opens on teaching (step 1), not a question", "attacks H–Br" in page.inner_text("#screen h2"))
         check("'On your own' is locked until guided practice is finished", page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='guided']"); page.wait_for_selector("#gm svg [data-target='pi']")
+        along = page.evaluate("""()=>{const s=document.querySelector('#gm svg');const pts=[...s.querySelectorAll('[data-target=C2],[data-target=C3]')].map(t=>{const b=t.getBoundingClientRect();return [b.x+b.width/2,b.y+b.height/2]});
+          const o=[];for(let f=0.25;f<=0.751;f+=0.05){const x=pts[0][0]+(pts[1][0]-pts[0][0])*f,y=pts[0][1]+(pts[1][1]-pts[0][1])*f;const h=document.elementFromPoint(x,y);o.push(h&&h.closest('[data-target]')?h.closest('[data-target]').dataset.target:null)}return o}""")
+        check("Tapping anywhere along the middle half of the drawn C=C hits the double bond, not a carbon", all(t == "pi" for t in along), along)
         out = chem_guided_complete(page, wrong=True)
         check("Wrong start of the arrow (tapping H) explains that arrows start at electrons", "start at electrons" in out["s1"], out["s1"][:100])
         check("Wrong carbon for H explains carbocation stability and shows a different explanation", "tertiary" in out["s3"] and "count carbons" in out["s3x"].lower(), out["s3"][:100])
