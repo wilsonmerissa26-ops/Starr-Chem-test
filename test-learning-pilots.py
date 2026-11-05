@@ -634,12 +634,13 @@ with sync_playwright() as p:
         pins_file = json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-trunk.json")))
         check("Trunk pin positions match the image build output exactly", page.evaluate("MuscleSets.trunk.PINS") == pins_file)
         T = page.evaluate("MuscleSets.trunk")
-        expect = {"rectus-abdominis": "Flexes the vertebral column", "external-oblique": "Twists the trunk at the waist", "internal-oblique": "twists the trunk at the waist",
+        expect = {"rectus-abdominis": "Flexes the vertebral column", "external-oblique": "Twists the trunk at the waist", "internal-oblique": "twist the trunk",
                   "transversus-abdominis": "Squeezes (compresses) the abdomen", "external-intercostals": "Raise the rib cage", "internal-intercostals": "Draw the ribs together",
                   "diaphragm": "enlarging the thoracic cavity", "quadratus-lumborum": "Bends the vertebral column to the side"}
-        check("Every trunk action matches the OpenStax 11.5 wording it was checked against", all(expect[k] in T["MUSCLES"][k]["action"] for k in expect))
+        check("Oblique rotation directions are taught (external: opposite side; internal: same side)", "OPPOSITE side" in T["MUSCLES"]["external-oblique"]["action"] and "SAME side" in T["MUSCLES"]["internal-oblique"]["action"])
+        check("Every trunk action matches the OpenStax 11.4 wording it was checked against", all(expect[k] in T["MUSCLES"][k]["action"] for k in expect))
         fibers = {"external-oblique": "inferiorly and medially", "internal-oblique": "superiorly and medially", "transversus-abdominis": "horizontally"}
-        check("Fiber directions match OpenStax 11.5 (external oblique down and in, internal oblique up and in, transversus horizontal)",
+        check("Fiber directions match OpenStax 11.4 (external oblique down and in, internal oblique up and in, transversus horizontal)",
               all(fibers[k] in T["MUSCLES"][k]["location"] for k in fibers))
         guided_figs = {g["fig"] for g in T["GUIDED"]}
         unf = [i for i in T["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"]

@@ -1,6 +1,8 @@
 /* A&P pilot data: trunk muscles (abdominal wall, breathing muscles, posterior abdominal wall).
- * Locations, fiber directions and actions follow OpenStax Anatomy and Physiology 2e, section 11.5,
- * "Axial Muscles of the Abdominal Wall and Thorax" (text and Tables 11.8 and 11.9).
+ * Locations, fiber directions and actions follow OpenStax Anatomy and Physiology 2e, section 11.4,
+ * "Axial Muscles of the Abdominal Wall, and Thorax" (https://openstax.org/books/anatomy-and-physiology-2e/pages/11-4-axial-muscles-of-the-abdominal-wall-and-thorax).
+ * Rotation direction of the obliques, the two portions of the internal intercostals and the extra quadratus lumborum roles are
+ * standard anatomy beyond OpenStax's summary tables.
  * Pin positions come from OpenStax leader lines (tools/build-ap-trunk-images.py, img/pins-trunk.json).
  * Superficial trunk muscles that move the arm (pectoralis major, latissimus dorsi, trapezius, serratus anterior)
  * belong with the upper limb set.
@@ -18,14 +20,14 @@
     "external-oblique": { name: "External oblique", region: "side of the abdomen, outer layer",
       accept: ["external oblique", "external obliques", "abdominal external oblique", "external abdominal oblique"],
       location: "The outermost muscle of the side of the abdomen. Its fibers run inferiorly and medially, like hands slid into front pockets.",
-      action: "Twists the trunk at the waist and helps bend it to the side.",
+      action: "Twists the trunk at the waist and helps bend it to the side. One side contracting turns the trunk toward the OPPOSITE side.",
       cue: "Outermost side layer; fibers run down and in (\"hands in your front pockets\").",
       feel: { do: "Place one hand on the side of your waist, just below your ribs, then twist your upper body toward the other side.", notice: "The side of the waist firms up under your hand. This is the outer layer; the internal oblique works underneath it." },
       lookalike: "internal-oblique" },
     "internal-oblique": { name: "Internal oblique", region: "side of the abdomen, middle layer",
       accept: ["internal oblique", "internal obliques", "internal abdominal oblique"],
       location: "The middle layer of the side of the abdomen, just under the external oblique. Its fibers run superiorly and medially, at right angles to the external oblique.",
-      action: "Works with the external oblique: twists the trunk at the waist and helps bend it to the side.",
+      action: "Works with the external oblique to twist the trunk and bend it to the side, but one side contracting turns the trunk toward the SAME side.",
       cue: "Middle layer; fibers run up and in, crossing the external oblique at a right angle.",
       feel: { do: "Use the same twist as for the external oblique.", notice: "You cannot feel it separately: it lies under the external oblique. Picture its fibers crossing the outer layer like an X." },
       lookalike: "external-oblique" },
@@ -41,26 +43,26 @@
       location: "The outer layer of muscle in each space between the ribs. Fibers run down and forward, from the rib above to the rib below.",
       action: "Raise the rib cage, which expands it, during inhalation.",
       cue: "Outer layer between the ribs; same direction as the external oblique (down and in).",
-      feel: { do: "Lay your hands flat on the sides of your lower ribs and take a slow, very deep breath in.", notice: "Your ribs lift and spread outward under your hands." },
+      feel: { do: "Lay your hands flat on the sides of your lower ribs and take a slow, very deep breath in.", notice: "Your ribs lift and spread outward under your hands. You are seeing several breathing muscles working together; the external intercostals are part of it, not something you can isolate." },
       lookalike: "internal-intercostals" },
     "internal-intercostals": { name: "Internal intercostals", region: "between the ribs, under the outer layer",
       accept: ["internal intercostals", "internal intercostal"],
       location: "Just under the external intercostals in each space between the ribs. Fibers run at right angles to the external intercostals.",
-      action: "Draw the ribs together, which constricts the rib cage, during forced exhalation.",
+      action: "Draw the ribs together, which constricts the rib cage, during forced exhalation. (Later detail: the part between the rib cartilages can help inhalation.)",
       cue: "Under the externals between the ribs; fibers cross them at a right angle.",
-      feel: { do: "Keep your hands on your lower ribs and blow out hard and long, as if blowing out many candles.", notice: "Your ribs pull down and in as you push the last air out." },
+      feel: { do: "Keep your hands on your lower ribs and blow out hard and long, as if blowing out many candles.", notice: "Your ribs pull down and in as you push the last air out. Again this is coordinated work (abdominal muscles help too), not the internal intercostals alone." },
       lookalike: "external-intercostals" },
     "diaphragm": { name: "Diaphragm", region: "between the thoracic and abdominal cavities",
       accept: ["diaphragm"],
       location: "A dome-shaped sheet of muscle that separates the thoracic and abdominal cavities. Its fibers attach around the edge and converge on a central tendon.",
       action: "The main muscle of breathing: when it contracts it flattens, enlarging the thoracic cavity so air flows in (inhalation).",
       cue: "A dome seen from below, with muscle around the edge and a white central tendon in the middle.",
-      feel: { do: "Place one hand on your upper abdomen, just below the ribs, and breathe in slowly and deeply through your nose.", notice: "Your belly pushes out as the diaphragm flattens and presses down on the organs below it. You feel its effect; the muscle itself is inside." },
+      feel: { do: "Place one hand on your upper abdomen, just below the ribs, and breathe in slowly and deeply through your nose.", notice: "Your belly pushes out as the diaphragm flattens and presses down on the organs below it. You are feeling the effect of coordinated breathing muscles, led by the diaphragm; the diaphragm itself is inside." },
       lookalike: null },
     "quadratus-lumborum": { name: "Quadratus lumborum", region: "posterior abdominal wall",
       accept: ["quadratus lumborum"],
       location: "A four-sided muscle of the posterior abdominal wall, between the top of the ilium (hip bone) and the lowest rib, beside the lumbar vertebrae.",
-      action: "Bends the vertebral column to the side.",
+      action: "Bends the vertebral column to the side. Also steadies the 12th rib during breathing, and both sides together help extend the lower back.",
       cue: "Read the name: quadratus (four-sided), lumborum (lower back).",
       feel: { do: "Place your hands on your lower back just above your hip bones, beside the spine, then lean slowly to one side.", notice: "The back muscles under your hands tighten. Quadratus lumborum lies deep to them, so you feel the region working, not the muscle itself." },
       lookalike: null }

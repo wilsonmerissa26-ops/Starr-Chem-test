@@ -33,8 +33,8 @@
     "superioris": { m: "upper", cat: "position", ex: "levator palpebrae superioris" },
     "inferioris": { m: "lower", cat: "position", ex: "" },
     "anterior": { m: "front", cat: "position", ex: "tibialis anterior" },
-    "external": { m: "outer (closer to the surface)", cat: "position", ex: "" },
-    "internal": { m: "inner (deeper)", cat: "position", ex: "" },
+    "external": { m: "outer (toward the outside)", cat: "position", ex: "" },
+    "internal": { m: "inner (toward the inside)", cat: "position", ex: "" },
     "inter": { m: "between", cat: "position", ex: "interossei" },
     // Shape
     "orbicularis": { m: "circular, a ring", cat: "shape", ex: "orbicularis oculi" },
@@ -47,18 +47,18 @@
     "minor": { m: "smaller", cat: "size", ex: "zygomaticus minor" },
     "maximus": { m: "largest", cat: "size", ex: "gluteus maximus" },
     // Fiber direction
-    "rectus": { m: "straight (fibers parallel to the body's or a bone's long axis)", cat: "fibers", ex: "rectus femoris" },
-    "transversus": { m: "across (fibers run side to side)", cat: "fibers", ex: "" },
+    "rectus": { m: "straight (describes the straight course of the fibers relative to the structure)", cat: "fibers", ex: "rectus femoris" },
+    "transversus": { m: "across (fibers run transversely, at right angles to the structure's long axis)", cat: "fibers", ex: "" },
     "oblique": { m: "slanted (fibers run diagonally)", cat: "fibers", ex: "superior oblique (an eye muscle)" },
     // Number of parts
     "di": { m: "two", cat: "number", ex: "" },
-    "gastric": { m: "belly (the fleshy part)", cat: "number", ex: "gastrocnemius" },
-    "biceps": { m: "two heads (origins)", cat: "number", ex: "biceps brachii" },
+    "gastric": { m: "belly (here, a fleshy muscle belly)", cat: "number", ex: "gastrocnemius" },
+    "biceps": { m: "two heads (two separate proximal attachments joining one muscle)", cat: "number", ex: "biceps brachii" },
     // Action
     "levator": { m: "raises", cat: "action", ex: "levator palpebrae superioris" },
     "depressor": { m: "lowers", cat: "action", ex: "" },
     "corrugator": { m: "wrinkles", cat: "action", ex: "" },
-    "erector": { m: "holds upright", cat: "action", ex: "" }
+    "erector": { m: "raises, straightens", cat: "action", ex: "" }
   };
   var CATS = [
     { id: "place", title: "Where it is or what it attaches to" }, { id: "position", title: "Position" },
@@ -81,7 +81,7 @@
     { id: "ap-ch9-names-depressor-anguli-oris", name: "Depressor anguli oris", parts: ["depressor", "anguli", "oris"], tells: "It pulls the corner of the mouth down." },
     { id: "ap-ch9-names-splenius-capitis", name: "Splenius capitis", parts: ["splenius", "capitis"], tells: "A bandage-like muscle of the back of the neck that acts on the head." },
     { id: "ap-ch9-names-corrugator-supercilii", name: "Corrugator supercilii", parts: ["corrugator", "supercilii"], tells: "It wrinkles the eyebrow, drawing the brows together as in a frown." },
-    { id: "ap-ch9-names-digastric", name: "Digastric", parts: ["di", "gastric"], tells: "A muscle with two bellies, below the jaw." },
+    { id: "ap-ch9-names-digastric", name: "Digastric", parts: ["di", "gastric"], tells: "A muscle with two fleshy bellies joined by a tendon, below the jaw." },
     { id: "ap-ch9-names-omohyoid", name: "Omohyoid", parts: ["omo", "hyoid"], tells: "It runs from the shoulder (the scapula) to the hyoid bone." },
     { id: "ap-ch9-names-depressor-labii-inferioris", name: "Depressor labii inferioris", parts: ["depressor", "labii", "inferioris"], tells: "It lowers the lower lip." },
     { id: "ap-ch9-names-levator-scapulae", name: "Levator scapulae", parts: ["levator", "scapulae"], tells: "It raises the scapula (shoulder blade)." }
@@ -93,9 +93,9 @@
     { id: "ap-ch9-names-external-oblique", name: "External oblique", parts: ["external", "oblique"], tells: "The outer abdominal muscle whose fibers run diagonally.", taughtBy: TRUNK_TAUGHT },
     { id: "ap-ch9-names-quadratus-lumborum", name: "Quadratus lumborum", parts: ["quadratus", "lumborum"], tells: "A four-sided muscle of the lower back.", taughtBy: TRUNK_TAUGHT },
     { id: "ap-ch9-names-external-intercostals", name: "External intercostals", parts: ["external", "inter", "costal"], tells: "The outer layer of muscles between the ribs.", taughtBy: TRUNK_TAUGHT },
-    { id: "ap-ch9-names-internal-oblique", name: "Internal oblique", parts: ["internal", "oblique"], tells: "The deeper of the two slanted side muscles of the abdomen.", taughtBy: TRUNK_TAUGHT },
-    { id: "ap-ch9-names-internal-intercostals", name: "Internal intercostals", parts: ["internal", "inter", "costal"], tells: "The deeper layer of muscles between the ribs.", taughtBy: TRUNK_TAUGHT },
-    { id: "ap-ch9-names-erector-spinae", name: "Erector spinae", parts: ["erector", "spinae"], tells: "A muscle group along the spine that holds the back upright." },
+    { id: "ap-ch9-names-internal-oblique", name: "Internal oblique", parts: ["internal", "oblique"], tells: "The inner of the two slanted side muscles of the abdomen (in the abdominal wall, inner also means deeper).", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-internal-intercostals", name: "Internal intercostals", parts: ["internal", "inter", "costal"], tells: "The inner layer of muscles between the ribs (here, inner also means deeper).", taughtBy: TRUNK_TAUGHT },
+    { id: "ap-ch9-names-erector-spinae", name: "Erector spinae", parts: ["erector", "spinae"], tells: "A muscle group along the spine that straightens (extends) the back and holds it upright." },
     { id: "ap-ch9-names-serratus-anterior", name: "Serratus anterior", parts: ["serratus", "anterior"], tells: "A saw-toothed muscle on the front and side of the chest wall." }
   ];
   var SETS = {
