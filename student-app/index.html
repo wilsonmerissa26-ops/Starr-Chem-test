@@ -170,6 +170,8 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <div class="field wide"><button class="btn" type="submit">Save task</button></div></form></div>
 <div class="card"><h2>Install on her iPad</h2><p class="muted small">On the iPad, open this learning app in <b>Safari</b>. Tap the <b>Share</b> icon, choose <b>Add to Home Screen</b>, keep the name <b>AStarryia Learn</b>, then tap <b>Add</b>. Open that Home Screen icon for future study sessions.</p><p class="notice">This is a one-device study pilot. After installing, mark a test task complete, close and reopen the app, and confirm it stays checked before relying on its progress tracking.</p><h2>Keep her progress safe</h2><p class="muted small">This pilot saves checkoffs on this iPad/browser. It does not automatically synchronize to another device, and the real iPad still needs a close/reopen durability test.</p>
 <button class="btn secondary" id="backup">⬇ Export my progress backup</button><div style="height:12px"></div><label for="restore">Restore a previously exported JSON backup</label><input id="restore" type="file" accept="application/json,.json"><p id="storage-details" class="muted small"></p>
+<h2 style="margin-top:22px">Full learning backup</h2><p class="muted small">Saves everything this app and her chemistry lessons store on this device: planner, Chemistry Coach quiz history, original nine-day coach, whiteboard notes, foundation lesson progress and study songs. Exporting changes nothing. Restoring only adds missing items unless you choose to replace, and replaced versions are kept in a safety copy.</p>
+<button class="btn secondary" id="full-backup" type="button">⬇ Export full learning backup</button><div style="height:12px"></div><label for="full-restore">Check a full learning backup before restoring</label><input id="full-restore" type="file" accept="application/json,.json"><div id="full-restore-preview" aria-live="polite"></div><p id="full-backup-status" class="muted small" role="status" aria-live="polite"></p>
 <p class="notice">Important: adding the app to the Home Screen may create separate storage from Safari. Export from the version containing her work before switching devices or reinstalling. The export contains task titles and study activity—keep it private.</p>
 <p><button type="button" class="btn secondary compact" data-resource="foundation">Open existing CHM 221 course support inside this app</button></p></div></div></section>
 </main></div>
@@ -179,4 +181,5 @@ label{font-weight:800;font-size:.85rem}input,select,textarea{width:100%;border:1
 <button data-go="calendar">🗓️<span>Calendar</span></button>
 <button data-go="settings">✅<span>Planner</span></button></div>
 <script src="./app.js" defer></script>
+<script src="./learning-backup.js" defer></script>
 </body></html>
