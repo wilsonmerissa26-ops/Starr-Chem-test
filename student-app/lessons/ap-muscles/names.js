@@ -47,7 +47,7 @@
     "minor": { m: "smaller", cat: "size", ex: "zygomaticus minor" },
     "maximus": { m: "largest", cat: "size", ex: "gluteus maximus" },
     // Fiber direction
-    "rectus": { m: "straight (fibers run up and down)", cat: "fibers", ex: "rectus femoris" },
+    "rectus": { m: "straight (fibers parallel to the body's or a bone's long axis)", cat: "fibers", ex: "rectus femoris" },
     "transversus": { m: "across (fibers run side to side)", cat: "fibers", ex: "" },
     "oblique": { m: "slanted (fibers run diagonally)", cat: "fibers", ex: "superior oblique (an eye muscle)" },
     // Number of parts

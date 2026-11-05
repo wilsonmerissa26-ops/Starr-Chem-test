@@ -13,7 +13,7 @@
       cue: "Find the eyes, then look straight up at the forehead.", feel: { do: "Rest your fingertips on your forehead and raise your eyebrows as if surprised.", notice: "The skin of the forehead slides up and wrinkles under your fingers." }, lookalike: "temporalis" },
     "orbicularis-oculi": { name: "Orbicularis oculi", region: "eye",
       accept: ["orbicularis oculi"], location: "A ring of muscle around each eye.",
-      action: "Closes the eyelids.", cue: "Circular fibers around the eye. \"Oculi\" = eye.", feel: { do: "Lay a fingertip lightly beside the outer corner of one eye, then squeeze both eyes shut tightly.", notice: "The ring of muscle around the eye tightens and the skin beside the eye wrinkles." }, lookalike: "orbicularis-oris" },
+      action: "Closes the eyelids.", cue: "Circular fibers around the eye. \"Oculi\" = eye.", feel: { do: "Lay a fingertip lightly beside the outer corner of one eye, then close both eyes firmly.", notice: "The ring of muscle around the eye tightens and the skin beside the eye wrinkles." }, lookalike: "orbicularis-oris" },
     "orbicularis-oris": { name: "Orbicularis oris", region: "mouth",
       accept: ["orbicularis oris"], location: "A ring of muscle around the mouth, within the lips.",
       action: "Moves and shapes the lips, as during speech.", cue: "Circular fibers around the lips. \"Oris\" = mouth.", feel: { do: "Put two fingertips just above and below your lips, then pucker as if to whistle or kiss.", notice: "The lips tighten and push forward as the ring around the mouth contracts." }, lookalike: "orbicularis-oculi" },
@@ -24,15 +24,15 @@
     "temporalis": { name: "Temporalis", region: "side of skull",
       accept: ["temporalis"], location: "A fan-shaped muscle on the side of the skull, over the temple and above the ear.",
       action: "Closes the mouth (elevates the mandible) and pulls the lower jaw back under the upper jaw (retracts the mandible).",
-      cue: "A fan over the temple. Feel it tighten above your ear when you clench.", feel: { do: "Place your fingertips on your temple, above and in front of your ear, and clench your teeth.", notice: "A broad, fan-shaped area hardens under your fingers, then relaxes when you unclench." }, lookalike: "frontal-belly" },
+      cue: "A fan over the temple. Feel it tighten above your ear when you clench.", feel: { do: "Place your fingertips on your temple, above and in front of your ear, and gently clench your teeth.", notice: "A broad, fan-shaped area hardens under your fingers, then relaxes when you unclench." }, lookalike: "frontal-belly" },
     "masseter": { name: "Masseter", region: "jaw",
       accept: ["masseter"], location: "On the side of the face over the back of the lower jaw (mandible), in front of the ear.",
       action: "Elevates the mandible to close the mouth; the prime mover for chewing.",
-      cue: "The thick muscle that bulges at the angle of your jaw when you clench your teeth.", feel: { do: "Place your fingertips on the angle of your jaw, in front of your ear lobe, and clench your teeth.", notice: "A thick block of muscle bulges out. It is one of the easiest muscles to feel." }, lookalike: "buccinator" },
+      cue: "The thick muscle that bulges at the angle of your jaw when you clench your teeth.", feel: { do: "Place your fingertips on the angle of your jaw, in front of your ear lobe, and gently clench your teeth.", notice: "A thick block of muscle bulges out. It is one of the easiest muscles to feel." }, lookalike: "buccinator" },
     "sternocleidomastoid": { name: "Sternocleidomastoid", region: "neck",
       accept: ["sternocleidomastoid"], location: "The long diagonal muscle on the side of the neck, from the sternum and clavicle up to the mastoid process behind the ear.",
       action: "One side: rotates the head to the opposite side. Both sides together: flex the neck.",
-      cue: "Read the name: sterno (sternum), cleido (clavicle), mastoid (mastoid process).", feel: { do: "Look in a mirror and turn your head to the right.", notice: "The LEFT muscle stands out as a cord from behind your ear down to your sternum and clavicle. One side turns the head to the opposite side." }, lookalike: null }
+      cue: "Read the name: sterno (sternum), cleido (clavicle), mastoid (mastoid process).", feel: { do: "Look in a mirror and gently turn your head to the right.", notice: "The LEFT muscle stands out as a cord from behind your ear down to your sternum and clavicle. One side turns the head to the opposite side." }, lookalike: null }
   };
   var LOOKALIKE_NOTES = {
     "orbicularis-oculi|orbicularis-oris": "Both are ring-shaped muscles. Oculi surrounds the eye and closes the eyelids. Oris surrounds the mouth and moves the lips.",
