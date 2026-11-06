@@ -24,6 +24,12 @@
     "abdominis": { m: "of the abdomen", cat: "place", ex: "" },
     "lumborum": { m: "of the lower back (lumbar region)", cat: "place", ex: "" },
     "pectoralis": { m: "chest", cat: "place", ex: "pectoralis major" },
+    "dorsi": { m: "of the back", cat: "place", ex: "" },
+    "spinatus": { m: "spine of the scapula (the bony ridge across its back)", cat: "place", ex: "" },
+    "scapularis": { m: "scapula (shoulder blade)", cat: "place", ex: "" },
+    "brachii": { m: "of the arm", cat: "place", ex: "" },
+    "brachio": { m: "arm", cat: "place", ex: "" },
+    "radialis": { m: "radius (the thumb-side forearm bone)", cat: "place", ex: "flexor carpi radialis" },
     "oculi": { m: "of the eye", cat: "place", ex: "orbicularis oculi" },
     "oris": { m: "of the mouth", cat: "place", ex: "orbicularis oris" },
     "labii": { m: "of the lip", cat: "place", ex: "" },
@@ -36,16 +42,21 @@
     "external": { m: "outer (toward the outside)", cat: "position", ex: "" },
     "internal": { m: "inner (toward the inside)", cat: "position", ex: "" },
     "inter": { m: "between", cat: "position", ex: "interossei" },
+    "supra": { m: "above", cat: "position", ex: "suprahyoid muscles" },
+    "infra": { m: "below", cat: "position", ex: "infrahyoid muscles" },
+    "sub": { m: "under, beneath", cat: "position", ex: "subclavius" },
     // Shape
     "orbicularis": { m: "circular, a ring", cat: "shape", ex: "orbicularis oculi" },
     "serratus": { m: "saw-toothed", cat: "shape", ex: "serratus posterior" },
     "quadratus": { m: "square, four-sided", cat: "shape", ex: "quadratus femoris" },
     "splenius": { m: "bandage-like", cat: "shape", ex: "splenius cervicis" },
     "deltoid": { m: "triangular", cat: "shape", ex: "deltoid" },
+    "teres": { m: "round, cylindrical", cat: "shape", ex: "" },
     // Size
     "major": { m: "larger", cat: "size", ex: "pectoralis major" },
     "minor": { m: "smaller", cat: "size", ex: "zygomaticus minor" },
     "maximus": { m: "largest", cat: "size", ex: "gluteus maximus" },
+    "latissimus": { m: "widest", cat: "size", ex: "" },
     // Fiber direction
     "rectus": { m: "straight (describes the straight course of the fibers relative to the structure)", cat: "fibers", ex: "rectus femoris" },
     "transversus": { m: "across (fibers run transversely, at right angles to the structure's long axis)", cat: "fibers", ex: "" },
@@ -53,7 +64,8 @@
     // Number of parts
     "di": { m: "two", cat: "number", ex: "" },
     "gastric": { m: "belly (here, a fleshy muscle belly)", cat: "number", ex: "gastrocnemius" },
-    "biceps": { m: "two heads (two separate proximal attachments joining one muscle)", cat: "number", ex: "biceps brachii" },
+    "biceps": { m: "two heads (two separate proximal attachments joining one muscle)", cat: "number", ex: "biceps femoris" },
+    "triceps": { m: "three heads (three separate proximal attachments joining one muscle)", cat: "number", ex: "" },
     // Action
     "levator": { m: "raises", cat: "action", ex: "levator palpebrae superioris" },
     "depressor": { m: "lowers", cat: "action", ex: "" },
@@ -75,6 +87,7 @@
   // Independent items: names not used anywhere else in the lesson. Each part must be decoded; all parts right = correct.
   // taughtBy: the teaching screen that shows this muscle. Once she has viewed it, the name is no longer new, so it counts as practice.
   var TRUNK_TAUGHT = "ap-ch9-teach-trunk-learn";
+  var UPPER_TAUGHT = "ap-ch9-teach-upper-learn";
   var HEAD_ITEMS = [
     { id: "ap-ch9-names-levator-labii-superioris", name: "Levator labii superioris", parts: ["levator", "labii", "superioris"], tells: "It raises the upper lip." },
     { id: "ap-ch9-names-sternohyoid", name: "Sternohyoid", parts: ["sterno", "hyoid"], tells: "It runs between the sternum and the hyoid bone." },
@@ -96,14 +109,28 @@
     { id: "ap-ch9-names-internal-oblique", name: "Internal oblique", parts: ["internal", "oblique"], tells: "The inner of the two slanted side muscles of the abdomen (in the abdominal wall, inner also means deeper).", taughtBy: TRUNK_TAUGHT },
     { id: "ap-ch9-names-internal-intercostals", name: "Internal intercostals", parts: ["internal", "inter", "costal"], tells: "The inner layer of muscles between the ribs (here, inner also means deeper).", taughtBy: TRUNK_TAUGHT },
     { id: "ap-ch9-names-erector-spinae", name: "Erector spinae", parts: ["erector", "spinae"], tells: "A muscle group along the spine that straightens (extends) the back and holds it upright." },
-    { id: "ap-ch9-names-serratus-anterior", name: "Serratus anterior", parts: ["serratus", "anterior"], tells: "A saw-toothed muscle on the front and side of the chest wall." }
+    { id: "ap-ch9-names-serratus-anterior", name: "Serratus anterior", parts: ["serratus", "anterior"], tells: "A saw-toothed muscle on the front and side of the chest wall.", taughtBy: UPPER_TAUGHT }
+  ];
+  var UPPER_GUIDED = { id: "ap-ch9-names-guided-biceps-brachii", name: "Biceps brachii", parts: ["biceps", "brachii"],
+    tells: "The two-headed muscle of the arm." };
+  var UPPER_ITEMS = [
+    { id: "ap-ch9-names-latissimus-dorsi", name: "Latissimus dorsi", parts: ["latissimus", "dorsi"], tells: "The widest muscle of the back.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-supraspinatus", name: "Supraspinatus", parts: ["supra", "spinatus"], tells: "The muscle above the spine of the scapula.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-triceps-brachii", name: "Triceps brachii", parts: ["triceps", "brachii"], tells: "The three-headed muscle of the arm.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-subscapularis", name: "Subscapularis", parts: ["sub", "scapularis"], tells: "The muscle beneath the scapula, on its rib-facing surface.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-brachioradialis", name: "Brachioradialis", parts: ["brachio", "radialis"], tells: "A muscle running from the arm to the radius.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-infraspinatus", name: "Infraspinatus", parts: ["infra", "spinatus"], tells: "The muscle below the spine of the scapula.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-teres-minor", name: "Teres minor", parts: ["teres", "minor"], tells: "The smaller round muscle.", taughtBy: UPPER_TAUGHT },
+    { id: "ap-ch9-names-teres-major", name: "Teres major", parts: ["teres", "major"], tells: "The larger round muscle.", taughtBy: UPPER_TAUGHT }
   ];
   var SETS = {
     head: { worked: WORKED, guided: GUIDED, items: HEAD_ITEMS, after: "feel", afterLabel: "Next: feel each muscle work" },
     trunk: { worked: [WORKED[1], { name: "Pectoralis major", parts: ["pectoralis", "major"], tells: "The larger chest muscle. The name gives the place and the size, not the action (it moves the arm)." }],
-      guided: TRUNK_GUIDED, items: TRUNK_ITEMS, after: "learn", afterLabel: "Next: see the trunk muscles you just decoded" }
+      guided: TRUNK_GUIDED, items: TRUNK_ITEMS, after: "learn", afterLabel: "Next: see the trunk muscles you just decoded" },
+    upper: { worked: [WORKED[1], { name: "Pectoralis major", parts: ["pectoralis", "major"], tells: "The larger chest muscle. The name gives the place and the size, not the action." }],
+      guided: UPPER_GUIDED, items: UPPER_ITEMS, after: "learn", afterLabel: "Next: see the shoulder and arm muscles you just decoded" }
   };
-  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS);
+  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS, UPPER_ITEMS);
   // Four choices per part: the right meaning plus three from the same clue category (then others), in a fixed order per item.
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   function choices(itemId, root) {
@@ -117,5 +144,5 @@
     var d = pick(best).concat(pick(same), pick(other)).slice(0, 3);
     return [root].concat(d).sort(function (a, b) { return hash(seed + "o" + a) - hash(seed + "o" + b); });
   }
-  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED], choices: choices, OBJ: "bio131.ch9.muscle-name-roots" };
+  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED, UPPER_GUIDED], choices: choices, OBJ: "bio131.ch9.muscle-name-roots" };
 })(window);

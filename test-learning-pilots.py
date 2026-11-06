@@ -560,6 +560,7 @@ with sync_playwright() as p:
 
     # =====================================================================================
     TRUNK = AP + "trunk.html"
+    UPPER = AP + "upper.html"
     section("A&P trunk set: teaching, guided, independent and delayed review (criteria 1 to 5, 7)")
     def trunk_guided(page):
         page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
@@ -676,7 +677,7 @@ with sync_playwright() as p:
 
     section("A&P: Feel it step and study songs (learning only, never evidence)")
     def t_feel_songs():
-        for url, key in [(AP, "head"), (TRUNK, "trunk")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             check("Every %s muscle has a 'feel it' instruction and what to notice" % key, all(m["feel"]["do"] and m["feel"]["notice"] for m in S["MUSCLES"].values()))
@@ -709,7 +710,7 @@ with sync_playwright() as p:
 
     section("A&P: no teaching or guided screen ever shows a view used as 'new' in independent questions (criterion 7)")
     def t_no_view_leak():
-        for url, key in [(AP, "head"), (TRUNK, "trunk")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             new_views = {i["fig"] for i in S["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"}
@@ -868,6 +869,95 @@ with sync_playwright() as p:
         except ImportError:
             check("OCR check of in-depth images (skipped: pytesseract not installed)", True)
     guarded("deep lesson", t_deep)
+
+    section("A&P shoulder and arm set: teaching, independent identification and review (criteria 1 to 5, 7)")
+    def t_upper():
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        U = page.evaluate("MuscleSets.upper")
+        check("Shoulder and arm lesson opens on teaching (decode the names first), with no question on screen",
+              "Decode the name" in page.inner_text("#screen h2") and not page.query_selector("#ans"))
+        check("It covers 14 shoulder and arm muscles, with the rotator cuff taught as SITS and teres major excluded",
+              len(U["MUSCLES"]) == 14 and "SITS" in U["SET"]["learnIntro"] and "Teres major is NOT in the rotator cuff" in U["SET"]["learnIntro"])
+        check("'On your own' is locked until guided pins are done", page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Fourteen shoulder and arm muscles")
+        check("Learn shows five labeled teaching figures and a card for every muscle",
+              page.locator("#screen .fig img").count() == 5 and page.locator("#screen .mcard").count() == 14)
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        for g in U["GUIDED"]:
+            page.wait_for_selector("#gnames [data-name='%s']" % g["muscle"]); page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(100)
+        page.wait_for_timeout(300)
+        check("Guided pins unlock 'On your own'", not page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        img = page.get_attribute("#q img", "src")
+        check("Day 1 first question uses the whole-body back view, never shown labeled", "upper-body-back-unlabeled" in img, img)
+        f1 = ap_type(page, "supraspinatus")          # infraspinatus pin: look-alike
+        f2 = ap_type(page, "deltoid")                # abducts the arm
+        f3 = ap_type(page, "biceps")                 # biceps on the front view: short name accepted with a note
+        f4 = ap_type(page, "infraspinatus")          # subscapularis by function: opposite-rotation look-alike
+        check("Supraspinatus for infraspinatus is diagnosed with the spine-of-the-scapula rule", "look-alike" in f1 and "spine of the scapula as the dividing line" in f1, f1[:200])
+        check("'Biceps' alone is accepted with its full name", "Correct" in f3 and "biceps brachii" in f3.lower(), f3[:160])
+        check("Infraspinatus for subscapularis is diagnosed as opposite surfaces and rotations", "opposite surfaces" in f4, f4[:200])
+        l = {e["itemId"]: e for e in evs(page, {"course": "BIO131"})}
+        check("New-picture identification and function questions are independent evidence; misses keep their error types",
+              l["ap-ch9-upper-back-name-infraspinatus"]["independent"] and l["ap-ch9-upper-back-name-infraspinatus"]["errorType"] == "lookalike-infraspinatus-vs-supraspinatus"
+              and l["ap-ch9-upper-act-abduct"]["independent"] and l["ap-ch9-upper-act-cuff-front"]["errorType"] == "lookalike-infraspinatus-vs-subscapularis")
+        check("Shoulder and arm work never changes head, neck or trunk objectives",
+              status(page, "bio131.ch9.trunk-muscle-id")["status"] == "not-started" and status(page, "bio131.ch9.jaw-neck-id")["status"] == "not-started")
+        p2, e2 = page_at(ctx, DAY2, UPPER); p2.wait_for_selector("#q", timeout=8000)
+        check("Next day the lesson opens to NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
+        before = set(l); ap_type(p2, "latissimus dorsi")
+        new = [e for e in evs(p2, {"course": "BIO131"}) if e["itemId"] not in before]
+        check("Day 2 question is a different item, recorded as review", new and new[0]["activity"] == "review" and new[0]["itemId"] == "ap-ch9-upper-back-name-latissimus", [(e["itemId"], e["activity"]) for e in new])
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+    guarded("upper lesson", t_upper)
+
+    section("A&P shoulder and arm set: data, images and name matching (accuracy)")
+    def t_upper_data():
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        cases = [("supraspinatus", "supraspinatus", True, None), ("infraspinatus", "supraspinatus", False, "lookalike-infraspinatus-vs-supraspinatus"),
+                 ("teres major", "teres-minor", False, "lookalike-teres-major-vs-teres-minor"), ("teres", "teres-major", False, "incomplete-name"),
+                 ("latissimus", "latissimus-dorsi", False, "incomplete-name"), ("latisimus dorsi", "latissimus-dorsi", True, "spelling-close"),
+                 ("brachialis", "biceps-brachii", False, "lookalike-biceps-brachii-vs-brachialis"), ("brachialis", "brachioradialis", False, "lookalike-brachialis-vs-brachioradialis"),
+                 ("triceps", "triceps-brachii", True, None), ("traps", "trapezius", True, None), ("deltoid", "trapezius", False, "wrong-muscle"),
+                 ("rotator cuff", "subscapularis", False, "incomplete-name"), ("subscapularis", "infraspinatus", False, "lookalike-infraspinatus-vs-subscapularis")]
+        res = page.evaluate("cs => cs.map(c => MuscleSets.upper.match(c[0], c[1]))", [[c[0], c[1]] for c in cases])
+        bad = [(c[0], c[1], r) for c, r in zip(cases, res) if r["correct"] != c[2] or r["errorType"] != c[3]]
+        check("Shoulder and arm name matching (%d cases, incl. supra/infra, teres major/minor, biceps/brachialis)" % len(cases), not bad, bad)
+        U = page.evaluate("MuscleSets.upper")
+        check("Pin positions match the image build output exactly", U["PINS"] == json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-upper.json"))))
+        anchors = {"deltoid": "main abductor", "supraspinatus": "Abducts the arm", "infraspinatus": "Laterally rotates", "teres-minor": "Laterally rotates",
+                   "subscapularis": "Medially rotates", "teres-major": "Extends and medially rotates", "biceps-brachii": "supinates", "brachialis": "Flexes the forearm",
+                   "brachioradialis": "Flexes the forearm", "triceps-brachii": "Extends the forearm", "latissimus-dorsi": "Extends, adducts and medially rotates",
+                   "pectoralis-major": "Flexes, adducts and medially rotates", "serratus-anterior": "Protracts the scapula", "trapezius": "Elevates the scapula"}
+        off = [k for k, v in anchors.items() if v not in U["MUSCLES"][k]["action"]]
+        check("Every action matches the OpenStax 11.5 text and standard anatomy (infraspinatus and teres minor rotate laterally, not 'extension; adduction' as the OpenStax table says)", not off, off)
+        cuff = [k for k, m in U["MUSCLES"].items() if "Rotator cuff muscle" in m["location"]]
+        check("Exactly the four SITS muscles are marked as rotator cuff", sorted(cuff) == ["infraspinatus", "subscapularis", "supraspinatus", "teres-minor"], cuff)
+        taught = {g["fig"] for g in U["GUIDED"]} | {x["fig"] for x in U["SET"]["learn"]}
+        unf = [i for i in U["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"]
+        check("Every new-picture item uses fig. 1105, never a teaching or guided figure", all(i["fig"] in ("upper-body-front", "upper-body-back") and i["fig"] not in taught for i in unf))
+        seen = {}
+        dup = [i["id"] for i in unf if (i["fig"], i["muscle"]) in seen or seen.setdefault((i["fig"], i["muscle"]), 1) is None]
+        check("Each muscle is asked about at most once per new picture", not dup, dup)
+        check("Subscapularis (one view only) is practice-only for pin naming", all(not i["unfamiliar"] for i in U["ITEMS"] if i["kind"] == "name-pin" and i["muscle"] == "subscapularis"))
+        check("Every item has a pin on its figure, a unique ID with the upper prefix",
+              all(i["kind"] == "name-fn" or i["muscle"] in U["PINS"][i["fig"]] for i in U["ITEMS"]) and len({i["id"] for i in U["ITEMS"]}) == len(U["ITEMS"]) and all(i["id"].startswith("ap-ch9-upper-") for i in U["ITEMS"]))
+        ctx.close()
+        try:
+            import pytesseract
+            from PIL import Image
+            names = ["trapez", "deltoid", "pectoralis", "serratus", "latissimus", "dorsi", "supraspin", "infraspin", "teres", "subscap", "biceps", "brachii",
+                     "brachialis", "brachiorad", "triceps", "scapula", "humerus", "coracoid", "rhomboid", "flexor", "extensor", "pronator", "palmaris"]
+            found = {}
+            for f in ["upper-girdle", "upper-humerus", "upper-shoulder-deep", "upper-arm", "upper-forearm-palmar", "upper-body-front", "upper-body-back"]:
+                im = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s-unlabeled.jpg" % f))
+                t = (pytesseract.image_to_string(im) + pytesseract.image_to_string(im.resize((im.width * 2, im.height * 2)), config="--psm 11")).lower()
+                hit = [n for n in names if n in t]
+                if hit: found[f] = hit
+            check("OCR finds no label text on any unlabeled shoulder and arm image", not found, found)
+        except ImportError:
+            check("OCR shoulder and arm label check (skipped: pytesseract not installed)", True)
+    guarded("upper data", t_upper_data)
 
     # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")

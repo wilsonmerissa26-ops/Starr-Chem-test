@@ -1,0 +1,144 @@
+{
+ "upper-girdle": {
+  "serratus-anterior": [
+   40.6,
+   48.24
+  ],
+  "deltoid": [
+   50.87,
+   64.81
+  ],
+  "trapezius": [
+   52.83,
+   90.8
+  ]
+ },
+ "upper-humerus": {
+  "pectoralis-major": [
+   8.34,
+   16.17
+  ],
+  "deltoid": [
+   48.54,
+   29.43
+  ],
+  "latissimus-dorsi": [
+   55.27,
+   53.26
+  ]
+ },
+ "upper-shoulder-deep": {
+  "teres-minor": [
+   70.66,
+   12.23
+  ],
+  "supraspinatus": [
+   86.63,
+   10.67
+  ],
+  "infraspinatus": [
+   86.68,
+   38.55
+  ],
+  "subscapularis": [
+   42.66,
+   50.57
+  ],
+  "teres-major": [
+   86.54,
+   56.06
+  ],
+  "triceps-brachii": [
+   78.42,
+   74.92
+  ]
+ },
+ "upper-arm": {
+  "biceps-brachii": [
+   33.94,
+   24.65
+  ],
+  "triceps-brachii": [
+   74.17,
+   30.0
+  ],
+  "brachialis": [
+   19.15,
+   90.58
+  ]
+ },
+ "upper-forearm-palmar": {
+  "brachioradialis": [
+   80.22,
+   15.11
+  ]
+ },
+ "upper-body-front": {
+  "deltoid": [
+   14.94,
+   9.76
+  ],
+  "pectoralis-major": [
+   2.21,
+   30.71
+  ],
+  "trapezius": [
+   89.61,
+   22.62
+  ],
+  "serratus-anterior": [
+   89.74,
+   46.67
+  ],
+  "biceps-brachii": [
+   89.87,
+   59.52
+  ],
+  "brachialis": [
+   89.87,
+   71.43
+  ],
+  "brachioradialis": [
+   89.87,
+   83.81
+  ]
+ },
+ "upper-body-back": {
+  "supraspinatus": [
+   12.77,
+   18.39
+  ],
+  "teres-minor": [
+   1.57,
+   35.81
+  ],
+  "infraspinatus": [
+   3.49,
+   54.84
+  ],
+  "teres-major": [
+   1.57,
+   72.9
+  ],
+  "triceps-brachii": [
+   6.39,
+   90.32
+  ],
+  "trapezius": [
+   90.36,
+   30.65
+  ],
+  "deltoid": [
+   90.6,
+   47.1
+  ],
+  "latissimus-dorsi": [
+   90.6,
+   64.52
+  ],
+  "brachioradialis": [
+   90.6,
+   82.26
+  ]
+ }
+}
