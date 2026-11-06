@@ -88,14 +88,15 @@
       screen.innerHTML = '<div class="card"><h2>Start here: two muscles, step by step</h2>' +
         "<p>Learn one muscle completely before the next. Each one goes through six stages: <b>Decode</b> the name, <b>See</b> it, <b>Move</b> it, <b>Explain</b> why it works, <b>Recall</b> it without labels, then <b>Apply</b> it to something new.</p>" +
         '<div class="musclecards">' + D.LESSONS.map(function (L, i) {
-          var applied = seen[L.apply.id];
-          return '<div class="mcard"><h3>' + (i + 1) + ". " + esc(L.name) + "</h3><p>" + esc(L.why) + "</p>" +
-            '<p class="small muted">' + (applied ? "Apply step done" + (applied.correct ? "." : ": worth another look.") : "Not finished yet.") + "</p>" +
-            '<button type="button" class="btn" data-deep="' + i + '">' + (applied ? "Go through it again" : "Start " + esc(L.name)) + "</button></div>";
+          var applied = L.apply.some(function (q) { return seen[q.id]; });
+          return '<div class="mcard"><h3>' + (i + 1) + ". " + esc(L.name) + "</h3><p>" + esc(L.why) + "</p>" + deepHistory(L, list) +
+            '<div class="row" style="margin-top:8px"><button type="button" class="btn" data-deep="' + i + '">' + (applied ? "Go through it again" : "Start " + esc(L.name)) + "</button>" +
+            (applied ? '<button type="button" class="btn secondary" data-deep-apply="' + i + '">New Apply questions</button>' : "") + "</div></div>";
         }).join("") + "</div>" +
-        '<p class="small muted" style="margin-top:10px">Only the Apply step can count as showing it on your own, and only on the first try without help. Everything before it is learning and practice.</p></div>' +
+        '<p class="small muted" style="margin-top:10px">Only Apply questions can count as showing it on your own: first try, no help, a question you have not answered before. Identifying, knowing what it does, and using it in a new situation are tracked separately.</p></div>' +
         nextBtn(nextAfter("deep"), "Next: all seven head and neck muscles");
       screen.querySelectorAll("[data-deep]").forEach(function (b) { b.onclick = function () { deepRun(D.LESSONS[Number(b.dataset.deep)], 0); }; });
+      screen.querySelectorAll("[data-deep-apply]").forEach(function (b) { b.onclick = function () { deepApply(D.LESSONS[Number(b.dataset.deepApply)]); }; });
     });
   }
   function deepShell(L, stage, body) {
@@ -146,15 +147,16 @@
   }
   function deepSee(L) {
     markViewed("deep-" + L.key + "-see", "teach", L.objective);
-    deepShell(L, "see", "<h2>See it</h2>" + figure(L.see.fig, { labeled: true }) + "<p>" + esc(L.see.text) + "</p>" + card(L.key) + deepNext(L, "see", "Move it"));
+    deepShell(L, "see", "<h2>See it</h2>" + figure(L.see.fig, { labeled: true }) + "<p>" + esc(L.see.text) + "</p>" +
+      '<details class="more"><summary>More detail</summary>' + card(L.key) + "</details>" + deepNext(L, "see", "Move it"));
     document.getElementById("dnext").onclick = function () { deepMove(L); };
   }
   function deepMove(L) {
     markViewed("deep-" + L.key + "-move", "teach", L.objective);
     var m = M.MUSCLES[L.key];
     deepShell(L, "move", "<h2>Move it</h2><p><b>What it does:</b> " + esc(L.move.action) + "</p>" +
-      '<div class="feedback info"><strong>Why the location gives that movement</strong>' + esc(L.move.demo) + "</div>" +
       '<div class="mcard" style="margin-top:12px"><h3>Try it on yourself</h3><p><b>Do this:</b> ' + esc(m.feel.do) + "</p><p><b>Notice:</b> " + esc(m.feel.notice) + "</p></div>" +
+      '<details class="more"><summary>Why does its location give that movement?</summary><p>' + esc(L.move.demo) + "</p></details>" +
       deepNext(L, "move", "Explain it"));
     document.getElementById("dnext").onclick = function () { deepExplain(L); };
   }
@@ -164,13 +166,14 @@
     var X = L.explain;
     deepShell(L, "explain", "<h2>Explain it</h2><p class=\"prompt\">" + esc(X.prompt) + '</p><label class="small muted" for="dexp">Your explanation</label>' +
       '<textarea id="dexp" rows="5" style="width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line)"></textarea>' +
-      '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dcmp">Compare with a model answer</button></div><div id="dfb"></div>');
+      '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dcmp">Check my explanation</button></div><div id="dfb"></div>');
     document.getElementById("dcmp").onclick = function () {
       var text = document.getElementById("dexp").value.trim();
       this.disabled = true; document.getElementById("dexp").readOnly = true;
-      document.getElementById("dfb").innerHTML = '<div class="feedback info"><strong>Model answer</strong>' + esc(X.model) + "</div>" +
-        "<p style=\"margin-top:12px\"><b>Which of these did your explanation include?</b> Be honest: this is for you, not a score.</p>" +
+      // Check her own words against the key points first; the full model answer is one tap away, so the screen stays short.
+      document.getElementById("dfb").innerHTML = "<p style=\"margin-top:12px\"><b>Tick each point your explanation included.</b> Be honest: this is for you, not a score.</p>" +
         X.points.map(function (pt, i) { return '<label class="check-pt"><input type="checkbox" data-pt="' + i + '"> ' + esc(pt) + "</label>"; }).join("") +
+        '<details class="more"><summary>See a model answer</summary><p>' + esc(X.model) + "</p></details>" +
         '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dsc">Save my check</button></div><div id="dfb2"></div>';
       document.getElementById("dsc").onclick = function () {
         this.disabled = true;
@@ -231,31 +234,69 @@
       };
     });
   }
-  // Apply: a new picture or a new case. First try, no help: this is the only stage that can count as independent.
+  // Apply: the only stage that can count as independent. One new question per skill per visit, filed by skill.
+  var SKILLS = [{ id: "identify", label: "Identify it on a new picture" }, { id: "function", label: "What it does" }, { id: "apply", label: "A new situation" }];
+  function skillObjective(L, skill) { return objectiveId(skill === "identify" ? L.objective : skill === "function" ? "actions" : "application"); }
   function deepApply(L) {
-    var P2 = L.apply;
     LR.events({ course: "BIO131" }).then(function (list) {
-      var before = list.filter(function (e) { return e.itemId === P2.id; });
-      var fresh = before.length === 0;
-      deepShell(L, "apply", "<h2>Apply it</h2>" + (P2.kind === "pin" ? figure(P2.fig, { pins: [L.key], current: L.key }) : "") +
-        '<p class="prompt">' + esc(P2.prompt) + "</p>" + (P2.note ? '<p class="small muted">' + esc(P2.note) + "</p>" : "") +
-        '<label class="small muted" for="ans">Muscle name</label><input type="text" id="ans" autocomplete="off" autocapitalize="none" spellcheck="false">' +
-        '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dchk">Check</button></div><div id="dfb"></div>' +
-        (fresh ? "" : '<p class="small muted">You have answered this one before, so this time it counts as practice.</p>'));
-      document.getElementById("dchk").onclick = function () {
-        var typed = document.getElementById("ans").value, r = M.match(typed, L.key);
-        this.disabled = true; document.getElementById("ans").readOnly = true;
-        save({ objectiveId: objectiveId(P2.objective), itemId: P2.id, itemVersion: 1, activity: fresh ? "independent" : "check", correct: r.correct, errorType: r.errorType,
-          response: { typed: typed }, unfamiliar: fresh, assistance: { hints: 0 } }).then(function (ev) {
-          var host = document.getElementById("dfb");
-          host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), r.note ? "<p>" + esc(r.note) + "</p>" : "")
-            : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + (P2.kind === "pin" ? figure(L.see.fig, { labeled: true }) : ""))) +
-            '<div class="mcard" style="margin-top:10px"><p><b>How you could know:</b></p><ul>' + P2.how.map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("") + "</ul></div>" +
-            '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dback">Back to the two muscles →</button></div>';
-          document.getElementById("dback").onclick = deep;
-        }, function () {});
-      };
+      var answered = {}; list.forEach(function (e) { answered[e.itemId] = true; });
+      var queue = [], notes = [];
+      SKILLS.forEach(function (sk) {
+        var next = L.apply.filter(function (q) { return q.skill === sk.id && !answered[q.id]; })[0];
+        if (next) queue.push(next);
+        else if (sk.id === "identify") notes.push(L.noNewPicture);
+        else if (L.apply.some(function (q) { return q.skill === sk.id; })) notes.push("You have answered every “" + sk.label.toLowerCase() + "” question for this muscle.");
+      });
+      var notesHtml = notes.length ? '<div class="feedback info"><strong>Note</strong>' + notes.map(function (n) { return "<p>" + esc(n) + "</p>"; }).join("") + "</div>" : "";
+      if (!queue.length) {
+        deepShell(L, "apply", "<h2>Apply it</h2>" + notesHtml + "<p>There are no new Apply questions left for this muscle. Repeating an old one would be practice, not new evidence, so keep it fresh with the <b>On your own</b> set.</p>" +
+          '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dback">Back to the two muscles →</button></div>');
+        document.getElementById("dback").onclick = deep; return;
+      }
+      var i = 0, results = [];
+      function ask() {
+        var q = queue[i], sk = SKILLS.filter(function (s) { return s.id === q.skill; })[0], obj = skillObjective(L, q.skill);
+        var hadIndep = list.some(function (e) { return e.objectiveId === obj && e.independent; });
+        deepShell(L, "apply", "<h2>Apply it</h2>" + (i === 0 ? notesHtml : "") + '<p class="small muted">Question ' + (i + 1) + " of " + queue.length + " · Skill: <b>" + esc(sk.label) + "</b></p>" +
+          (q.kind === "pin" ? figure(q.fig, { pins: [L.key], current: L.key }) : "") + '<p class="prompt">' + esc(q.prompt) + "</p>" +
+          '<label class="small muted" for="ans">Muscle name</label><input type="text" id="ans" autocomplete="off" autocapitalize="none" spellcheck="false">' +
+          '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dchk">Check</button></div><div id="dfb"></div>');
+        document.getElementById("dchk").onclick = function () {
+          var typed = document.getElementById("ans").value, r = M.match(typed, L.key);
+          this.disabled = true; document.getElementById("ans").readOnly = true;
+          save({ objectiveId: obj, itemId: q.id, itemVersion: 1, activity: hadIndep ? "review" : "independent", correct: r.correct, errorType: r.errorType,
+            response: { typed: typed, skill: q.skill }, unfamiliar: true, assistance: { hints: 0 } }).then(function (ev) {
+            results.push({ skill: sk.label, correct: r.correct });
+            var host = document.getElementById("dfb");
+            host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), r.note ? "<p>" + esc(r.note) + "</p>" : "")
+              : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p>This miss stays in your history, even after you get later questions right.</p>")) +
+              '<details class="more"><summary>How you could know</summary><ul>' + q.how.map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("") + "</ul>" +
+              (q.kind === "pin" && !r.correct ? figure(L.see.fig, { labeled: true }) : "") + "</details>" +
+              '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dnext">' + (i + 1 < queue.length ? "Next question" : "Finish") + " →</button></div>";
+            document.getElementById("dnext").onclick = function () { i++; if (i < queue.length) ask(); else done(); };
+          }, function () {});
+        };
+      }
+      function done() {
+        deepShell(L, "apply", "<h2>Done for today</h2><ul>" + results.map(function (x) { return "<li>" + esc(x.skill) + ": " + (x.correct ? "correct" : "missed") + "</li>"; }).join("") + "</ul>" +
+          "<p>Each skill is tracked on its own. Come back tomorrow for different questions.</p>" +
+          '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dback">Back to the two muscles →</button></div>');
+        document.getElementById("dback").onclick = deep;
+      }
+      ask();
     });
+  }
+  // History of Apply answers for one muscle, oldest first. Misses stay visible after later correct answers.
+  function deepHistory(L, list) {
+    var ids = {}; L.apply.forEach(function (q) { ids[q.id] = q.skill; });
+    var rows = SKILLS.map(function (sk) {
+      var ev = list.filter(function (e) { return ids[e.itemId] === sk.id && e.correct !== null; }).sort(function (a, b) { return a.at < b.at ? -1 : 1; });
+      if (!ev.length) return "";
+      return "<li><b>" + esc(sk.label) + ":</b> " + ev.map(function (e) {
+        return (e.correct ? "✓" : "✗") + " " + esc(LR.formatDay(LR.localDay(e.at))) + (e.independent ? "" : " (practice)");
+      }).join(", ") + "</li>";
+    }).join("");
+    return rows ? '<p class="small" style="margin:6px 0 2px"><b>Your history</b> (misses stay here):</p><ul class="small history">' + rows + "</ul>" : "";
   }
 
   // ---------- Learn ----------
@@ -562,7 +603,7 @@
     }
     function feedback(it, r, ev) {
       var m = M.MUSCLES[it.muscle], html;
-      if (r.correct) html = fb("good", "Correct: " + m.name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p><b>Action:</b> " + esc(m.action) + "</p>" + (ev && !ev.independent ? '<p class="small muted">Recorded as practice: this question used a figure you already practiced on.</p>' : ""));
+      if (r.correct) html = fb("good", "Correct: " + m.name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p><b>Action:</b> " + esc(m.action) + "</p>" + (ev && !ev.independent ? '<p class="small muted">Recorded as practice: ' + (it.fig === "face-lateral" ? "this side view is the same drawing as the jaw figure you studied." : "this question used a figure you already practiced on.") + "</p>" : ""));
       else {
         var why = r.errorType === "dont-know" ? "No problem. Here is how to recognize it." :
           r.errorType === "incomplete-name" ? r.note :

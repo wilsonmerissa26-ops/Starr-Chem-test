@@ -54,9 +54,10 @@
   };
 
   var OBJ = {
-    face: "bio131.ch9.facial-muscle-id",     // identify facial muscles on an unlabeled image (independent view: lateral)
-    jawneck: "bio131.ch9.jaw-neck-id",       // masseter, temporalis, sternocleidomastoid (only one labeled view available)
-    actions: "bio131.ch9.head-neck-actions"  // actions and look-alikes, recalled from function
+    face: "bio131.ch9.facial-muscle-id",               // identify facial muscles on an unlabeled image (side view counts as practice: see ITEMS)
+    jawneck: "bio131.ch9.jaw-neck-id",                 // identify masseter, temporalis, sternocleidomastoid (new picture: SCM on fig. 1105 only)
+    actions: "bio131.ch9.head-neck-actions",           // function: what each muscle does, recalled from a description
+    application: "bio131.ch9.head-neck-application"    // applying a muscle to a new situation; tracked apart from identification and function
   };
 
   // Guided practice (assisted): anterior face, jaw and neck figures.
@@ -67,27 +68,29 @@
   ];
 
   // Independent items. "unfamiliar" items use a view or question never shown in teaching or guided practice.
+  // The side view is the same OpenStax drawing as the jaw figure she studies (fig. 1108 superficial is fig. 1106 lateral with a
+  // dissection box), so naming a facial muscle on it counts as practice, not as transfer to an unfamiliar picture.
   var ITEMS = [
-    { id: "ap-ch9-lat-name-buccinator", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "buccinator", unfamiliar: true },
+    { id: "ap-ch9-lat-name-buccinator", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "buccinator", unfamiliar: false },
     { id: "ap-ch9-act-clench-bulge", objective: "actions", kind: "name-fn", muscle: "masseter", unfamiliar: true,
       prompt: "Clench your teeth and feel the side of your face at the angle of your jaw. Name the muscle that bulges there." },
-    { id: "ap-ch9-lat-name-orbicularis-oculi", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "orbicularis-oculi", unfamiliar: true },
+    { id: "ap-ch9-lat-name-orbicularis-oculi", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "orbicularis-oculi", unfamiliar: false },
     { id: "ap-ch9-act-rotate-head", objective: "actions", kind: "name-fn", muscle: "sternocleidomastoid", unfamiliar: true,
       prompt: "Name the neck muscle that, contracting on one side, rotates the head to the opposite side." },
     { id: "ap-ch9-jaw-name-temporalis", objective: "jawneck", kind: "name-pin", fig: "jaw", muscle: "temporalis", unfamiliar: false },
-    { id: "ap-ch9-lat-fn-compress-cheek", objective: "face", kind: "pin-fn", fig: "face-lateral", muscle: "buccinator", unfamiliar: true,
+    { id: "ap-ch9-lat-fn-compress-cheek", objective: "face", kind: "pin-fn", fig: "face-lateral", muscle: "buccinator", unfamiliar: false,
       prompt: "Tap the pin on the muscle that compresses the cheek when you blow up a balloon." },
     { id: "ap-ch9-act-raise-eyebrows", objective: "actions", kind: "name-fn", muscle: "frontal-belly", unfamiliar: true,
       prompt: "Name the muscle that raises the eyebrows when you look surprised." },
-    { id: "ap-ch9-lat-name-orbicularis-oris", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "orbicularis-oris", unfamiliar: true },
+    { id: "ap-ch9-lat-name-orbicularis-oris", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "orbicularis-oris", unfamiliar: false },
     { id: "ap-ch9-act-close-eyelids", objective: "actions", kind: "name-fn", muscle: "orbicularis-oculi", unfamiliar: true,
       prompt: "Name the ring-shaped muscle that closes the eyelids when you blink or squint." },
     { id: "ap-ch9-neck-name-sternocleidomastoid", objective: "jawneck", kind: "name-pin", fig: "neck", muscle: "sternocleidomastoid", unfamiliar: false },
-    { id: "ap-ch9-lat-fn-close-eyelids", objective: "face", kind: "pin-fn", fig: "face-lateral", muscle: "orbicularis-oculi", unfamiliar: true,
+    { id: "ap-ch9-lat-fn-close-eyelids", objective: "face", kind: "pin-fn", fig: "face-lateral", muscle: "orbicularis-oculi", unfamiliar: false,
       prompt: "Tap the pin on the muscle that closes the eyelids." },
     { id: "ap-ch9-act-retract-jaw", objective: "actions", kind: "name-fn", muscle: "temporalis", unfamiliar: true,
       prompt: "Name the fan-shaped muscle that closes the mouth and also pulls the lower jaw back under the upper jaw." },
-    { id: "ap-ch9-lat-name-frontal-belly", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "frontal-belly", unfamiliar: true },
+    { id: "ap-ch9-lat-name-frontal-belly", objective: "face", kind: "name-pin", fig: "face-lateral", muscle: "frontal-belly", unfamiliar: false },
     { id: "ap-ch9-act-blow-cheek", objective: "actions", kind: "name-fn", muscle: "buccinator", unfamiliar: true,
       prompt: "Name the cheek muscle that compresses the cheek when you whistle or blow." },
     { id: "ap-ch9-jaw-name-masseter", objective: "jawneck", kind: "name-pin", fig: "jaw", muscle: "masseter", unfamiliar: false },
@@ -99,7 +102,7 @@
     key: "head", title: "Head and neck muscles", learnItem: "learn",
     steps: [{ id: "deep", label: "Start here · Two muscles step by step" }, { id: "learn", label: "1 · All seven muscles" }, { id: "names", label: "2 · Decode more names" }, { id: "feel", label: "3 · Feel it" },
       { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
-    status: [{ key: "face", label: "Facial muscles" }, { key: "jawneck", label: "Jaw and neck" }, { key: "actions", label: "Actions" }],
+    status: [{ key: "face", label: "Facial ID" }, { key: "jawneck", label: "Jaw and neck ID" }, { key: "actions", label: "Function" }, { key: "application", label: "New situations" }],
     learnIntro: "Study each labeled figure. For each muscle, learn where it is, what it does, and one feature that tells it apart.",
     learnTitle: "Seven head and neck muscles",
     learn: [{ h: "Muscles of facial expression", fig: "face-anterior", muscles: ["frontal-belly", "orbicularis-oculi", "orbicularis-oris", "buccinator"] },

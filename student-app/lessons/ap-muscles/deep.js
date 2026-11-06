@@ -4,7 +4,9 @@
  * Facts follow OpenStax Anatomy and Physiology 2e, sections 11.2 (naming) and 11.3 (head and neck), with the
  * landmark images built by tools/build-ap-deep-images.py from OpenStax figures 705, 1105 and 1110.
  * Recording rules: decoding, seeing, moving, explaining and recalling on a studied picture are practice.
- * Only the Apply question (a picture or a case she has never seen, first try, no help) can count as independent.
+ * Only Apply questions can count as independent: first try, no help, never answered before. Each Apply question tests one skill,
+ * tracked separately: identify (a picture never studied), function (what it does), apply (a new situation). Each day gives
+ * the next unanswered question for each skill; when a skill has none left, the screen says so instead of repeating one.
  */
 (function (global) {
   "use strict";
@@ -39,9 +41,25 @@
             action: "Try it with your hand on the left side of your neck: turning your face right makes the LEFT muscle stand out. One side turns the head to the opposite side.",
             name: "The name tells you the path: sterno + cleido (low in front) to mastoid (behind the ear). The path tells you the pull.",
             question: "The question asks what ONE muscle does on its own, not both together. Both together flex the neck; one alone turns the head." } } },
-      apply: { id: "ap-ch9-deep-scm-apply-body-front", kind: "pin", fig: "deep-body-head", objective: "jawneck",
-        prompt: "New picture you have not studied: the front of the whole body, head and neck. Name the pinned muscle.",
-        how: ["I followed the pin's line to the neck.", "It is a band running from the front of the chest up toward behind the ear.", "That path, sternum and clavicle to mastoid, means sternocleidomastoid."] }
+      // Apply: one new question per skill per day. Skills are tracked separately: identify (picture), function, apply (new situation).
+      apply: [
+        { id: "ap-ch9-deep-scm-apply-body-front", skill: "identify", kind: "pin", fig: "deep-body-head",
+          prompt: "New picture you have not studied: the front of the whole body, head and neck. Name the pinned muscle.",
+          how: ["I followed the pin's line to the neck.", "It is a band running from the front of the chest up toward behind the ear.", "That path, sternum and clavicle to mastoid, means sternocleidomastoid."] },
+        { id: "ap-ch9-deep-scm-fn-left-turns-right", skill: "function",
+          prompt: "Your face is turning to the right. Name the muscle on the LEFT side of your neck that is doing it.",
+          how: ["One sternocleidomastoid turns the head to the opposite side.", "So turning the face right uses the left one."] },
+        { id: "ap-ch9-deep-scm-case-stiff-neck", skill: "apply",
+          prompt: "New situation: after sleeping in an awkward position, a student has a tight, sore cord on the left side of her neck, running from behind her ear down toward her collarbone. Turning her face to the right hurts. Name the muscle.",
+          how: ["The path, behind the ear down to the collarbone, is the sternocleidomastoid's path.", "The left one turns the face to the right, so that movement pulls on the sore muscle."] },
+        { id: "ap-ch9-deep-scm-fn-both-sides", skill: "function",
+          prompt: "Both sides of this long, superficial neck muscle contract together to bring your chin down toward your chest. Name it.",
+          how: ["One side alone turns the head; both sides together flex the neck."] },
+        { id: "ap-ch9-deep-scm-case-swimmer", skill: "apply",
+          prompt: "New situation: a swimmer turns her face to the RIGHT to breathe on every stroke. Name the muscle on the LEFT side of her neck that turns her face toward the air.",
+          how: ["Turning the face right is done by the left sternocleidomastoid, the opposite side."] }
+      ],
+      noNewPicture: "There is no other verified picture of the sternocleidomastoid yet, so no new picture question is left. Photos of your lab's models would add one."
     },
     {
       key: "masseter", name: "Masseter", objective: "jawneck",
@@ -69,10 +87,21 @@
             action: "Clench gently with your fingertips on the angle of your jaw: the bulge you feel closes the jaw. Cheek compression (blowing out air) is the buccinator's job.",
             name: "Masseter means chewer. Chewing means closing the jaw with force.",
             question: "The question asks what the muscle does to the jaw when it shortens. It pulls the mandible up." } } },
-      apply: { id: "ap-ch9-deep-masseter-apply-grinding", kind: "case", objective: "actions",
-        prompt: "New case: a student grinds her teeth at night. She wakes with a sore, tight, slightly enlarged muscle at the back corner of her jaw, just in front of the ear, and it bulges when she clenches. Name the muscle that is most likely overworked.",
-        how: ["Grinding means the jaw is being clenched shut over and over.", "The muscle that closes the jaw and sits at the angle in front of the ear is the masseter."],
-        note: "OpenStax has only one labeled picture of the masseter, which you studied, so this Apply step uses a new case instead of a new picture. Photos of your lab's models would add a new picture later." }
+      apply: [
+        { id: "ap-ch9-deep-masseter-fn-close-jaw", skill: "function",
+          prompt: "Name the muscle that is the prime mover for closing your jaw when you chew.",
+          how: ["Closing the jaw means elevating the mandible.", "The masseter elevates the mandible; its name means chewer."] },
+        { id: "ap-ch9-deep-masseter-apply-grinding", skill: "apply",
+          prompt: "New situation: a student grinds her teeth at night. She wakes with a sore, tight, slightly enlarged muscle at the back corner of her jaw, just in front of the ear, and it bulges when she clenches. Name the muscle that is most likely overworked.",
+          how: ["Grinding means the jaw is being clenched shut over and over.", "The muscle that closes the jaw and sits at the angle in front of the ear is the masseter."] },
+        { id: "ap-ch9-deep-masseter-fn-pull-up", skill: "function",
+          prompt: "Name the muscle that pulls the mandible up toward the zygomatic arch.",
+          how: ["Its two attachments are the zygomatic arch above and the mandible below; shortening pulls the jaw up."] },
+        { id: "ap-ch9-deep-masseter-case-fingertips", skill: "apply",
+          prompt: "New situation: you rest your fingertips on the back corner of a friend's jaw, in front of the ear, and ask her to clench gently. Name the muscle you feel bulge.",
+          how: ["A thick muscle at the angle of the jaw that bulges when the jaw closes is the masseter."] }
+      ],
+      noNewPicture: "OpenStax has only one labeled picture of the masseter, and you studied it, so there is no new picture question yet. Photos of your lab's models would add one. Function and new-situation questions are below."
     }
   ];
   // Pin position on the new whole-body view, from img/pins-deep.json (OpenStax "Sternocleidomastoid" leader line).

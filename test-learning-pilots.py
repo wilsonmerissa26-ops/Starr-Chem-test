@@ -427,7 +427,7 @@ with sync_playwright() as p:
         ctx, page, errs = fresh(url=AP); page.wait_for_selector("#screen h2")
         ap_guided(page); page.click("[data-step='independent']"); page.wait_for_selector("#q")
         img = page.get_attribute("#q img", "src")
-        check("Day 1 first question uses the LATERAL view she has not practiced on", "face-lateral-unlabeled" in img, img)
+        check("Day 1 first question uses the side view", "face-lateral-unlabeled" in img, img)
         check("The unlabeled image shows only the pin, not the name", page.locator("#q .pin").count() == 1 and "buccinator" not in page.inner_text("#q").lower())
         f1 = ap_type(page, "bucinator")                  # close misspelling of buccinator
         f2 = ap_type(page, "masseter")                   # clench item
@@ -435,14 +435,15 @@ with sync_playwright() as p:
         f4 = ap_type(page, "sternocleidomastoid")        # rotate head
         check("A close misspelling is accepted and flagged", "Correct" in f1 and "Check the spelling" in f1, f1[:100])
         check("Typing the look-alike is diagnosed and retaught with a comparison", "look-alike" in f3 and "Reteach" in f3 and "Oculi surrounds the eye" in f3, f3[:160])
-        l = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")]
-        byid = {e["itemId"]: e for e in l}
-        check("Correct typed answers on new questions are independent evidence",
-              byid["ap-ch9-lat-name-buccinator"]["independent"] and byid["ap-ch9-act-clench-bulge"]["independent"] and byid["ap-ch9-act-rotate-head"]["independent"])
+        byid = {e["itemId"]: e for e in evs(page, {"course": "BIO131"})}
+        check("Side-view answers are practice, not transfer evidence (same drawing as the studied jaw figure), and she is told why",
+              not byid["ap-ch9-lat-name-buccinator"]["independent"] and byid["ap-ch9-lat-name-buccinator"]["activity"] == "check" and "same drawing as the jaw figure" in f1, f1[:200])
+        check("Correct typed answers on new function questions are independent evidence",
+              byid["ap-ch9-act-clench-bulge"]["independent"] and byid["ap-ch9-act-rotate-head"]["independent"])
         check("The wrong look-alike answer is recorded with its error type",
               byid["ap-ch9-lat-name-orbicularis-oculi"]["errorType"] == "lookalike-orbicularis-oculi-vs-orbicularis-oris" and not byid["ap-ch9-lat-name-orbicularis-oculi"]["correct"])
         st = status(page, "bio131.ch9.facial-muscle-id")
-        check("Facial-muscle objective shows 'Needs review' after the miss", st["status"] == "needs-review", st)
+        check("Facial identification stays at 'Practicing': no side-view answer counts as independent", st["status"] == "practicing", st)
         p2, e2 = page_at(ctx, DAY2, AP); p2.wait_for_selector("#q", timeout=8000)
         h = p2.inner_text("#screen h2")
         check("Next day: the lesson opens to NEW review questions", "Review: new questions" in h, h)
@@ -455,7 +456,7 @@ with sync_playwright() as p:
         l2 = {e["itemId"]: e for e in evs(p2, {"course": "BIO131"})}
         check("Already-practiced jaw figure never counts as independent", l2["ap-ch9-jaw-name-temporalis"]["independent"] is False)
         st2 = status(p2, "bio131.ch9.facial-muscle-id")
-        check("Facial muscles: correct on two different new questions on two days, latest correct → 'Shown on your own on 2 days'", st2["status"] == "shown-2-days", st2)
+        check("Facial identification is still 'Practicing' on day 2: a reused drawing never becomes 'Shown on your own'", st2["status"] == "practicing", st2)
         check("No page errors", not errs and not e2, (errs + e2)[:1])
         ctx.close()
     guarded("ap independent", t_ap_independent)
@@ -734,8 +735,20 @@ with sync_playwright() as p:
     guarded("view leak", t_no_view_leak)
 
     section("A&P in-depth lesson: Decode → See → Move → Explain → Recall → Apply (criteria 2 to 5, 7)")
-    def deep_walk(page, k, wrong_recall=None, conf="location", typed_apply=None):
-        """Walk one in-depth muscle to the Apply screen. Returns image srcs shown before Apply and the stage order seen."""
+    def deep_apply(page, answers):
+        """Answer the Apply questions on screen in order; answers maps skill -> typed text (default: the right name). Returns [(skill, itemId)]."""
+        out = []
+        while True:
+            page.wait_for_function("() => document.querySelector('#ans') || /Done for today|no new Apply questions left/.test(document.querySelector('#screen').innerText)")
+            if not page.query_selector("#ans"): break
+            info = page.inner_text("#screen")
+            skill = "identify" if "Identify it on a new picture" in info else "function" if "Skill: What it does" in info else "apply"
+            L = page.evaluate("DeepLesson.LESSONS.find(l => document.querySelector('#screen .kicker').textContent.toLowerCase() === l.name.toLowerCase())")
+            page.fill("#ans", answers.get(skill, L["name"])); page.click("#dchk"); page.wait_for_selector("#dnext")
+            out.append(skill); page.click("#dnext"); page.wait_for_timeout(200)
+        return out
+    def deep_walk(page, k, wrong_recall=None, conf="location", answers=None):
+        """Walk one in-depth muscle through Decode..Recall, then answer the Apply questions. Returns lesson, images before Apply, stages, reteach text, skills asked."""
         L = page.evaluate("i => DeepLesson.LESSONS[i]", k)
         page.click("[data-deep='%d']" % k); page.wait_for_selector(".stages")
         shown, stages = set(), []
@@ -759,52 +772,87 @@ with sync_playwright() as p:
             page.click("[data-conf='%s']" % conf); page.wait_for_timeout(200); conf_text = page.inner_text("#dconf-fb")
         page.click("#dnext"); page.wait_for_timeout(150); snap()                                                     # Recall action
         page.click("[data-a='%s']" % L["recall"]["action"]["answer"]); page.wait_for_timeout(200)
-        page.click("#dnext"); page.wait_for_selector("text=Apply it"); page.wait_for_timeout(200)
+        page.click("#dnext"); page.wait_for_function("() => { const h = document.querySelector('#screen h2'); return h && /^(Apply it|Done for today)$/.test(h.textContent); }"); page.wait_for_timeout(200)
         before_apply = set(shown); snap()
-        if typed_apply is not None:
-            page.fill("#ans", typed_apply); page.click("#dchk"); page.wait_for_selector("#dback")
-        return L, before_apply, stages, conf_text
+        first_screen = page.inner_text("#screen")
+        skills = deep_apply(page, answers or {})
+        return L, before_apply, stages, conf_text, skills, first_screen
     def t_deep():
-        ctx, page, errs = fresh(url=AP); page.wait_for_selector("text=Start here")
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("[data-deep='0']")
         D = page.evaluate("DeepLesson")
         check("The head set starts with the in-depth lesson; it covers sternocleidomastoid and masseter",
               page.evaluate("MuscleSets.head.SET.steps[0].id") == "deep" and [l["key"] for l in D["LESSONS"]] == ["sternocleidomastoid", "masseter"])
-        L, before, stages, conf_text = deep_walk(page, 0, wrong_recall="trapezius", conf="location", typed_apply="sternocleidomastoid")
+        L, before, stages, conf_text, skills, _ = deep_walk(page, 0, wrong_recall="trapezius", conf="location", answers={"function": "trapezius"})
         check("Stages run in order: Decode, See, Move, Explain, Recall, Apply", stages == ["Decode", "See", "Move", "Explain", "Recall", "Apply"], stages)
         check("Decode teaches each root with its landmark picture before any question", len(L["decode"]["parts"]) == 3 and "img/deep-neck-landmarks.jpg" in before and "img/deep-skull-landmarks.jpg" in before)
         check("The Apply picture is never shown before the Apply step", "img/deep-body-head-unlabeled.jpg" not in before, sorted(before))
+        check("Day 1 Apply asks one new question for each skill: identify, function, new situation", skills == ["identify", "function", "apply"], skills)
         l = [e for e in evs(page, {"course": "BIO131"}) if "deep" in e["itemId"]]
-        pre = [e for e in l if e["itemId"] != L["apply"]["id"]]
+        apply_ids = {q["id"]: q["skill"] for q in L["apply"]}
+        pre = [e for e in l if e["itemId"] not in apply_ids]
         check("Everything before Apply is learning or practice, never independent", pre and not any(e["independent"] for e in pre), [(e["itemId"], e["independent"]) for e in pre if e["independent"]])
         ex = [e for e in l if e["itemId"] == L["explain"]["id"]][0]
         check("Explain is self-checked against a model and stored as practice with the points she covered (not auto-graded)",
               ex["correct"] is None and ex["response"]["pointsCovered"] == [0] and ex["response"]["pointsTotal"] == 3 and not ex["independent"])
         cf = [e for e in l if e["itemId"] == L["recall"]["id"] + "-confusion"]
-        check("After a wrong recall, her 'what tripped you up' answer is stored under that question", len(cf) == 1 and cf[0]["response"]["confusedBy"] == "location", [e["itemId"] for e in l if "confusion" in e["itemId"]])
+        check("After a wrong recall, her 'what tripped you up' answer is stored under that question", len(cf) == 1 and cf[0]["response"]["confusedBy"] == "location")
         check("The reteach matches what confused her", L["recall"]["action"]["explain"]["location"][:40] in conf_text, conf_text[:80])
-        ap = [e for e in l if e["itemId"] == L["apply"]["id"]]
-        check("Apply on a never-seen picture, first try, no help, counts as independent", len(ap) == 1 and ap[0]["independent"] and ap[0]["correct"])
-        check("The SCM Apply result shows in the jaw and neck status", status(page, "bio131.ch9.jaw-neck-id")["status"] == "shown-once" and "Jaw and neck: Shown" in page.inner_text("#status-chip"))
-        page.click("#dback"); page.wait_for_selector("text=Start here")
-        L2, _, _, _ = deep_walk(page, 0, typed_apply="sternocleidomastoid")
-        ap2 = [e for e in evs(page, {"course": "BIO131"}) if e["itemId"] == L["apply"]["id"]]
-        check("Repeating Apply counts as practice, and she is told so", len(ap2) == 2 and ap2[1]["activity"] == "check" and not ap2[1]["independent"] and "counts as practice" in page.inner_text("#screen"))
-        page.click("#dback"); page.wait_for_selector("text=Start here")
-        L3, _, _, _ = deep_walk(page, 1, typed_apply="buccinator")
-        m = [e for e in evs(page, {"course": "BIO131"}) if e["itemId"] == L3["apply"]["id"]][0]
-        check("Masseter Apply is a new case; naming the buccinator is diagnosed as the look-alike and shown the reasoning",
-              m["independent"] and not m["correct"] and m["errorType"] == "lookalike-buccinator-vs-masseter" and "How you could know" in page.inner_text("#screen"), m["errorType"])
+        ap = {apply_ids[e["itemId"]]: e for e in l if e["itemId"] in apply_ids}
+        objs = {k: v["objectiveId"] for k, v in ap.items()}
+        check("Each skill is recorded under its own objective (identification, function, application)",
+              objs == {"identify": "bio131.ch9.jaw-neck-id", "function": "bio131.ch9.head-neck-actions", "apply": "bio131.ch9.head-neck-application"}, objs)
+        check("All three Apply answers are first-try, no-help independent attempts", all(e["independent"] for e in ap.values()))
+        st = {k: status(page, v)["status"] for k, v in objs.items()}
+        check("Success in one skill does not establish another: identify shown, function missed, new situation shown",
+              st == {"identify": "shown-once", "function": "needs-review", "apply": "shown-once"}, st)
+        page.click("#dback"); page.wait_for_selector("[data-deep='0']")
+        hist1 = page.inner_text("#screen")
+        check("The start screen shows her history, including the miss", "Your history" in hist1 and "\u2717" in hist1, hist1[:300])
+        # Next day: different questions for the same muscle, and the earlier miss stays visible.
+        p2, e2 = page_at(ctx, DAY2, AP); p2.wait_for_selector("#stepnav [data-step='deep']")
+        p2.wait_for_timeout(600); p2.click("#stepnav [data-step='deep']"); p2.wait_for_selector("[data-deep-apply='0']")
+        p2.click("[data-deep-apply='0']"); p2.wait_for_function("() => { const h = document.querySelector('#screen h2'); return h && /^(Apply it|Done for today)$/.test(h.textContent); }")
+        first = p2.inner_text("#screen")
+        check("Next day, with no other verified picture of the SCM, the screen says so instead of repeating the picture question",
+              "no new picture question is left" in first and "Identify it on a new picture" not in first, first[:600])
+        skills2 = deep_apply(p2, {})
+        l2 = [e for e in evs(p2, {"course": "BIO131"}) if e["itemId"] in apply_ids]
+        new_ids = [e["itemId"] for e in l2][3:]
+        check("Next day: Apply gives NEW function and new-situation questions, never the same ones again",
+              skills2 == ["function", "apply"] and len(new_ids) == 2 and not (set(new_ids) & {e["itemId"] for e in l2[:3]}), (skills2, new_ids))
+        check("Next-day answers are recorded as review, still independent", all(e["activity"] == "review" and e["independent"] for e in l2[3:]))
+        check("A later correct answer does not erase the earlier miss: the function record still holds it and history still shows it",
+              any(not e["correct"] for e in l2 if apply_ids[e["itemId"]] == "function") and status(p2, "bio131.ch9.head-neck-actions")["independentAttempts"] >= 2)
+        p2.click("#dback"); p2.wait_for_selector("[data-deep='0']")
+        h2 = p2.inner_text("#screen")
+        check("History after the delayed correct answer still shows the day 1 miss and the day 2 success", "\u2717" in h2 and h2.count("\u2713") >= 3, h2[:400])
+        p2.click("[data-deep-apply='0']"); p2.wait_for_function("() => { const h = document.querySelector('#screen h2'); return h && /^(Apply it|Done for today)$/.test(h.textContent); }")
+        check("When every Apply question for a muscle is used, it says so and does not repeat one", "no new Apply questions left" in p2.inner_text("#screen"), p2.inner_text("#screen")[:600])
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+        # Masseter: no new picture exists, so the screen says so and asks function and new-situation questions.
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("[data-deep='0']")
+        L3, _, _, _, sk3, first3 = deep_walk(page, 1, answers={"apply": "buccinator"})
+        check("Masseter: the app says there is no new picture and asks function, then a new situation", "only one labeled picture" in first3 and sk3 == ["function", "apply"], sk3)
+        m = [e for e in evs(page, {"course": "BIO131"}) if e["itemId"] == "ap-ch9-deep-masseter-apply-grinding"][0]
+        check("Naming the buccinator in the teeth-grinding case is a look-alike miss on the application objective",
+              m["independent"] and not m["correct"] and m["errorType"] == "lookalike-buccinator-vs-masseter" and m["objectiveId"] == "bio131.ch9.head-neck-application")
         check("No page errors", not errs, errs[:1]); ctx.close()
         # Content and data
-        ctx, page, errs = fresh(url=AP); page.wait_for_selector("text=Start here")
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("[data-deep='0']")
         D = page.evaluate("DeepLesson"); H = page.evaluate("MuscleSets.head")
         conf_ok = all(len(set(L["recall"]["action"]["explain"].values())) == 4 and set(L["recall"]["action"]["explain"]) == {"location", "name", "action", "question"} for L in D["LESSONS"])
         check("Each kind of confusion (location, name, action, question) gets its own explanation, for both muscles", conf_ok)
         check("Each explanation checklist has three essential points and a model answer", all(len(L["explain"]["points"]) == 3 and len(L["explain"]["model"]) > 100 for L in D["LESSONS"]))
+        check("Every Apply question has a skill, a unique ID and a 'how you could know' explanation",
+              all(q["skill"] in ("identify", "function", "apply") and q["how"] for L in D["LESSONS"] for q in L["apply"]) and
+              len({q["id"] for L in D["LESSONS"] for q in L["apply"]}) == sum(len(L["apply"]) for L in D["LESSONS"]))
+        check("Only verified new pictures are used for identification: SCM has one (fig. 1105); masseter has none",
+              [q["fig"] for q in D["LESSONS"][0]["apply"] if q["skill"] == "identify"] == ["deep-body-head"] and not [q for q in D["LESSONS"][1]["apply"] if q["skill"] == "identify"])
         check("Anatomy anchors: SCM one side turns the head to the opposite side; masseter elevates the mandible",
               "opposite side" in H["MUSCLES"]["sternocleidomastoid"]["action"] and "Elevates the mandible" in H["MUSCLES"]["masseter"]["action"]
               and D["LESSONS"][0]["decode"]["check"]["answer"] == ["Sternum", "Clavicle", "Mastoid process"] and D["LESSONS"][1]["decode"]["check"]["answer"] == ["Zygomatic arch", "Mandible"])
-        check("The masseter Apply step says honestly why it is a case, not a new picture", "only one labeled picture" in D["LESSONS"][1]["apply"]["note"])
+        check("Side-view facial questions count as practice (same drawing as the studied jaw figure)",
+              all(not i["unfamiliar"] for i in H["ITEMS"] if i.get("fig") == "face-lateral"))
         ctx.close()
         try:
             import pytesseract
