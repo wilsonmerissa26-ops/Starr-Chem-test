@@ -1135,6 +1135,81 @@ with sync_playwright() as p:
             check("%s set: on every guided and worked-example figure at iPad width (640 px), 44 px pins are at least 46 px apart" % key, not close, close)
             ctx.close()
     guarded("pin spacing", t_pin_spacing)
+
+    section("Pronunciation: verified, written, optional, shown only in teaching and after answers (separate feature)")
+    EXPECT_SAY = {"masseter": "muh-SEET-er", "buccinator": "BUHK-suh-nayt-er", "temporalis": "tem-puh-RAY-luhs", "sternocleidomastoid": "stur-noh-klyd-uh-MAS-toyd",
+        "occipitofrontalis": "ahk-sip-uht-oh-fruhn-TAY-luhs", "oculi": "AH-kyuh-ly", "oris": "OR-uhs", "rectus": "REK-tuhs", "abdominis": "ab-DAHM-uh-nuhs",
+        "oblique": "oh-BLEEK", "transversus": "trans-VUR-suhs", "diaphragm": "DY-uh-fram", "intercostal": "int-er-KAHS-tuhl", "quadratus": "kwah-DRAYT-uhs",
+        "lumborum": "luhm-BOR-uhm", "trapezius": "truh-PEE-zee-uhs", "deltoid": "DEL-toyd", "pectoralis": "pek-tuh-RAY-luhs", "serratus": "seh-RAYT-uhs",
+        "latissimus": "luh-TIS-uh-muhs", "dorsi": "DOR-sy", "infraspinatus": "in-fruh-spy-NAYT-uhs", "teres": "TERR-eez", "subscapularis": "suhb-skap-yuh-LARR-uhs",
+        "biceps": "BY-seps", "brachii": "BRAY-kee-ee", "brachialis": "bray-kee-AL-uhs", "brachioradialis": "bray-kee-oh-rayd-ee-AL-uhs", "triceps": "TRY-seps",
+        "pronator": "PROH-nayt-er", "supinator": "SOO-puh-nayt-er", "flexor": "FLEK-ser", "carpi": "KAR-py", "radialis": "ray-dee-AY-luhs", "ulnaris": "uhl-NARR-uhs",
+        "palmaris": "pal-MARR-uhs", "longus": "LAWNG-guhs", "digitorum": "dij-uh-TOR-uhm", "superficialis": "soo-per-fish-ee-AY-luhs", "extensor": "ik-STEN-ser"}
+    def t_pronunciation():
+        src = open(os.path.join(ROOT, "student-app/lessons/pronunciation.js"), encoding="utf-8").read()
+        check("Pronunciations are plain data in the app: no network calls and no audio files, so the written forms work offline",
+              not re.search(r"fetch\(|XMLHttpRequest|import\(|\.mp3|\.wav|\.ogg|<audio|new Audio", src))
+        sw = open(os.path.join(ROOT, "student-app/sw.js")).read()
+        check("The service worker keeps a copy of every student-app file it serves, including the pronunciation file", 'includes("/student-app/")' in sw and "cache.put" in sw)
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        P = page.evaluate("Pronunciations")
+        got = page.evaluate("() => Object.fromEntries(Object.entries(Pronunciations.WORDS).map(([w, v]) => [w, Pronunciations.respell(v[0])]))")
+        check("Every simple spelling is computed from MW's notation by one fixed key (%d words checked)" % len(EXPECT_SAY), got == EXPECT_SAY, {k: got.get(k) for k in EXPECT_SAY if got.get(k) != EXPECT_SAY[k]})
+        caps = [w for w, sp in got.items() for part in [sp.split("-")] if sum(1 for x in part if x.isupper()) != sum(1 for x in P["WORDS"][w][0].split(",")[0].split("-") if "\u02c8" in x)]
+        check("Exactly one syllable per word is in capitals, the one MW marks with the main stress mark", not caps, caps)
+        def first(n): return n.split(",")[0].strip().strip("-")
+        bad = [w for w, (mw, k) in P["WORDS"].items() if k not in P["SOURCES"] or mw not in first(P["SOURCES"][k]["notation"])]
+        bad += [t + ":" + w for t, o in P["IN_TERM"].items() for w, (mw, k) in o.items() if mw not in first(P["SOURCES"][k]["notation"])]
+        check("Every word's pronunciation is copied from the FIRST pronunciation its Merriam-Webster entry lists, never pieced together", not bad, bad)
+        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"]]
+        check("Every source names its Merriam-Webster dictionary, page URL and exact notation, read on %s" % P["CHECKED"], not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
+        check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == ["orbicularis", "supraspinatus"])
+        r = page.evaluate("['Supraspinatus','Orbicularis oculi','Orbicularis oris','Pectoralis major','External intercostals','Occipitofrontalis (frontal belly)'].map(n => Pronunciations.forTerm(n))")
+        check("A name with any unverified word shows nothing; everyday words are shown as written",
+              not r[0]["ok"] and not r[1]["ok"] and not r[2]["ok"] and r[3]["text"] == "pek-tuh-RAY-luhs major" and r[4]["singular"] == ["intercostal"] and r[5]["text"] == "ahk-sip-uht-oh-fruhn-TAY-luhs", [x.get("text") for x in r])
+        check("Each muscle's own entry wins: teres and brachii follow the entry for that muscle",
+              page.evaluate("['Teres major','Pronator teres','Biceps brachii','Triceps brachii'].map(n => Pronunciations.forTerm(n).text)") == ["TERR-eez major", "PROH-nayt-er TEER-eez", "BY-seps BRAY-kee-ee", "TRY-seps BRAY-kee-eye"])
+        check("docs/PRONUNCIATION_REPORT.md matches the data (regenerated by tools/pronunciation-report.js)",
+              __import__("subprocess").run(["node", os.path.join(ROOT, "tools/pronunciation-report.js"), "--check"], capture_output=True).returncode == 0)
+        # Teaching: Say it under every verified name, the source one tap away, the say-aloud practice optional and collapsed.
+        before = len(evs(page, {"course": "BIO131"}))
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Fourteen shoulder and arm muscles")
+        cards = page.eval_on_selector_all("#screen .mcard", "els => els.map(e => [e.querySelector('h3').textContent, (e.querySelector('.say-r') || {}).textContent || null])")
+        want = [[n, (page.evaluate("n => Pronunciations.forTerm(n).text || null", n))] for n, _ in cards]
+        check("Learn cards show Say it under each verified name and nothing under supraspinatus", cards == want and dict(cards)["Supraspinatus"] is None and sum(1 for _, x in cards if x) == 13, cards)
+        src0 = page.eval_on_selector(".mcard .say-src", "d => [d.open, d.querySelector('.mw').textContent, d.querySelector('a').href, d.querySelector('a').target]")
+        check("The source line (collapsed) shows MW's own notation and opens the entry in a new tab to hear it", src0[0] is False and src0[1] == "\\trə-ˈpē-zē-əs, tra-\\" and src0[2].startswith("https://www.merriam-webster.com/") and src0[3] == "_blank", src0)
+        box = page.eval_on_selector("details.say-aloud", "d => [d.open, d.textContent]")
+        check("Say it aloud is an optional, collapsed practice that says it is never graded or required", box[0] is False and "optional" in box[1] and "never graded" in box[1].lower() and "never needed to move on" in box[1], box[1][:120])
+        page.click("details.say-aloud summary"); page.click(".mcard details.say-src summary"); page.wait_for_timeout(300)
+        after = evs(page, {"course": "BIO131"})
+        check("Opening pronunciations or the say-aloud practice records nothing beyond the usual 'viewed the lesson' note",
+              len(after) == before + 1 and not [e for e in after if re.search("say|pronun", e["itemId"])] and status(page, "bio131.ch9.upper-limb-id")["status"] == "learning", [e["itemId"] for e in after])
+        ctx.close()
+        # Assessment: nothing before an answer, Say it right after it (guided and independent, right and wrong).
+        ctx, page, errs = fresh(url=FOREARM); page.wait_for_selector("#screen h2")
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        g0 = page.locator("#screen .say").count()
+        page.click("#gnames [data-name='%s']" % page.evaluate("MuscleSets.forearm.GUIDED[0].muscle")); page.wait_for_timeout(150)
+        g1 = page.inner_text("#gfb")
+        check("Guided pins: no pronunciation before she answers; Say it appears after a correct answer", g0 == 0 and "Say it: PROH-nayt-er TEER-eez" in g1, (g0, g1[:120]))
+        forearm_guided(page); page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        q0 = page.locator("#screen .say").count()
+        f1 = ap_type(page, "pronator teres"); f2 = ap_type(page, "flexor carpi ulnaris")
+        check("On your own: no pronunciation on the question; Say it after a right answer and after a wrong one (the right name's)",
+              q0 == 0 and "Say it: PROH-nayt-er TEER-eez" in f1 and "Say it: FLEK-ser KAR-py ray-dee-AY-luhs" in f2, (q0, f1[:100], f2[:140]))
+        l = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")]
+        check("Answers are graded exactly as before: pronunciation is not part of any answer or record", len(l) == 2 and l[0]["correct"] and not l[1]["correct"] and all("say" not in json.dumps(e["response"]).lower() for e in l), [e["response"] for e in l])
+        check("No page errors", not errs, errs[:1]); ctx.close()
+        # No outside dependency: load the head and neck lesson with every non-local request blocked.
+        ctx, page, errs = fresh()
+        page.route("**/*", lambda rt: rt.abort() if not rt.request.url.startswith(BASE) else rt.continue_())
+        page.goto(AP); page.wait_for_selector("[data-deep='0']")
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Seven head and neck muscles")
+        n = page.locator("#screen .say").count()
+        check("With every outside request blocked, the head and neck learn cards still show Say it (5 of 7: the two orbicularis names have none)", n == 5, n)
+        check("No page errors", not errs, errs[:1]); ctx.close()
+    guarded("pronunciation", t_pronunciation)
     section("Picture familiarity: only the first answer on a drawing counts as a new picture, across lessons (criterion 7)")
     def t_pictures():
         # Same drawing twice in one lesson: the second question is "a picture seen before".

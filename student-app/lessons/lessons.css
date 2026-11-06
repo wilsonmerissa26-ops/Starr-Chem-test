@@ -35,3 +35,8 @@ input[type=text]{width:100%;font:inherit;padding:12px;border:1px solid #cfc4d7;b
 .source{font-size:.8rem;color:var(--muted);margin-top:14px;line-height:1.45}
 .locked{background:#f6f2fa;border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--muted)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* Pronunciation (shared by the lessons): written form only; audio stays on the dictionary's site */
+.say{margin:6px 0 4px}.say-label{font-weight:750;color:var(--purple)}.say-r{font-weight:650;letter-spacing:.01em}
+details.say-src{margin:2px 0 6px;font-size:.88rem}details.say-src summary{cursor:pointer;color:var(--muted);min-height:32px}
+details.say-src .mw{font-family:"Lucida Sans Unicode","Arial Unicode MS",sans-serif}
+details.say-aloud{margin:10px 0;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff}details.say-aloud summary{cursor:pointer;font-weight:700;min-height:32px;padding-top:4px}
