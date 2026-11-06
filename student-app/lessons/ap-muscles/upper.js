@@ -4,8 +4,9 @@
  * (it lists "extension; adduction" for infraspinatus and teres minor, which the text says rotate the arm laterally),
  * the text and standard anatomy are used.
  * Pin positions come from OpenStax leader lines (tools/build-ap-upper-images.py, img/pins-upper.json).
- * New-picture questions use OpenStax fig. 1105 (whole body, front and back), which is never shown labeled in the app
- * and on which no muscle in this set is pinned during teaching or guided practice.
+ * Identification questions on OpenStax fig. 1105 (whole body, front and back) are never asked during teaching or guided
+ * practice, and 1105 is never shown labeled. Only her FIRST answer on each 1105 drawing, in any lesson, counts as a new
+ * picture; the front drawing is also used by the trunk lesson and the SCM Apply question (see lesson.js pictureStatus).
  */
 (function (global) {
   "use strict";
@@ -126,8 +127,8 @@
     "upper-shoulder-deep": { img: "img/upper-shoulder-deep-unlabeled.jpg", alt: "Deep muscles of the left shoulder, front and back views, labels covered", labeled: "img/upper-shoulder-deep-labeled.jpg" },
     "upper-arm": { img: "img/upper-arm-unlabeled.jpg", alt: "Upper arm muscles, front and back views, labels covered", labeled: "img/upper-arm-labeled.jpg" },
     "upper-forearm-palmar": { img: "img/upper-forearm-palmar-unlabeled.jpg", alt: "Forearm muscles, palm side, labels covered", labeled: "img/upper-forearm-palmar-labeled.jpg" },
-    "upper-body-front": { img: "img/upper-body-front-unlabeled.jpg", alt: "Whole-body front view, chest, shoulders and arms, labels covered", labeled: "img/upper-humerus-labeled.jpg" },
-    "upper-body-back": { img: "img/upper-body-back-unlabeled.jpg", alt: "Whole-body back view, shoulders, back and arms, labels covered", labeled: "img/upper-shoulder-deep-labeled.jpg" }
+    "upper-body-front": { drawing: "openstax-1105-front", img: "img/upper-body-front-unlabeled.jpg", alt: "Whole-body front view, chest, shoulders and arms, labels covered", labeled: "img/upper-humerus-labeled.jpg" },
+    "upper-body-back": { drawing: "openstax-1105-back", img: "img/upper-body-back-unlabeled.jpg", alt: "Whole-body back view, shoulders, back and arms, labels covered", labeled: "img/upper-shoulder-deep-labeled.jpg" }
   };
   var PINS = { // from img/pins-upper.json (percent of image width and height)
     "upper-girdle": { "serratus-anterior": [40.6, 48.24], "deltoid": [50.87, 64.81], "trapezius": [52.83, 90.8] },
@@ -140,7 +141,8 @@
   };
   var OBJ = {
     id: "bio131.ch9.upper-limb-id",          // identify shoulder and arm muscles; new pictures: fig. 1105 front and back
-    actions: "bio131.ch9.upper-limb-actions" // function, recalled from a description
+    actions: "bio131.ch9.upper-limb-actions", // function, recalled from a description
+    newpic: "bio131.ch9.upper-limb-id-new-picture" // identifying on a drawing she has never seen before (first answer on that drawing, any lesson)
   };
   var GUIDED = [
     { fig: "upper-girdle", muscle: "trapezius", objective: "id" }, { fig: "upper-girdle", muscle: "serratus-anterior", objective: "id" },
@@ -207,7 +209,7 @@
     key: "upper", title: "Shoulder and arm muscles", learnItem: "upper-learn",
     steps: [{ id: "names", label: "1 · Decode the names first" }, { id: "learn", label: "2 · Learn the muscles" }, { id: "feel", label: "3 · Feel it" },
       { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
-    status: [{ key: "id", label: "Shoulder and arm ID" }, { key: "actions", label: "Function" }],
+    status: [{ key: "id", label: "Shoulder and arm ID" }, { key: "newpic", label: "ID on new pictures" }, { key: "actions", label: "Function" }],
     learnTitle: "Fourteen shoulder and arm muscles",
     learnIntro: "Go from the trunk outward: muscles that move the scapula, muscles that move the arm at the shoulder, the rotator cuff, then the muscles that move the elbow. Rotator cuff = SITS: Supraspinatus, Infraspinatus, Teres minor, Subscapularis. Their tendons hold the head of the humerus in the shoulder joint. Teres major is NOT in the rotator cuff.",
     learn: [{ h: "Muscles that move the scapula", fig: "upper-girdle", muscles: ["trapezius", "serratus-anterior"] },

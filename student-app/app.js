@@ -140,11 +140,14 @@ const PILOT_OBJECTIVES=[
  {id:"bio131.ch9.head-neck-actions",course:"BIO131",subject:"ap",title:"A&P: head and neck muscle actions",resource:"ap-muscles"},
  {id:"bio131.ch9.jaw-neck-id",course:"BIO131",subject:"ap",title:"A&P: identify jaw and neck muscles",resource:"ap-muscles"},
  {id:"bio131.ch9.head-neck-application",course:"BIO131",subject:"ap",title:"A&P: head and neck muscles in new situations",resource:"ap-muscles"},
+ {id:"bio131.ch9.head-neck-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify head and neck muscles on new pictures",resource:"ap-muscles"},
  {id:"bio131.ch9.muscle-name-roots",course:"BIO131",subject:"ap",title:"A&P: decode muscle names",resource:"ap-muscles"},
  {id:"bio131.ch9.trunk-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify trunk muscles",resource:"ap-trunk"},
  {id:"bio131.ch9.trunk-actions",course:"BIO131",subject:"ap",title:"A&P: trunk muscle actions",resource:"ap-trunk"},
+ {id:"bio131.ch9.trunk-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify trunk muscles on new pictures",resource:"ap-trunk"},
  {id:"bio131.ch9.upper-limb-id",course:"BIO131",subject:"ap",title:"A&P: identify shoulder and arm muscles",resource:"ap-upper"},
- {id:"bio131.ch9.upper-limb-actions",course:"BIO131",subject:"ap",title:"A&P: shoulder and arm muscle actions",resource:"ap-upper"}
+ {id:"bio131.ch9.upper-limb-actions",course:"BIO131",subject:"ap",title:"A&P: shoulder and arm muscle actions",resource:"ap-upper"},
+ {id:"bio131.ch9.upper-limb-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify shoulder and arm muscles on new pictures",resource:"ap-upper"}
 ];
 function daysToNextExam(subject){const e=SEED.filter(t=>t.subject===subject&&t.kind==="exam"&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];if(!e)return 999;return Math.round((parse(e.date)-parse(today))/86400000);}
 function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)return;

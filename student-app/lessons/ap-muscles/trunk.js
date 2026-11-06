@@ -74,11 +74,11 @@
   };
   var FIGURES = {
     "trunk-abdomen": { img: "img/trunk-abdomen-unlabeled.jpg", alt: "Abdominal muscles, anterior lateral view with an inset of the deep layers, labels covered", labeled: "img/trunk-abdomen-labeled.jpg" },
-    "trunk-body-front": { img: "img/trunk-body-front-unlabeled.jpg", alt: "Whole-body anterior view of the chest and abdomen, labels covered", labeled: "img/trunk-abdomen-labeled.jpg" },
+    "trunk-body-front": { drawing: "openstax-1105-front", img: "img/trunk-body-front-unlabeled.jpg", alt: "Whole-body anterior view of the chest and abdomen, labels covered", labeled: "img/trunk-abdomen-labeled.jpg" },
     "trunk-thorax": { img: "img/trunk-thorax-unlabeled.jpg", alt: "Muscles of the thorax, anterior lateral view, labels covered", labeled: "img/trunk-thorax-labeled.jpg" },
-    "trunk-intercostal-detail": { img: "img/trunk-intercostal-detail-unlabeled.jpg", alt: "Close-up of the muscle layers between two ribs, labels covered", labeled: "img/trunk-intercostal-detail-labeled.jpg" },
+    "trunk-intercostal-detail": { drawing: "openstax-1114-inset", img: "img/trunk-intercostal-detail-unlabeled.jpg", alt: "Close-up of the muscle layers between two ribs, labels covered", labeled: "img/trunk-intercostal-detail-labeled.jpg" },
     "trunk-diaphragm": { img: "img/trunk-diaphragm-unlabeled.jpg", alt: "Diaphragm, inferior view, labels covered", labeled: "img/trunk-diaphragm-labeled.jpg" },
-    "trunk-posterior-abdominal": { img: "img/trunk-posterior-abdominal-unlabeled.jpg", alt: "Posterior abdominal muscles, anterior view, labels covered", labeled: "img/trunk-posterior-abdominal-labeled.jpg" }
+    "trunk-posterior-abdominal": { drawing: "openstax-1112-posterior", img: "img/trunk-posterior-abdominal-unlabeled.jpg", alt: "Posterior abdominal muscles, anterior view, labels covered", labeled: "img/trunk-posterior-abdominal-labeled.jpg" }
   };
   var PINS = { // from img/pins-trunk.json (percent of image width and height); listed top to bottom
     "trunk-abdomen": { "transversus-abdominis": [84.61, 29.23], "external-oblique": [13.96, 40.49], "rectus-abdominis": [15.3, 62.5], "internal-oblique": [93.31, 96.83] },
@@ -90,7 +90,8 @@
   };
   var OBJ = {
     id: "bio131.ch9.trunk-muscle-id",        // identify trunk muscles; independent views: whole-body front, intercostal close-up, posterior abdominal wall
-    actions: "bio131.ch9.trunk-actions"      // actions and look-alikes, recalled from function
+    actions: "bio131.ch9.trunk-actions",     // actions and look-alikes, recalled from function
+    newpic: "bio131.ch9.trunk-id-new-picture" // identifying on a drawing she has never seen before (first answer on that drawing, any lesson)
   };
   var GUIDED = [
     { fig: "trunk-abdomen", muscle: "external-oblique", objective: "id" }, { fig: "trunk-abdomen", muscle: "rectus-abdominis", objective: "id" },
@@ -134,7 +135,7 @@
     key: "trunk", title: "Trunk muscles", learnItem: "trunk-learn",
     steps: [{ id: "names", label: "1 · Decode the names first" }, { id: "learn", label: "2 · Learn the muscles" }, { id: "feel", label: "3 · Feel it" },
       { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
-    status: [{ key: "id", label: "Trunk muscles" }, { key: "actions", label: "Actions" }],
+    status: [{ key: "id", label: "Trunk ID" }, { key: "newpic", label: "ID on new pictures" }, { key: "actions", label: "Function" }],
     learnTitle: "Eight trunk muscles",
     learnIntro: "The abdominal wall has layers, so study it from the outside in: rectus abdominis in front, then external oblique, internal oblique and transversus abdominis on the side. Then the breathing muscles, and the posterior abdominal wall.",
     learn: [{ h: "Abdominal wall (outer view and an inset of the deep layers)", fig: "trunk-abdomen", muscles: ["rectus-abdominis", "external-oblique", "internal-oblique", "transversus-abdominis"] },

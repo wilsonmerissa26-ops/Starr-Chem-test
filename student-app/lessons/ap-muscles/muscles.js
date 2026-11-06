@@ -42,7 +42,7 @@
 
   var FIGURES = {
     "face-anterior": { img: "img/face-anterior-unlabeled.jpg", alt: "Facial muscles, anterior view, labels covered", labeled: "img/face-anterior-labeled.jpg" },
-    "face-lateral": { img: "img/face-lateral-unlabeled.jpg", alt: "Facial muscles, lateral view, labels covered", labeled: "img/face-anterior-labeled.jpg" },
+    "face-lateral": { drawing: "openstax-1106-lateral", img: "img/face-lateral-unlabeled.jpg", alt: "Facial muscles, lateral view, labels covered", labeled: "img/face-anterior-labeled.jpg" },
     "jaw": { img: "img/jaw-unlabeled.jpg", alt: "Chewing muscles, superficial lateral view, labels covered", labeled: "img/jaw-labeled.jpg" },
     "neck": { img: "img/neck-unlabeled.jpg", alt: "Neck muscles, left lateral view, labels covered", labeled: "img/neck-labeled.jpg" }
   };
@@ -57,7 +57,8 @@
     face: "bio131.ch9.facial-muscle-id",               // identify facial muscles on an unlabeled image (side view counts as practice: see ITEMS)
     jawneck: "bio131.ch9.jaw-neck-id",                 // identify masseter, temporalis, sternocleidomastoid (new picture: SCM on fig. 1105 only)
     actions: "bio131.ch9.head-neck-actions",           // function: what each muscle does, recalled from a description
-    application: "bio131.ch9.head-neck-application"    // applying a muscle to a new situation; tracked apart from identification and function
+    application: "bio131.ch9.head-neck-application",   // applying a muscle to a new situation; tracked apart from identification and function
+    newpic: "bio131.ch9.head-neck-id-new-picture"      // identifying on a drawing she has never seen before (first answer on that drawing, any lesson)
   };
 
   // Guided practice (assisted): anterior face, jaw and neck figures.
@@ -102,7 +103,7 @@
     key: "head", title: "Head and neck muscles", learnItem: "learn",
     steps: [{ id: "deep", label: "Start here · Two muscles step by step" }, { id: "learn", label: "1 · All seven muscles" }, { id: "names", label: "2 · Decode more names" }, { id: "feel", label: "3 · Feel it" },
       { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
-    status: [{ key: "face", label: "Facial ID" }, { key: "jawneck", label: "Jaw and neck ID" }, { key: "actions", label: "Function" }, { key: "application", label: "New situations" }],
+    status: [{ key: "face", label: "Facial ID" }, { key: "jawneck", label: "Jaw and neck ID" }, { key: "newpic", label: "ID on new pictures" }, { key: "actions", label: "Function" }, { key: "application", label: "New situations" }],
     learnIntro: "Study each labeled figure. For each muscle, learn where it is, what it does, and one feature that tells it apart.",
     learnTitle: "Seven head and neck muscles",
     learn: [{ h: "Muscles of facial expression", fig: "face-anterior", muscles: ["frontal-belly", "orbicularis-oculi", "orbicularis-oris", "buccinator"] },
