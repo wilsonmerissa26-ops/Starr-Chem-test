@@ -1,0 +1,4 @@
+Images derived from OpenStax, Anatomy and Physiology 2e (https://openstax.org/details/books/anatomy-and-physiology-2e),
+figures 1106, 1108 and 1111 in github.com/openstax/osbooks-anatomy-physiology. Licensed CC BY-NC-SA 4.0
+(https://creativecommons.org/licenses/by-nc-sa/4.0/). Changes: cropped, resized, and labels covered.
+These derived images are shared under CC BY-NC-SA 4.0. Non-commercial use only.

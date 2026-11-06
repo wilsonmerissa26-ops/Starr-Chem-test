@@ -1,0 +1,54 @@
+{
+ "face-anterior": {
+  "frontal-belly": [
+   92.0,
+   27.19
+  ],
+  "orbicularis-oculi": [
+   92.0,
+   43.63
+  ],
+  "orbicularis-oris": [
+   92.36,
+   69.25
+  ],
+  "buccinator": [
+   96.36,
+   85.96
+  ]
+ },
+ "face-lateral": {
+  "frontal-belly": [
+   8.91,
+   27.19
+  ],
+  "orbicularis-oculi": [
+   9.23,
+   43.63
+  ],
+  "orbicularis-oris": [
+   8.43,
+   69.25
+  ],
+  "buccinator": [
+   5.89,
+   85.96
+  ]
+ },
+ "jaw": {
+  "temporalis": [
+   17.8,
+   8.25
+  ],
+  "masseter": [
+   15.6,
+   79.19
+  ]
+ },
+ "neck": {
+  "sternocleidomastoid": [
+   76.32,
+   24.59
+  ]
+ }
+}

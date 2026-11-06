@@ -1,0 +1,66 @@
+{
+ "trunk-abdomen": {
+  "rectus-abdominis": [
+   15.3,
+   62.5
+  ],
+  "external-oblique": [
+   13.96,
+   40.49
+  ],
+  "transversus-abdominis": [
+   84.61,
+   29.23
+  ],
+  "internal-oblique": [
+   93.31,
+   96.83
+  ]
+ },
+ "trunk-posterior-abdominal": {
+  "quadratus-lumborum": [
+   17.78,
+   23.08
+  ]
+ },
+ "trunk-diaphragm": {
+  "diaphragm": [
+   11.38,
+   44.25
+  ],
+  "quadratus-lumborum": [
+   81.7,
+   70.73
+  ]
+ },
+ "trunk-thorax": {
+  "external-intercostals": [
+   12.54,
+   68.97
+  ],
+  "internal-intercostals": [
+   12.32,
+   42.34
+  ]
+ },
+ "trunk-intercostal-detail": {
+  "internal-intercostals": [
+   37.65,
+   86.2
+  ],
+  "external-intercostals": [
+   79.11,
+   77.03
+  ]
+ },
+ "trunk-body-front": {
+  "rectus-abdominis": [
+   21.5,
+   33.48
+  ],
+  "external-oblique": [
+   12.81,
+   52.61
+  ]
+ }
+}

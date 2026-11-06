@@ -46,7 +46,8 @@
   // IndexedDB databases written by pages in this repository, with the schema those pages create.
   var DATABASES = [
     { name: "astarryia-learning-planner-v1", version: 1, stores: [{ name: "snapshots", keyPath: null }] },
-    { name: "astarryia-physiology-music-v1", version: 1, stores: [{ name: "tracks", keyPath: "id" }] }
+    { name: "astarryia-physiology-music-v1", version: 1, stores: [{ name: "tracks", keyPath: "id" }] },
+    { name: "astarryia-learning-record-v1", version: 1, stores: [{ name: "events", keyPath: "id" }, { name: "meta", keyPath: null }, { name: "quarantine", keyPath: "id" }] }
   ];
 
   function isStudentKey(key) {
