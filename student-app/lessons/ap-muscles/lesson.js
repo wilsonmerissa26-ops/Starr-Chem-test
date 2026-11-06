@@ -362,13 +362,21 @@
   }
 
   // ---------- 2. Decode the names (teach → worked examples → guided → new names on your own) ----------
+  // Roots this set's names use come first; the rest stay one tap away, so the screen stays short.
   function rootTable() {
-    return N.CATS.map(function (c) {
-      var rows = Object.keys(N.ROOTS).filter(function (k) { return N.ROOTS[k].cat === c.id; });
-      return "<h3 style=\"margin-top:14px\">" + esc(c.title) + '</h3><div class="roots">' + rows.map(function (k) {
-        return '<div class="root"><b>' + esc(k) + "</b><span>" + esc(N.ROOTS[k].m) + "</span>" + (N.ROOTS[k].ex ? '<span class="small muted">' + esc(N.ROOTS[k].ex) + "</span>" : "") + "</div>";
-      }).join("") + "</div>";
-    }).join("");
+    var used = {};
+    P.worked.concat([P.guided], P.items).forEach(function (it) { it.parts.forEach(function (k) { used[k] = true; }); });
+    function table(pick) {
+      return N.CATS.map(function (c) {
+        var rows = Object.keys(N.ROOTS).filter(function (k) { return N.ROOTS[k].cat === c.id && pick(k); });
+        if (!rows.length) return "";
+        return "<h3 style=\"margin-top:14px\">" + esc(c.title) + '</h3><div class="roots">' + rows.map(function (k) {
+          return '<div class="root" data-root="' + esc(k) + '"><b>' + esc(k) + "</b><span>" + esc(N.ROOTS[k].m) + "</span>" + (N.ROOTS[k].ex ? '<span class="small muted">' + esc(N.ROOTS[k].ex) + "</span>" : "") + "</div>";
+        }).join("") + "</div>";
+      }).join("");
+    }
+    return table(function (k) { return used[k]; }) +
+      '<details style="margin-top:12px"><summary>Root words from the other lessons</summary>' + table(function (k) { return !used[k]; }) + "</details>";
   }
   function partsLine(parts) {
     return parts.map(function (k) { return "<b>" + esc(k) + "</b> = " + esc(N.ROOTS[k].m); }).join(" · ");
@@ -381,7 +389,7 @@
         return '<div class="mcard" style="margin:8px 0"><h3>' + esc(w.name) + "</h3><p>" + partsLine(w.parts) + "</p><p><b>So:</b> " + esc(w.tells) + "</p></div>";
       }).join("") +
       '<div class="feedback info"><strong>Names are clues, not the whole story</strong>Some names give only the place, not the action. A few are just old words: <b>masseter</b> is Greek for "chewer" and <b>buccinator</b> is Latin for "trumpeter." You still learn where each muscle sits on a model or image.</div>' +
-      "<h3 style=\"margin-top:16px\">Root words for head, neck and trunk muscles</h3>" + rootTable() +
+      "<h3 style=\"margin-top:16px\">Root words for this lesson</h3>" + rootTable() +
       '<p class="small muted" style="margin-top:10px">Categories follow OpenStax <i>Anatomy and Physiology 2e</i>, section 11.2, Naming Skeletal Muscles.</p></div>' +
       '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="toDecodeGuided">Try one with help →</button></div>';
     document.getElementById("toDecodeGuided").onclick = decodeGuided;
@@ -470,7 +478,7 @@
         var it = todays[i], q = document.getElementById("dq"), n = q.cloneNode(false); q.parentNode.replaceChild(n, q);
         document.getElementById("dfb").innerHTML = "";
         // A name she has already seen taught (with its meaning) is no longer new: it counts as practice.
-        var fresh = !(it.taughtBy && seen[it.taughtBy]);
+        var fresh = ![].concat(it.taughtBy || []).some(function (t) { return seen[t]; });
         decodeQuestion(n, it, { idk: true }, function (r) {
           if (r.correct) right++;
           save({ objectiveId: N.OBJ, itemId: it.id, itemVersion: 1, activity: fresh ? activity : "check", correct: r.correct,
