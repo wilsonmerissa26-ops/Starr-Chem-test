@@ -44,6 +44,19 @@
   nav.addEventListener("click", function (e) { var b = e.target.closest("[data-step]"); if (b && !b.disabled) go(b.dataset.step); });
   screen.addEventListener("click", function (e) { var b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
   function go(id) { current = id; renderNav(); ({ deep: deep, learn: learn, names: names, feel: feel, find: find, guided: guided, lookalikes: lookalikes, independent: independent })[id](); window.scrollTo({ top: 0, behavior: "auto" }); }
+  // Picture familiarity. A drawing counts as a NEW picture only the first time she answers any question on it, in any lesson.
+  // After that, a new question on it is "a picture seen before": still independent, but filed apart from transfer.
+  function pictureStatus(fig) {
+    var f = M.FIGURES[fig], drawing = f && f.drawing;
+    if (!drawing) return Promise.resolve({ drawing: null, firstTime: false });
+    return LR.events({ course: "BIO131" }).then(function (list) {
+      return { drawing: drawing, firstTime: !list.some(function (e) { return e.response && e.response.drawing === drawing; }) };
+    });
+  }
+  function pictureNote(ev, pic) {
+    if (!ev || !ev.independent || !pic || !pic.drawing) return "";
+    return '<p class="small muted">' + (pic.firstTime ? "Counted as identifying on a picture you had never seen." : "Counted as a new question on a picture you have seen before, not as a new picture.") + "</p>";
+  }
   function nextAfter(id) { var i = STEPS.map(function (s) { return s.id; }).indexOf(id); return STEPS[i + 1] ? STEPS[i + 1].id : null; }
   function nextBtn(to, text) { return '<div class="row" style="margin-top:14px"><button class="btn" type="button" data-go="' + to + '">' + esc(text) + " →</button></div>"; }
   function markViewed(id, activity, objKey) {
@@ -262,14 +275,18 @@
           '<label class="small muted" for="ans">Muscle name</label><input type="text" id="ans" autocomplete="off" autocapitalize="none" spellcheck="false">' +
           '<div class="row" style="margin-top:10px"><button class="btn" type="button" id="dchk">Check</button></div><div id="dfb"></div>');
         document.getElementById("dchk").onclick = function () {
-          var typed = document.getElementById("ans").value, r = M.match(typed, L.key);
+          var typed = document.getElementById("ans").value, r = M.match(typed, L.key), picRef = { drawing: null, firstTime: false };
           this.disabled = true; document.getElementById("ans").readOnly = true;
-          save({ objectiveId: obj, itemId: q.id, itemVersion: 1, activity: hadIndep ? "review" : "independent", correct: r.correct, errorType: r.errorType,
-            response: { typed: typed, skill: q.skill }, unfamiliar: true, assistance: { hints: 0 } }).then(function (ev) {
+          (q.kind === "pin" ? pictureStatus(q.fig) : Promise.resolve(picRef)).then(function (pic) {
+            picRef = pic;
+            var o = q.skill === "identify" && pic.firstTime && M.OBJ.newpic ? objectiveId("newpic") : obj;
+            return save({ objectiveId: o, itemId: q.id, itemVersion: 1, activity: hadIndep ? "review" : "independent", correct: r.correct, errorType: r.errorType,
+              response: { typed: typed, skill: q.skill, drawing: pic.drawing, picture: pic.drawing ? (pic.firstTime ? "new" : "seen") : null }, unfamiliar: true, assistance: { hints: 0 } });
+          }).then(function (ev) {
             results.push({ skill: sk.label, correct: r.correct });
             var host = document.getElementById("dfb");
-            host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), r.note ? "<p>" + esc(r.note) + "</p>" : "")
-              : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p>This miss stays in your history, even after you get later questions right.</p>")) +
+            host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), (r.note ? "<p>" + esc(r.note) + "</p>" : "") + pictureNote(ev, picRef))
+              : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + pictureNote(ev, picRef) + "<p>This miss stays in your history, even after you get later questions right.</p>")) +
               '<details class="more"><summary>How you could know</summary><ul>' + q.how.map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("") + "</ul>" +
               (q.kind === "pin" && !r.correct ? figure(L.see.fig, { labeled: true }) : "") + "</details>" +
               '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dnext">' + (i + 1 < queue.length ? "Next question" : "Finish") + " →</button></div>";
@@ -589,9 +606,13 @@
           r = { correct: ok, errorType: ok ? null : isPair ? "lookalike-" + M.pairKey(it.muscle, resp.pin).replace("|", "-vs-") : "wrong-muscle", note: null, matched: resp.pin };
         } else r = M.match(resp.text, it.muscle);
         var act = it.unfamiliar ? activity : "check";
-        save({ objectiveId: objectiveId(it.objective), itemId: it.id, itemVersion: 1, activity: act, correct: r.correct, errorType: r.errorType,
-          response: { typed: resp.text || null, pin: resp.pin || null, matched: r.matched, note: r.note }, unfamiliar: it.unfamiliar, assistance: { hints: 0 } })
-          .then(function (ev) { results.push({ it: it, r: r, ev: ev }); feedback(it, r, ev); }, function () { results.push({ it: it, r: r, ev: null }); feedback(it, r, null); });
+        (it.fig ? pictureStatus(it.fig) : Promise.resolve({ drawing: null, firstTime: false })).then(function (pic) {
+          // Identification on a never-seen drawing is filed under its own "new pictures" objective.
+          var obj = it.unfamiliar && pic.firstTime && M.OBJ.newpic && it.objective !== "actions" ? "newpic" : it.objective;
+          return save({ objectiveId: objectiveId(obj), itemId: it.id, itemVersion: 1, activity: act, correct: r.correct, errorType: r.errorType,
+            response: { typed: resp.text || null, pin: resp.pin || null, matched: r.matched, note: r.note, drawing: pic.drawing, picture: pic.drawing ? (pic.firstTime ? "new" : "seen") : null },
+            unfamiliar: it.unfamiliar, assistance: { hints: 0 } }).then(function (ev) { return { ev: ev, pic: pic }; });
+        }).then(function (x) { results.push({ it: it, r: r, ev: x.ev }); feedback(it, r, x.ev, x.pic); }, function () { results.push({ it: it, r: r, ev: null }); feedback(it, r, null, null); });
       }
       var sub = document.getElementById("sub");
       if (sub) {
@@ -601,16 +622,16 @@
       document.getElementById("idk").onclick = function () { grade({ dontKnow: true }); };
       if (it.kind === "pin-fn") qEl.querySelector(".fig").addEventListener("click", function (e) { var p = e.target.closest("[data-pin]"); if (p) { p.classList.add("picked"); grade({ pin: p.dataset.pin }); } });
     }
-    function feedback(it, r, ev) {
+    function feedback(it, r, ev, pic) {
       var m = M.MUSCLES[it.muscle], html;
-      if (r.correct) html = fb("good", "Correct: " + m.name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p><b>Action:</b> " + esc(m.action) + "</p>" + (ev && !ev.independent ? '<p class="small muted">Recorded as practice: ' + (it.fig === "face-lateral" ? "this side view is the same drawing as the jaw figure you studied." : "this question used a figure you already practiced on.") + "</p>" : ""));
+      if (r.correct) html = fb("good", "Correct: " + m.name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p><b>Action:</b> " + esc(m.action) + "</p>" + pictureNote(ev, pic) + (ev && !ev.independent ? '<p class="small muted">Recorded as practice: ' + (it.fig === "face-lateral" ? "this side view is the same drawing as the jaw figure you studied." : "this question used a figure you already practiced on.") + "</p>" : ""));
       else {
         var why = r.errorType === "dont-know" ? "No problem. Here is how to recognize it." :
           r.errorType === "incomplete-name" ? r.note :
           r.errorType && r.errorType.indexOf("lookalike") === 0 ? "You named its look-alike, " + M.MUSCLES[r.matched].name + "." :
           r.errorType === "wrong-muscle" ? "That is " + M.MUSCLES[r.matched].name + ", a different region." :
           r.errorType === "no-answer" ? "No answer was entered." : "That name was not recognized as one of the lesson muscles.";
-        html = fb("bad", "The answer is " + m.name + ".", "<p>" + esc(why) + "</p>") +
+        html = fb("bad", "The answer is " + m.name + ".", "<p>" + esc(why) + "</p>" + pictureNote(ev, pic)) +
           '<div class="reteach"><b>Reteach: ' + esc(m.name) + "</b><p><b>Where:</b> " + esc(m.location) + "</p><p><b>Action:</b> " + esc(m.action) + "</p><p><b>Recognize it:</b> " + esc(m.cue) + "</p>" +
           (it.fig ? figure(it.fig === "face-lateral" ? "face-anterior" : it.fig, { labeled: true }) : "") + "</div>" +
           (r.matched && r.matched !== it.muscle ? lookalikeCard(it.muscle, r.matched) : "");

@@ -611,7 +611,12 @@ with sync_playwright() as p:
         check("New-view and function questions are independent; the look-alike miss is recorded with its error type",
               l["ap-ch9-trunk-front-name-rectus"]["independent"] and l["ap-ch9-trunk-act-inhale-main"]["independent"] and
               l["ap-ch9-trunk-detail-name-external-ic"]["errorType"] == "lookalike-external-intercostals-vs-internal-intercostals")
-        check("Trunk identification shows 'Needs review' after the miss", status(page, "bio131.ch9.trunk-muscle-id")["status"] == "needs-review")
+        l_all = evs(page, {"course": "BIO131"})
+        pic = {e["itemId"]: e for e in l_all if (e.get("response") or {}).get("drawing")}
+        check("First answers on never-seen drawings are filed under 'ID on new pictures', with the drawing recorded",
+              pic["ap-ch9-trunk-front-name-rectus"]["objectiveId"] == "bio131.ch9.trunk-id-new-picture" and pic["ap-ch9-trunk-front-name-rectus"]["response"]["picture"] == "new"
+              and pic["ap-ch9-trunk-detail-name-external-ic"]["response"]["drawing"] == "openstax-1114-inset")
+        check("Trunk 'ID on new pictures' shows 'Needs review' after the miss on the close-up", status(page, "bio131.ch9.trunk-id-new-picture")["status"] == "needs-review")
         check("Head and neck objectives are untouched by trunk work", status(page, "bio131.ch9.facial-muscle-id")["status"] == "not-started")
         p2, e2 = page_at(ctx, DAY2, TRUNK); p2.wait_for_selector("#q", timeout=8000)
         check("Next day: the trunk lesson opens to NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
@@ -800,7 +805,7 @@ with sync_playwright() as p:
         ap = {apply_ids[e["itemId"]]: e for e in l if e["itemId"] in apply_ids}
         objs = {k: v["objectiveId"] for k, v in ap.items()}
         check("Each skill is recorded under its own objective (identification, function, application)",
-              objs == {"identify": "bio131.ch9.jaw-neck-id", "function": "bio131.ch9.head-neck-actions", "apply": "bio131.ch9.head-neck-application"}, objs)
+              objs == {"identify": "bio131.ch9.head-neck-id-new-picture", "function": "bio131.ch9.head-neck-actions", "apply": "bio131.ch9.head-neck-application"}, objs)
         check("All three Apply answers are first-try, no-help independent attempts", all(e["independent"] for e in ap.values()))
         st = {k: status(page, v)["status"] for k, v in objs.items()}
         check("Success in one skill does not establish another: identify shown, function missed, new situation shown",
@@ -868,6 +873,39 @@ with sync_playwright() as p:
         except ImportError:
             check("OCR check of in-depth images (skipped: pytesseract not installed)", True)
     guarded("deep lesson", t_deep)
+
+    section("Picture familiarity: only the first answer on a drawing counts as a new picture, across lessons (criterion 7)")
+    def t_pictures():
+        # Same drawing twice in one lesson: the second question is "a picture seen before".
+        ctx, page, errs = fresh(url=TRUNK); page.wait_for_selector("#screen h2")
+        trunk_guided(page); page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        for t in ["rectus abdominis", "diaphragm", "external intercostals", "transversus abdominis"]: ap_type(page, t)
+        p2, e2 = page_at(ctx, DAY2, TRUNK); p2.wait_for_selector("#q", timeout=8000)
+        ap_type(p2, "quadratus lumborum"); ap_type(p2, "internal intercostals")
+        f = ap_type(p2, "external oblique")
+        e = [x for x in evs(p2, {"course": "BIO131"}) if x["itemId"] == "ap-ch9-trunk-front-name-external-oblique"][0]
+        check("Second question on the same drawing: independent, but filed under 'pictures seen before', and she is told so",
+              e["independent"] and e["objectiveId"] == "bio131.ch9.trunk-muscle-id" and e["response"]["picture"] == "seen" and "picture you have seen before" in f, (e["objectiveId"], f[:160]))
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+        # Across lessons: the SCM Apply picture and the trunk front view are the same OpenStax drawing (fig. 1105, front).
+        ctx, page, errs = fresh(url=AP); page.wait_for_selector("[data-deep='0']")
+        deep_walk(page, 0)
+        scm = [x for x in evs(page, {"course": "BIO131"}) if x["itemId"] == "ap-ch9-deep-scm-apply-body-front"][0]
+        check("SCM Apply on the never-seen whole-body front drawing counts as a new picture", scm["objectiveId"] == "bio131.ch9.head-neck-id-new-picture" and scm["response"]["picture"] == "new")
+        t = ctx.new_page(); t.goto(TRUNK); t.wait_for_selector("#screen h2")
+        trunk_guided(t); t.click("[data-step='independent']"); t.wait_for_selector("#q")
+        f = ap_type(t, "rectus abdominis")
+        r = [x for x in evs(t, {"course": "BIO131"}) if x["itemId"] == "ap-ch9-trunk-front-name-rectus"][0]
+        check("The trunk front view is then NOT a new picture: same drawing already seen in the head and neck lesson",
+              r["independent"] and r["objectiveId"] == "bio131.ch9.trunk-muscle-id" and r["response"]["picture"] == "seen" and "picture you have seen before" in f, (r["objectiveId"], r["response"].get("picture")))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+        # Data: every new-picture item's figure names its source drawing.
+        ctx, page, errs = fresh(url=TRUNK); page.wait_for_selector("#screen h2")
+        T = page.evaluate("MuscleSets.trunk")
+        check("Every trunk figure used for new-picture questions names its OpenStax drawing",
+              all(T["FIGURES"][i["fig"]].get("drawing") for i in T["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"))
+        ctx.close()
+    guarded("pictures", t_pictures)
 
     # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")

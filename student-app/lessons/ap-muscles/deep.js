@@ -106,7 +106,7 @@
   ];
   // Pin position on the new whole-body view, from img/pins-deep.json (OpenStax "Sternocleidomastoid" leader line).
   var PINS = { "deep-body-head": { "sternocleidomastoid": [2.31, 41.28] } };
-  var FIGURES = { "deep-body-head": { img: "img/deep-body-head-unlabeled.jpg", alt: "Front of the whole body, head and neck, labels covered", labeled: "img/neck-labeled.jpg" } };
+  var FIGURES = { "deep-body-head": { drawing: "openstax-1105-front", img: "img/deep-body-head-unlabeled.jpg", alt: "Front of the whole body, head and neck, labels covered", labeled: "img/neck-labeled.jpg" } };
   global.DeepLesson = { LESSONS: LESSONS, FIG: FIG, PINS: PINS, FIGURES: FIGURES, CONFUSION: [
     { id: "location", label: "Where it is" }, { id: "name", label: "The name" }, { id: "action", label: "What it does" }, { id: "question", label: "I didn't understand the question" }] };
 })(window);
