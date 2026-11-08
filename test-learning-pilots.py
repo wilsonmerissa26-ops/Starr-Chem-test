@@ -1172,8 +1172,17 @@ with sync_playwright() as p:
         part = [k for k, full, ws in splits if not ("-" + full + "-").startswith("-" + "-".join(x[1] for x in ws) + "-")]
         check("Words cut from one longer notation (latissimus + dorsi, carpi + radialis, transversus + abdominis, digitorum) are consecutive whole syllables from its start, in order, with nothing skipped",
               not part and {k for k, _, _ in splits} == {"latissimusDorsi", "flexorCarpiRadialis", "transversusAbdominis", "extensorDigitorumBrevis"}, (part, [k for k, _, _ in splits]))
-        tail_y = [w + " " + sp for w, sp in got.items() for syl in sp.split("-") if re.search(r"[bcdfghjklmnpqrstvwxz]y$", syl, re.I)]
-        check("No spelling ends a syllable in a bare 'y' after a consonant (readers often say it 'ee', which is MW's second choice for carpi and oculi)", not tail_y, tail_y)
+        # Regression: the eight long-i spellings corrected on Nov 7 (KAR-py could be read KAR-pee, MW's second pronunciation).
+        OLD = {"carpi": "KAR-py", "dorsi": "DOR-sy", "oculi": "AH-kyuh-ly", "diaphragm": "DY-uh-fram", "biceps": "BY-seps", "triceps": "TRY-seps",
+               "infraspinatus": "in-fruh-spy-NAYT-uhs", "sternocleidomastoid": "stur-noh-klyd-uh-MAS-toyd"}
+        back = [w for w, old in OLD.items() if got.get(w) == old]
+        check("Regression: the eight ambiguous long-i spellings fixed on Nov 7 (KAR-py, DOR-sy, AH-kyuh-ly and others) do not come back", not back, back)
+        held = page.evaluate("""() => { const P = Pronunciations, before = P.forTerm('Flexor carpi radialis').ok;
+            P.UNDER_REVIEW['carpi'] = 'test hold'; const word = P.forTerm('Flexor carpi radialis'), other = P.forTerm('Brachialis').ok; delete P.UNDER_REVIEW['carpi'];
+            P.UNDER_REVIEW['teres major'] = 'test hold'; const term = P.forTerm('Teres major'), minor = P.forTerm('Teres minor').ok; delete P.UNDER_REVIEW['teres major'];
+            return [before, word.ok, word.held, other, term.ok, minor, Object.keys(P.UNDER_REVIEW).length]; }""")
+        check("A word or name held for review shows no pronunciation anywhere it appears, and nothing else is affected",
+              held == [True, False, ["carpi"], True, False, True, 0], held)
         srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"]]
         check("Every source names its Merriam-Webster dictionary, page URL and exact notation, read on %s" % P["CHECKED"], not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
         check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == ["orbicularis", "supraspinatus"])

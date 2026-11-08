@@ -60,6 +60,11 @@ const risk = rows.map(x => {
   return { name: x.name, text: x.r.text, tags, links: x.r.sources.map(s => `[${esc(s.entry)}](${s.url.replace(/ /g, "%20")})`).join(", ") };
 }).sort((a, b) => b.tags.length - a.tags.length || a.name.localeCompare(b.name));
 for (const x of risk) md += `| ${x.name} | ${x.text} | ${x.tags.join(", ") || "none"} | ${x.links} |\n`;
+md += "\n## Audio review status\n\nIn progress. A listener records Match, Doesn't match or Unsure for each name on a private checklist page. " +
+  "A Match records one listener's impression and does not replace the dictionary evidence above. A Doesn't match or Unsure is compared with the dictionary notation " +
+  "and the other pronunciations Merriam-Webster accepts before anything changes; until it is settled, the name or word is held below and shows no pronunciation in the lessons.\n\n";
+const held = Object.entries(P.UNDER_REVIEW);
+md += held.length ? "| Held for review | Why |\n|---|---|\n" + held.map(([w, why]) => `| ${w} | ${esc(why)} |`).join("\n") + "\n" : "Held for review: none yet.\n";
 md += "\n## Notes\n\n";
 md += "- Merriam-Webster lists two accepted pronunciations for some words, and different entries put a different one first. " +
   "The app follows each muscle's own entry, so teres is TERR-eez in teres major and teres minor but TEER-eez in pronator teres, and brachii is BRAY-kee-ee in biceps brachii but BRAY-kee-eye in triceps brachii. Both forms are correct.\n";

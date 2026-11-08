@@ -96,6 +96,10 @@
   // MW gives the singular only; the term shows it with a note rather than adding a sound.
   var SINGULAR = { intercostals: "intercostal" };
   // Checked and not shown, with the reason (also listed in docs/PRONUNCIATION_REPORT.md).
+  // Held back while a question about them is settled against the dictionary (a whole name in lowercase, or one word).
+  // Anything here shows NO pronunciation in the lessons. A listener's mark alone never adds or removes an entry: a
+  // reported difference is first compared with MW's notation and the other pronunciations it accepts.
+  var UNDER_REVIEW = {};
   var NOT_VERIFIED = {
     orbicularis: "Merriam-Webster has no entry for orbicularis by itself. Its orbicularis oris entry gives a pronunciation only for oris, and its orbicularis oculi entry gives none.",
     supraspinatus: "Merriam-Webster gives only a shortened form, -ˌspī-ˈnāt-əs, that depends on a neighboring entry, so there is no full pronunciation to show."
@@ -160,12 +164,13 @@
       var p = lookup(t, w); if (p) parts.push(p); else missing.push(w);
     });
     var looked = parts.filter(function (p) { return !p.plain; });
-    if (missing.length || !looked.length) return { ok: false, missing: missing, parts: parts };
+    var held = [t].concat(words).filter(function (w) { return Object.prototype.hasOwnProperty.call(UNDER_REVIEW, w); });
+    if (missing.length || held.length || !looked.length) return { ok: false, missing: missing, held: held, parts: parts };
     var srcs = []; looked.forEach(function (p) { if (srcs.indexOf(p.source) < 0) srcs.push(p.source); });
     return { ok: true, missing: [], parts: parts, text: parts.map(function (p) { return p.plain ? p.word : p.say; }).join(" "),
       singular: looked.filter(function (p) { return p.singular; }).map(function (p) { return p.singular; }),
       sources: srcs.map(function (k) { var s = SOURCES[k]; return { key: k, entry: s.entry, dict: s.dict, url: s.url, notation: s.notation, checked: CHECKED }; }) };
   }
-  global.Pronunciations = { SOURCES: SOURCES, WORDS: WORDS, IN_TERM: IN_TERM, EVERYDAY: EVERYDAY, SINGULAR: SINGULAR, NOT_VERIFIED: NOT_VERIFIED,
+  global.Pronunciations = { SOURCES: SOURCES, WORDS: WORDS, IN_TERM: IN_TERM, EVERYDAY: EVERYDAY, SINGULAR: SINGULAR, NOT_VERIFIED: NOT_VERIFIED, UNDER_REVIEW: UNDER_REVIEW,
     CHECKED: CHECKED, KEY: KEY, respell: respell, forTerm: forTerm };
 })(typeof window !== "undefined" ? window : globalThis);

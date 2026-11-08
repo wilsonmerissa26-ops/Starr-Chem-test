@@ -111,6 +111,12 @@ The two readings above confirm the notation was copied correctly. They do not pr
 | Supinator | SOO-puh-nayt-er | none | [supinator](https://www.merriam-webster.com/medical/supinator) |
 | Temporalis | tem-puh-RAY-luhs | none | [temporalis](https://www.merriam-webster.com/dictionary/temporalis%20muscle) |
 
+## Audio review status
+
+In progress. A listener records Match, Doesn't match or Unsure for each name on a private checklist page. A Match records one listener's impression and does not replace the dictionary evidence above. A Doesn't match or Unsure is compared with the dictionary notation and the other pronunciations Merriam-Webster accepts before anything changes; until it is settled, the name or word is held below and shows no pronunciation in the lessons.
+
+Held for review: none yet.
+
 ## Notes
 
 - Merriam-Webster lists two accepted pronunciations for some words, and different entries put a different one first. The app follows each muscle's own entry, so teres is TERR-eez in teres major and teres minor but TEER-eez in pronator teres, and brachii is BRAY-kee-ee in biceps brachii but BRAY-kee-eye in triceps brachii. Both forms are correct.
