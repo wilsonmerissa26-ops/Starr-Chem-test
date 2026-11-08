@@ -122,7 +122,13 @@
       else if (at("t͟h")) { out += "th"; i += 3; }
       else {
         var c = s[i], map = { "ā": "ay", "ä": "ah", "ē": "ee", "ō": "oh", "ȯ": "aw", "ü": "oo", "ə": "uh", "ᵊ": "uh", "ŋ": "ng" };
-        if (c === "ī") out += out === "" ? "eye" : "y";
+        // ī (the i in kite): "eye" to start a syllable, "ye" to end one (pye, lye, dye), and i + consonant + e inside one
+        // (klide). A bare final "y" is avoided because readers often say it "ee", which is a different MW pronunciation.
+        if (c === "ī") {
+          if (out === "") out += "eye";
+          else if (i === s.length - 1) out += "ye";
+          else { var rest = s.slice(i + 1); if (/^[bcdfghjklmnpqrstvwxz]+$/.test(rest)) { out += "i" + rest + "e"; i = s.length; continue; } out += "y"; }
+        }
         else if (map[c]) out += map[c];
         else if (VOWEL_END[c] && i === s.length - 1) out += VOWEL_END[c];
         else out += c;
@@ -136,7 +142,7 @@
     return first.split("-").filter(Boolean).map(respellSyllable).join("-");
   }
   var KEY = "CAPITALS = the syllable to stress · uh = a in about · ay = say · ee = see · ah = father · oh = go · aw = law · oo = food · " +
-    "y or eye = the i in kite · er = butter · ur = fur · arr = carry · err = merry · eer = deer";
+    "eye, ye or i-consonant-e = the i in kite (KAR-pye, klide) · er = butter · ur = fur · arr = carry · err = merry · eer = deer";
 
   // ---- terms ----
   function termWords(name) { return name.replace(/\([^)]*\)/g, " ").trim().toLowerCase().split(/\s+/); }

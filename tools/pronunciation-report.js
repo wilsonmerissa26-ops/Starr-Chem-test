@@ -36,9 +36,35 @@ for (const x of rows) {
   const links = x.r.sources.map(s => `[${s.dict.includes("Medical") ? "Medical" : "General"}](${s.url})`).join(", ");
   md += `| ${x.lesson} | ${x.name} | ${x.r.text}${x.r.singular.length ? " (MW gives the singular)" : ""} | ${notes} | ${links} |\n`;
 }
+// Words cut out of one longer notation (the only places where a notation was divided).
+const first = n => n.split(",")[0].trim().replace(/^-|-$/g, "");
+const bySrc = {};
+for (const [w, [mw, k]] of Object.entries(P.WORDS)) (bySrc[k] = bySrc[k] || []).push([w, mw]);
+for (const o of Object.values(P.IN_TERM)) for (const [w, [mw, k]] of Object.entries(o)) (bySrc[k] = bySrc[k] || []).push([w, mw]);
+const cuts = Object.entries(bySrc).filter(([k, ws]) => ws.some(x => x[1] !== first(P.SOURCES[k].notation)));
+const cutWords = new Set(cuts.flatMap(([k, ws]) => ws.map(x => x[0] + "|" + k)));
+md += "\n## Words cut from a longer notation\n\nThese are the only places where a Merriam-Webster notation was divided between words. Each piece is a run of whole syllables, " +
+  "taken in order from the start of the entry's first pronunciation (a test checks this).\n\n| Entry | First pronunciation | Pieces used |\n|---|---|---|\n";
+for (const [k, ws] of cuts) md += `| ${esc(P.SOURCES[k].entry)} | \\${esc(first(P.SOURCES[k].notation))}\\ | ${ws.map(x => `${x[0]}: \\${esc(x[1])}\\ = ${P.respell(x[1])}`).join("; ")} |\n`;
+// Audio spot-check list: what could go wrong, per name.
+md += "\n## Audio spot-check list\n\nThe two readings above confirm the notation was copied correctly. They do not prove that the simple spelling sounds right, " +
+  "which needs a person to listen. For each name: open its source link, play Merriam-Webster's audio, read the Say it line aloud, and mark match or not. " +
+  "Names are sorted by how many of these risks apply: **cut** (piece of a longer notation), **long** (7 or more syllables), **long i** (uses the spelling rule for the i in kite), " +
+  "**alternates** (MW lists more than one pronunciation; the app shows the first).\n\n| Name | Say it | Risks |\n|---|---|---|\n";
+const risk = rows.map(x => {
+  const looked = x.r.parts.filter(p => !p.plain), tags = [];
+  if (looked.some(p => cutWords.has(p.word + "|" + p.source))) tags.push("cut");
+  if (looked.reduce((n, p) => n + p.mw.split("-").filter(Boolean).length, 0) >= 7) tags.push("long");
+  if (looked.some(p => p.mw.includes("ī"))) tags.push("long i");
+  if (x.r.sources.some(s => s.notation.includes(","))) tags.push("alternates");
+  return { name: x.name, text: x.r.text, tags };
+}).sort((a, b) => b.tags.length - a.tags.length || a.name.localeCompare(b.name));
+for (const x of risk) md += `| ${x.name} | ${x.text} | ${x.tags.join(", ") || "none"} |\n`;
 md += "\n## Notes\n\n";
 md += "- Merriam-Webster lists two accepted pronunciations for some words, and different entries put a different one first. " +
   "The app follows each muscle's own entry, so teres is TERR-eez in teres major and teres minor but TEER-eez in pronator teres, and brachii is BRAY-kee-ee in biceps brachii but BRAY-kee-eye in triceps brachii. Both forms are correct.\n";
+md += "- The i in kite is spelled eye at the start of a syllable (BRAY-kee-eye), ye at the end of one (KAR-pye, DOR-sye) and i-consonant-e inside one (klide). " +
+  "A bare final y (KAR-py) is not used, because readers often say it ee, and KAR-pee is Merriam-Webster's second pronunciation, not its first.\n";
 md += "- Intercostals: Merriam-Webster gives only the singular, intercostal, so the app shows that with a note instead of adding a sound.\n";
 md += "- No dictionary audio is stored in the app. Each source line links to the Merriam-Webster entry, which has its own audio when online.\n";
 

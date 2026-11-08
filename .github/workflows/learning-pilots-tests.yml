@@ -21,7 +21,7 @@ jobs:
           python-version: "3.12"
       - name: Syntax-check app, learning record and lessons
         run: |
-          for f in student-app/app.js student-app/sw.js student-app/learning-record.js student-app/learning-backup.js student-app/lessons/chem-ch8/*.js student-app/lessons/ap-muscles/*.js; do node --check "$f"; done
+          for f in student-app/app.js student-app/sw.js student-app/learning-record.js student-app/learning-backup.js student-app/lessons/chem-ch8/*.js student-app/lessons/ap-muscles/*.js student-app/lessons/pronunciation.js tools/pronunciation-report.js; do node --check "$f"; done
       - name: Install headless Chromium and OCR
         run: |
           sudo apt-get update && sudo apt-get install -y tesseract-ocr

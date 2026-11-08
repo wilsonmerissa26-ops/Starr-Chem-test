@@ -1137,13 +1137,13 @@ with sync_playwright() as p:
     guarded("pin spacing", t_pin_spacing)
 
     section("Pronunciation: verified, written, optional, shown only in teaching and after answers (separate feature)")
-    EXPECT_SAY = {"masseter": "muh-SEET-er", "buccinator": "BUHK-suh-nayt-er", "temporalis": "tem-puh-RAY-luhs", "sternocleidomastoid": "stur-noh-klyd-uh-MAS-toyd",
-        "occipitofrontalis": "ahk-sip-uht-oh-fruhn-TAY-luhs", "oculi": "AH-kyuh-ly", "oris": "OR-uhs", "rectus": "REK-tuhs", "abdominis": "ab-DAHM-uh-nuhs",
-        "oblique": "oh-BLEEK", "transversus": "trans-VUR-suhs", "diaphragm": "DY-uh-fram", "intercostal": "int-er-KAHS-tuhl", "quadratus": "kwah-DRAYT-uhs",
+    EXPECT_SAY = {"masseter": "muh-SEET-er", "buccinator": "BUHK-suh-nayt-er", "temporalis": "tem-puh-RAY-luhs", "sternocleidomastoid": "stur-noh-klide-uh-MAS-toyd",
+        "occipitofrontalis": "ahk-sip-uht-oh-fruhn-TAY-luhs", "oculi": "AH-kyuh-lye", "oris": "OR-uhs", "rectus": "REK-tuhs", "abdominis": "ab-DAHM-uh-nuhs",
+        "oblique": "oh-BLEEK", "transversus": "trans-VUR-suhs", "diaphragm": "DYE-uh-fram", "intercostal": "int-er-KAHS-tuhl", "quadratus": "kwah-DRAYT-uhs",
         "lumborum": "luhm-BOR-uhm", "trapezius": "truh-PEE-zee-uhs", "deltoid": "DEL-toyd", "pectoralis": "pek-tuh-RAY-luhs", "serratus": "seh-RAYT-uhs",
-        "latissimus": "luh-TIS-uh-muhs", "dorsi": "DOR-sy", "infraspinatus": "in-fruh-spy-NAYT-uhs", "teres": "TERR-eez", "subscapularis": "suhb-skap-yuh-LARR-uhs",
-        "biceps": "BY-seps", "brachii": "BRAY-kee-ee", "brachialis": "bray-kee-AL-uhs", "brachioradialis": "bray-kee-oh-rayd-ee-AL-uhs", "triceps": "TRY-seps",
-        "pronator": "PROH-nayt-er", "supinator": "SOO-puh-nayt-er", "flexor": "FLEK-ser", "carpi": "KAR-py", "radialis": "ray-dee-AY-luhs", "ulnaris": "uhl-NARR-uhs",
+        "latissimus": "luh-TIS-uh-muhs", "dorsi": "DOR-sye", "infraspinatus": "in-fruh-spye-NAYT-uhs", "teres": "TERR-eez", "subscapularis": "suhb-skap-yuh-LARR-uhs",
+        "biceps": "BYE-seps", "brachii": "BRAY-kee-ee", "brachialis": "bray-kee-AL-uhs", "brachioradialis": "bray-kee-oh-rayd-ee-AL-uhs", "triceps": "TRYE-seps",
+        "pronator": "PROH-nayt-er", "supinator": "SOO-puh-nayt-er", "flexor": "FLEK-ser", "carpi": "KAR-pye", "radialis": "ray-dee-AY-luhs", "ulnaris": "uhl-NARR-uhs",
         "palmaris": "pal-MARR-uhs", "longus": "LAWNG-guhs", "digitorum": "dij-uh-TOR-uhm", "superficialis": "soo-per-fish-ee-AY-luhs", "extensor": "ik-STEN-ser"}
     def t_pronunciation():
         src = open(os.path.join(ROOT, "student-app/lessons/pronunciation.js"), encoding="utf-8").read()
@@ -1157,10 +1157,23 @@ with sync_playwright() as p:
         check("Every simple spelling is computed from MW's notation by one fixed key (%d words checked)" % len(EXPECT_SAY), got == EXPECT_SAY, {k: got.get(k) for k in EXPECT_SAY if got.get(k) != EXPECT_SAY[k]})
         caps = [w for w, sp in got.items() for part in [sp.split("-")] if sum(1 for x in part if x.isupper()) != sum(1 for x in P["WORDS"][w][0].split(",")[0].split("-") if "\u02c8" in x)]
         check("Exactly one syllable per word is in capitals, the one MW marks with the main stress mark", not caps, caps)
-        def first(n): return n.split(",")[0].strip().strip("-")
-        bad = [w for w, (mw, k) in P["WORDS"].items() if k not in P["SOURCES"] or mw not in first(P["SOURCES"][k]["notation"])]
-        bad += [t + ":" + w for t, o in P["IN_TERM"].items() for w, (mw, k) in o.items() if mw not in first(P["SOURCES"][k]["notation"])]
-        check("Every word's pronunciation is copied from the FIRST pronunciation its Merriam-Webster entry lists, never pieced together", not bad, bad)
+        def first(n): return "-" + n.split(",")[0].strip().strip("-") + "-"
+        bad = [w for w, (mw, k) in P["WORDS"].items() if k not in P["SOURCES"] or "-" + mw + "-" not in first(P["SOURCES"][k]["notation"])]
+        bad += [t + ":" + w for t, o in P["IN_TERM"].items() for w, (mw, k) in o.items() if "-" + mw + "-" not in first(P["SOURCES"][k]["notation"])]
+        check("Every word's pronunciation is a whole-syllable run copied from the FIRST pronunciation its Merriam-Webster entry lists, never pieced together", not bad, bad)
+        # Words cut out of a longer notation: the cut must fall on MW's own syllable breaks, and the pieces must fill the
+        # notation in order with nothing left over (the entry's last word may be one the lessons do not use, like brevis).
+        splits = page.evaluate("""() => { const P = Pronunciations, by = {};
+            const add = (w, mw, k) => (by[k] = by[k] || []).push([w, mw]);
+            Object.entries(P.WORDS).forEach(([w, v]) => add(w, v[0], v[1]));
+            Object.values(P.IN_TERM).forEach(o => Object.entries(o).forEach(([w, v]) => add(w, v[0], v[1])));
+            return Object.entries(by).map(([k, ws]) => [k, P.SOURCES[k].notation.split(',')[0].trim().replace(/^-|-$/g, ''), ws])
+              .filter(([k, full, ws]) => ws.some(x => x[1] !== full)); }""")
+        part = [k for k, full, ws in splits if not ("-" + full + "-").startswith("-" + "-".join(x[1] for x in ws) + "-")]
+        check("Words cut from one longer notation (latissimus + dorsi, carpi + radialis, transversus + abdominis, digitorum) are consecutive whole syllables from its start, in order, with nothing skipped",
+              not part and {k for k, _, _ in splits} == {"latissimusDorsi", "flexorCarpiRadialis", "transversusAbdominis", "extensorDigitorumBrevis"}, (part, [k for k, _, _ in splits]))
+        tail_y = [w + " " + sp for w, sp in got.items() for syl in sp.split("-") if re.search(r"[bcdfghjklmnpqrstvwxz]y$", syl, re.I)]
+        check("No spelling ends a syllable in a bare 'y' after a consonant (readers often say it 'ee', which is MW's second choice for carpi and oculi)", not tail_y, tail_y)
         srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"]]
         check("Every source names its Merriam-Webster dictionary, page URL and exact notation, read on %s" % P["CHECKED"], not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
         check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == ["orbicularis", "supraspinatus"])
@@ -1168,7 +1181,7 @@ with sync_playwright() as p:
         check("A name with any unverified word shows nothing; everyday words are shown as written",
               not r[0]["ok"] and not r[1]["ok"] and not r[2]["ok"] and r[3]["text"] == "pek-tuh-RAY-luhs major" and r[4]["singular"] == ["intercostal"] and r[5]["text"] == "ahk-sip-uht-oh-fruhn-TAY-luhs", [x.get("text") for x in r])
         check("Each muscle's own entry wins: teres and brachii follow the entry for that muscle",
-              page.evaluate("['Teres major','Pronator teres','Biceps brachii','Triceps brachii'].map(n => Pronunciations.forTerm(n).text)") == ["TERR-eez major", "PROH-nayt-er TEER-eez", "BY-seps BRAY-kee-ee", "TRY-seps BRAY-kee-eye"])
+              page.evaluate("['Teres major','Pronator teres','Biceps brachii','Triceps brachii'].map(n => Pronunciations.forTerm(n).text)") == ["TERR-eez major", "PROH-nayt-er TEER-eez", "BYE-seps BRAY-kee-ee", "TRYE-seps BRAY-kee-eye"])
         check("docs/PRONUNCIATION_REPORT.md matches the data (regenerated by tools/pronunciation-report.js)",
               __import__("subprocess").run(["node", os.path.join(ROOT, "tools/pronunciation-report.js"), "--check"], capture_output=True).returncode == 0)
         # Teaching: Say it under every verified name, the source one tap away, the say-aloud practice optional and collapsed.
@@ -1197,7 +1210,7 @@ with sync_playwright() as p:
         q0 = page.locator("#screen .say").count()
         f1 = ap_type(page, "pronator teres"); f2 = ap_type(page, "flexor carpi ulnaris")
         check("On your own: no pronunciation on the question; Say it after a right answer and after a wrong one (the right name's)",
-              q0 == 0 and "Say it: PROH-nayt-er TEER-eez" in f1 and "Say it: FLEK-ser KAR-py ray-dee-AY-luhs" in f2, (q0, f1[:100], f2[:140]))
+              q0 == 0 and "Say it: PROH-nayt-er TEER-eez" in f1 and "Say it: FLEK-ser KAR-pye ray-dee-AY-luhs" in f2, (q0, f1[:100], f2[:140]))
         l = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")]
         check("Answers are graded exactly as before: pronunciation is not part of any answer or record", len(l) == 2 and l[0]["correct"] and not l[1]["correct"] and all("say" not in json.dumps(e["response"]).lower() for e in l), [e["response"] for e in l])
         check("No page errors", not errs, errs[:1]); ctx.close()

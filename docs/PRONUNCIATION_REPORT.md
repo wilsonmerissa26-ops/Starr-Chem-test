@@ -8,7 +8,7 @@ Dictionary: Merriam-Webster (Medical Dictionary where it has an entry, otherwise
 
 Rules: the first pronunciation listed is used; sounds marked optional in parentheses are left out of the simple spelling; only the main stressed syllable of each word is in capitals; everyday English words (external, internal, major, minor, anterior, frontal, belly) are shown as written and not looked up; a name with any unverified word shows no pronunciation at all.
 
-Key: CAPITALS = the syllable to stress · uh = a in about · ay = say · ee = see · ah = father · oh = go · aw = law · oo = food · y or eye = the i in kite · er = butter · ur = fur · arr = carry · err = merry · eer = deer
+Key: CAPITALS = the syllable to stress · uh = a in about · ay = say · ee = see · ah = father · oh = go · aw = law · oo = food · eye, ye or i-consonant-e = the i in kite (KAR-pye, klide) · er = butter · ur = fur · arr = carry · err = merry · eer = deer
 
 ## Not shown (no full dictionary pronunciation found)
 
@@ -26,40 +26,94 @@ Key: CAPITALS = the syllable to stress · uh = a in about · ay = say · ee = se
 | Head and neck | Buccinator | BUHK-suh-nayt-er | \ˈbək-sə-ˌnāt-ər\ (buccinator) | [Medical](https://www.merriam-webster.com/dictionary/buccinator%20muscle) |
 | Head and neck | Temporalis | tem-puh-RAY-luhs | \ˌtem-pə-ˈrā-ˌləs\ (temporalis) | [Medical](https://www.merriam-webster.com/dictionary/temporalis%20muscle) |
 | Head and neck | Masseter | muh-SEET-er | \mə-ˈsēt-ər, ma-\ (masseter) | [Medical](https://www.merriam-webster.com/dictionary/masseter) |
-| Head and neck | Sternocleidomastoid | stur-noh-klyd-uh-MAS-toyd | \ˌstər-nō-ˌklīd-ə-ˈmas-ˌtȯid\ (sternocleidomastoid) | [Medical](https://www.merriam-webster.com/dictionary/sternocleidomastoid%20muscle) |
+| Head and neck | Sternocleidomastoid | stur-noh-klide-uh-MAS-toyd | \ˌstər-nō-ˌklīd-ə-ˈmas-ˌtȯid\ (sternocleidomastoid) | [Medical](https://www.merriam-webster.com/dictionary/sternocleidomastoid%20muscle) |
 | Trunk | Rectus abdominis | REK-tuhs ab-DAHM-uh-nuhs | \ˈrek-təs\ (rectus); \-ab-ˈdäm-ə-nəs\ (rectus abdominis) | [Medical](https://www.merriam-webster.com/medical/rectus), [Medical](https://www.merriam-webster.com/medical/rectus%20abdominis) |
 | Trunk | External oblique | external oh-BLEEK | \ō-ˈblēk, ə-, -ˈblīk\ (oblique) | [Medical](https://www.merriam-webster.com/medical/oblique) |
 | Trunk | Internal oblique | internal oh-BLEEK | \ō-ˈblēk, ə-, -ˈblīk\ (oblique) | [Medical](https://www.merriam-webster.com/medical/oblique) |
 | Trunk | Transversus abdominis | trans-VUR-suhs uhb-DAHM-uh-nuhs | \tran(t)s-ˈvər-səs-əb-ˈdäm-ə-nəs\ (transversus abdominis) | [Medical](https://www.merriam-webster.com/dictionary/transversus%20abdominis) |
 | Trunk | External intercostals | external int-er-KAHS-tuhl (MW gives the singular) | \ˌint-ər-ˈkäs-tᵊl\ (intercostal) | [Medical](https://www.merriam-webster.com/medical/intercostal) |
 | Trunk | Internal intercostals | internal int-er-KAHS-tuhl (MW gives the singular) | \ˌint-ər-ˈkäs-tᵊl\ (intercostal) | [Medical](https://www.merriam-webster.com/medical/intercostal) |
-| Trunk | Diaphragm | DY-uh-fram | \ˈdī-ə-ˌfram\ (diaphragm) | [Medical](https://www.merriam-webster.com/dictionary/diaphragm) |
+| Trunk | Diaphragm | DYE-uh-fram | \ˈdī-ə-ˌfram\ (diaphragm) | [Medical](https://www.merriam-webster.com/dictionary/diaphragm) |
 | Trunk | Quadratus lumborum | kwah-DRAYT-uhs luhm-BOR-uhm | \-kwä-ˈdrāt-əs\ (pronator quadratus); \-ləm-ˈbȯr-əm\ (quadratus lumborum) | [Medical](https://www.merriam-webster.com/medical/pronator%20quadratus), [Medical](https://www.merriam-webster.com/dictionary/quadratus%20lumborum) |
 | Shoulder and arm | Trapezius | truh-PEE-zee-uhs | \trə-ˈpē-zē-əs, tra-\ (trapezius) | [Medical](https://www.merriam-webster.com/dictionary/trapezius) |
 | Shoulder and arm | Deltoid | DEL-toyd | \ˈdel-ˌtȯid\ (deltoid) | [Medical](https://www.merriam-webster.com/dictionary/deltoid%20muscle) |
 | Shoulder and arm | Pectoralis major | pek-tuh-RAY-luhs major | \ˌpek-tə-ˈrā-ləs\ (pectoralis) | [Medical](https://www.merriam-webster.com/medical/pectoralis) |
 | Shoulder and arm | Serratus anterior | seh-RAYT-uhs anterior | \se-ˈrāt-əs\ (serratus) | [Medical](https://www.merriam-webster.com/medical/serratus) |
-| Shoulder and arm | Latissimus dorsi | luh-TIS-uh-muhs DOR-sy | \lə-ˈtis-ə-məs-ˈdȯr-ˌsī\ (latissimus dorsi) | [Medical](https://www.merriam-webster.com/medical/latissimus%20dorsi) |
-| Shoulder and arm | Infraspinatus | in-fruh-spy-NAYT-uhs | \ˌin-frə-spī-ˈnāt-əs\ (infraspinatus) | [Medical](https://www.merriam-webster.com/medical/infraspinati) |
+| Shoulder and arm | Latissimus dorsi | luh-TIS-uh-muhs DOR-sye | \lə-ˈtis-ə-məs-ˈdȯr-ˌsī\ (latissimus dorsi) | [Medical](https://www.merriam-webster.com/medical/latissimus%20dorsi) |
+| Shoulder and arm | Infraspinatus | in-fruh-spye-NAYT-uhs | \ˌin-frə-spī-ˈnāt-əs\ (infraspinatus) | [Medical](https://www.merriam-webster.com/medical/infraspinati) |
 | Shoulder and arm | Teres minor | TERR-eez minor | \ˈter-ēz-, ˈtir-\ (teres major) | [Medical](https://www.merriam-webster.com/medical/teres%20major) |
 | Shoulder and arm | Subscapularis | suhb-skap-yuh-LARR-uhs | \ˌsəb-ˌskap-yə-ˈlar-əs\ (subscapularis) | [Medical](https://www.merriam-webster.com/medical/subscapularis) |
 | Shoulder and arm | Teres major | TERR-eez major | \ˈter-ēz-, ˈtir-\ (teres major) | [Medical](https://www.merriam-webster.com/medical/teres%20major) |
-| Shoulder and arm | Biceps brachii | BY-seps BRAY-kee-ee | \ˈbī-ˌseps\ (biceps); \-ˈbrā-kē-ˌē, -ˌī\ (biceps brachii) | [Medical](https://www.merriam-webster.com/dictionary/biceps%20brachii), [Medical](https://www.merriam-webster.com/dictionary/biceps%20brachii) |
+| Shoulder and arm | Biceps brachii | BYE-seps BRAY-kee-ee | \ˈbī-ˌseps\ (biceps); \-ˈbrā-kē-ˌē, -ˌī\ (biceps brachii) | [Medical](https://www.merriam-webster.com/dictionary/biceps%20brachii), [Medical](https://www.merriam-webster.com/dictionary/biceps%20brachii) |
 | Shoulder and arm | Brachialis | bray-kee-AL-uhs | \ˌbrā-kē-ˈal-əs, -ˈāl-, -ˈäl-\ (brachialis) | [Medical](https://www.merriam-webster.com/medical/brachialis) |
 | Shoulder and arm | Brachioradialis | bray-kee-oh-rayd-ee-AL-uhs | \ˌbrā-kē-ō-ˌrād-ē-ˈal-əs, -ˈāl-, -ˈäl-\ (brachioradialis) | [Medical](https://www.merriam-webster.com/medical/brachioradialis) |
-| Shoulder and arm | Triceps brachii | TRY-seps BRAY-kee-eye | \ˈtrī-ˌseps\ (triceps); \-ˈbrā-kē-ˌī\ (triceps brachii) | [Medical](https://www.merriam-webster.com/medical/triceps), [Medical](https://www.merriam-webster.com/dictionary/triceps%20brachii) |
+| Shoulder and arm | Triceps brachii | TRYE-seps BRAY-kee-eye | \ˈtrī-ˌseps\ (triceps); \-ˈbrā-kē-ˌī\ (triceps brachii) | [Medical](https://www.merriam-webster.com/medical/triceps), [Medical](https://www.merriam-webster.com/dictionary/triceps%20brachii) |
 | Forearm | Pronator teres | PROH-nayt-er TEER-eez | \ˈprō-ˌnāt-ər\ (pronator); \-ˈtir-ˌēz\ (pronator teres) | [Medical](https://www.merriam-webster.com/medical/pronator), [Medical](https://www.merriam-webster.com/dictionary/pronator%20teres) |
 | Forearm | Supinator | SOO-puh-nayt-er | \ˈsü-pə-ˌnāt-ər\ (supinator) | [Medical](https://www.merriam-webster.com/medical/supinator) |
-| Forearm | Flexor carpi radialis | FLEK-ser KAR-py ray-dee-AY-luhs | \ˈflek-sər, -ˌsȯ(ə)r\ (flexor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis) | [Medical](https://www.merriam-webster.com/medical/flexor), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis) |
+| Forearm | Flexor carpi radialis | FLEK-ser KAR-pye ray-dee-AY-luhs | \ˈflek-sər, -ˌsȯ(ə)r\ (flexor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis) | [Medical](https://www.merriam-webster.com/medical/flexor), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis) |
 | Forearm | Palmaris longus | pal-MARR-uhs LAWNG-guhs | \pal-ˈmar-əs\ (palmaris); \-ˈlȯŋ-gəs\ (palmaris longus) | [Medical](https://www.merriam-webster.com/medical/palmaris), [Medical](https://www.merriam-webster.com/dictionary/palmaris%20longus) |
-| Forearm | Flexor carpi ulnaris | FLEK-ser KAR-py uhl-NARR-uhs | \ˈflek-sər, -ˌsȯ(ə)r\ (flexor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis); \-ˌəl-ˈnar-əs\ (flexor carpi ulnaris) | [Medical](https://www.merriam-webster.com/medical/flexor), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20ulnaris) |
+| Forearm | Flexor carpi ulnaris | FLEK-ser KAR-pye uhl-NARR-uhs | \ˈflek-sər, -ˌsȯ(ə)r\ (flexor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis); \-ˌəl-ˈnar-əs\ (flexor carpi ulnaris) | [Medical](https://www.merriam-webster.com/medical/flexor), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20ulnaris) |
 | Forearm | Flexor digitorum superficialis | FLEK-ser dij-uh-TOR-uhm soo-per-fish-ee-AY-luhs | \ˈflek-sər, -ˌsȯ(ə)r\ (flexor); \-ˌdij-ə-ˈtōr-əm-ˈbrev-əs\ (extensor digitorum brevis); \-ˌsü-pər-ˌfish-ē-ˈā-ləs\ (flexor digitorum superficialis) | [Medical](https://www.merriam-webster.com/medical/flexor), [Medical](https://www.merriam-webster.com/medical/extensor%20digitorum%20brevis), [Medical](https://www.merriam-webster.com/dictionary/flexor%20digitorum%20superficialis) |
-| Forearm | Extensor carpi radialis longus | ik-STEN-ser KAR-py ray-dee-AY-luhs LAWNG-guhs | \ik-ˈsten(t)-sər, -sȯ(ə)r\ (extensor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis); \-ˈlȯŋ-gəs\ (extensor carpi radialis longus) | [Medical](https://www.merriam-webster.com/dictionary/extensor%20muscle), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [Medical](https://www.merriam-webster.com/medical/extensor%20carpi%20radialis%20longus) |
+| Forearm | Extensor carpi radialis longus | ik-STEN-ser KAR-pye ray-dee-AY-luhs LAWNG-guhs | \ik-ˈsten(t)-sər, -sȯ(ə)r\ (extensor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis); \-ˈlȯŋ-gəs\ (extensor carpi radialis longus) | [Medical](https://www.merriam-webster.com/dictionary/extensor%20muscle), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [Medical](https://www.merriam-webster.com/medical/extensor%20carpi%20radialis%20longus) |
 | Forearm | Extensor digitorum | ik-STEN-ser dij-uh-TOR-uhm | \ik-ˈsten(t)-sər, -sȯ(ə)r\ (extensor); \-ˌdij-ə-ˈtōr-əm-ˈbrev-əs\ (extensor digitorum brevis) | [Medical](https://www.merriam-webster.com/dictionary/extensor%20muscle), [Medical](https://www.merriam-webster.com/medical/extensor%20digitorum%20brevis) |
-| Forearm | Extensor carpi ulnaris | ik-STEN-ser KAR-py uhl-NARR-uhs | \ik-ˈsten(t)-sər, -sȯ(ə)r\ (extensor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis); \-ˌəl-ˈnar-əs\ (extensor carpi ulnaris) | [Medical](https://www.merriam-webster.com/dictionary/extensor%20muscle), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [Medical](https://www.merriam-webster.com/medical/extensor%20carpi%20ulnaris) |
+| Forearm | Extensor carpi ulnaris | ik-STEN-ser KAR-pye uhl-NARR-uhs | \ik-ˈsten(t)-sər, -sȯ(ə)r\ (extensor); \-ˈkär-ˌpī-ˌrā-dē-ˈā-ləs, -ˈkär-ˌpē-\ (flexor carpi radialis); \-ˌəl-ˈnar-əs\ (extensor carpi ulnaris) | [Medical](https://www.merriam-webster.com/dictionary/extensor%20muscle), [Medical](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [Medical](https://www.merriam-webster.com/medical/extensor%20carpi%20ulnaris) |
+
+## Words cut from a longer notation
+
+These are the only places where a Merriam-Webster notation was divided between words. Each piece is a run of whole syllables, taken in order from the start of the entry's first pronunciation (a test checks this).
+
+| Entry | First pronunciation | Pieces used |
+|---|---|---|
+| transversus abdominis | \tran(t)s-ˈvər-səs-əb-ˈdäm-ə-nəs\ | transversus: \tran(t)s-ˈvər-səs\ = trans-VUR-suhs; abdominis: \əb-ˈdäm-ə-nəs\ = uhb-DAHM-uh-nuhs |
+| latissimus dorsi | \lə-ˈtis-ə-məs-ˈdȯr-ˌsī\ | latissimus: \lə-ˈtis-ə-məs\ = luh-TIS-uh-muhs; dorsi: \ˈdȯr-ˌsī\ = DOR-sye |
+| flexor carpi radialis | \ˈkär-ˌpī-ˌrā-dē-ˈā-ləs\ | carpi: \ˈkär-ˌpī\ = KAR-pye; radialis: \ˌrā-dē-ˈā-ləs\ = ray-dee-AY-luhs |
+| extensor digitorum brevis | \ˌdij-ə-ˈtōr-əm-ˈbrev-əs\ | digitorum: \ˌdij-ə-ˈtōr-əm\ = dij-uh-TOR-uhm |
+
+## Audio spot-check list
+
+The two readings above confirm the notation was copied correctly. They do not prove that the simple spelling sounds right, which needs a person to listen. For each name: open its source link, play Merriam-Webster's audio, read the Say it line aloud, and mark match or not. Names are sorted by how many of these risks apply: **cut** (piece of a longer notation), **long** (7 or more syllables), **long i** (uses the spelling rule for the i in kite), **alternates** (MW lists more than one pronunciation; the app shows the first).
+
+| Name | Say it | Risks |
+|---|---|---|
+| Extensor carpi radialis longus | ik-STEN-ser KAR-pye ray-dee-AY-luhs LAWNG-guhs | cut, long, long i, alternates |
+| Extensor carpi ulnaris | ik-STEN-ser KAR-pye uhl-NARR-uhs | cut, long, long i, alternates |
+| Flexor carpi radialis | FLEK-ser KAR-pye ray-dee-AY-luhs | cut, long, long i, alternates |
+| Flexor carpi ulnaris | FLEK-ser KAR-pye uhl-NARR-uhs | cut, long, long i, alternates |
+| Extensor digitorum | ik-STEN-ser dij-uh-TOR-uhm | cut, long, alternates |
+| Flexor digitorum superficialis | FLEK-ser dij-uh-TOR-uhm soo-per-fish-ee-AY-luhs | cut, long, alternates |
+| Biceps brachii | BYE-seps BRAY-kee-ee | long i, alternates |
+| Brachioradialis | bray-kee-oh-rayd-ee-AL-uhs | long, alternates |
+| Latissimus dorsi | luh-TIS-uh-muhs DOR-sye | cut, long i |
+| Transversus abdominis | trans-VUR-suhs uhb-DAHM-uh-nuhs | cut, long |
+| Brachialis | bray-kee-AL-uhs | alternates |
+| Diaphragm | DYE-uh-fram | long i |
+| External oblique | external oh-BLEEK | alternates |
+| Infraspinatus | in-fruh-spye-NAYT-uhs | long i |
+| Internal oblique | internal oh-BLEEK | alternates |
+| Masseter | muh-SEET-er | alternates |
+| Occipitofrontalis (frontal belly) | ahk-sip-uht-oh-fruhn-TAY-luhs | long |
+| Sternocleidomastoid | stur-noh-klide-uh-MAS-toyd | long i |
+| Teres major | TERR-eez major | alternates |
+| Teres minor | TERR-eez minor | alternates |
+| Trapezius | truh-PEE-zee-uhs | alternates |
+| Triceps brachii | TRYE-seps BRAY-kee-eye | long i |
+| Buccinator | BUHK-suh-nayt-er | none |
+| Deltoid | DEL-toyd | none |
+| External intercostals | external int-er-KAHS-tuhl | none |
+| Internal intercostals | internal int-er-KAHS-tuhl | none |
+| Palmaris longus | pal-MARR-uhs LAWNG-guhs | none |
+| Pectoralis major | pek-tuh-RAY-luhs major | none |
+| Pronator teres | PROH-nayt-er TEER-eez | none |
+| Quadratus lumborum | kwah-DRAYT-uhs luhm-BOR-uhm | none |
+| Rectus abdominis | REK-tuhs ab-DAHM-uh-nuhs | none |
+| Serratus anterior | seh-RAYT-uhs anterior | none |
+| Subscapularis | suhb-skap-yuh-LARR-uhs | none |
+| Supinator | SOO-puh-nayt-er | none |
+| Temporalis | tem-puh-RAY-luhs | none |
 
 ## Notes
 
 - Merriam-Webster lists two accepted pronunciations for some words, and different entries put a different one first. The app follows each muscle's own entry, so teres is TERR-eez in teres major and teres minor but TEER-eez in pronator teres, and brachii is BRAY-kee-ee in biceps brachii but BRAY-kee-eye in triceps brachii. Both forms are correct.
+- The i in kite is spelled eye at the start of a syllable (BRAY-kee-eye), ye at the end of one (KAR-pye, DOR-sye) and i-consonant-e inside one (klide). A bare final y (KAR-py) is not used, because readers often say it ee, and KAR-pee is Merriam-Webster's second pronunciation, not its first.
 - Intercostals: Merriam-Webster gives only the singular, intercostal, so the app shows that with a note instead of adding a sound.
 - No dictionary audio is stored in the app. Each source line links to the Merriam-Webster entry, which has its own audio when online.
