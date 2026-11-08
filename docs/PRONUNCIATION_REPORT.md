@@ -73,43 +73,43 @@ These are the only places where a Merriam-Webster notation was divided between w
 
 The two readings above confirm the notation was copied correctly. They do not prove that the simple spelling sounds right, which needs a person to listen. For each name: open its source link, play Merriam-Webster's audio, read the Say it line aloud, and mark match or not. Names are sorted by how many of these risks apply: **cut** (piece of a longer notation), **long** (7 or more syllables), **long i** (uses the spelling rule for the i in kite), **alternates** (MW lists more than one pronunciation; the app shows the first).
 
-| Name | Say it | Risks |
-|---|---|---|
-| Extensor carpi radialis longus | ik-STEN-ser KAR-pye ray-dee-AY-luhs LAWNG-guhs | cut, long, long i, alternates |
-| Extensor carpi ulnaris | ik-STEN-ser KAR-pye uhl-NARR-uhs | cut, long, long i, alternates |
-| Flexor carpi radialis | FLEK-ser KAR-pye ray-dee-AY-luhs | cut, long, long i, alternates |
-| Flexor carpi ulnaris | FLEK-ser KAR-pye uhl-NARR-uhs | cut, long, long i, alternates |
-| Extensor digitorum | ik-STEN-ser dij-uh-TOR-uhm | cut, long, alternates |
-| Flexor digitorum superficialis | FLEK-ser dij-uh-TOR-uhm soo-per-fish-ee-AY-luhs | cut, long, alternates |
-| Biceps brachii | BYE-seps BRAY-kee-ee | long i, alternates |
-| Brachioradialis | bray-kee-oh-rayd-ee-AL-uhs | long, alternates |
-| Latissimus dorsi | luh-TIS-uh-muhs DOR-sye | cut, long i |
-| Transversus abdominis | trans-VUR-suhs uhb-DAHM-uh-nuhs | cut, long |
-| Brachialis | bray-kee-AL-uhs | alternates |
-| Diaphragm | DYE-uh-fram | long i |
-| External oblique | external oh-BLEEK | alternates |
-| Infraspinatus | in-fruh-spye-NAYT-uhs | long i |
-| Internal oblique | internal oh-BLEEK | alternates |
-| Masseter | muh-SEET-er | alternates |
-| Occipitofrontalis (frontal belly) | ahk-sip-uht-oh-fruhn-TAY-luhs | long |
-| Sternocleidomastoid | stur-noh-klide-uh-MAS-toyd | long i |
-| Teres major | TERR-eez major | alternates |
-| Teres minor | TERR-eez minor | alternates |
-| Trapezius | truh-PEE-zee-uhs | alternates |
-| Triceps brachii | TRYE-seps BRAY-kee-eye | long i |
-| Buccinator | BUHK-suh-nayt-er | none |
-| Deltoid | DEL-toyd | none |
-| External intercostals | external int-er-KAHS-tuhl | none |
-| Internal intercostals | internal int-er-KAHS-tuhl | none |
-| Palmaris longus | pal-MARR-uhs LAWNG-guhs | none |
-| Pectoralis major | pek-tuh-RAY-luhs major | none |
-| Pronator teres | PROH-nayt-er TEER-eez | none |
-| Quadratus lumborum | kwah-DRAYT-uhs luhm-BOR-uhm | none |
-| Rectus abdominis | REK-tuhs ab-DAHM-uh-nuhs | none |
-| Serratus anterior | seh-RAYT-uhs anterior | none |
-| Subscapularis | suhb-skap-yuh-LARR-uhs | none |
-| Supinator | SOO-puh-nayt-er | none |
-| Temporalis | tem-puh-RAY-luhs | none |
+| Name | Say it | Risks | Hear it |
+|---|---|---|---|
+| Extensor carpi radialis longus | ik-STEN-ser KAR-pye ray-dee-AY-luhs LAWNG-guhs | cut, long, long i, alternates | [extensor](https://www.merriam-webster.com/dictionary/extensor%20muscle), [flexor carpi radialis](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [extensor carpi radialis longus](https://www.merriam-webster.com/medical/extensor%20carpi%20radialis%20longus) |
+| Extensor carpi ulnaris | ik-STEN-ser KAR-pye uhl-NARR-uhs | cut, long, long i, alternates | [extensor](https://www.merriam-webster.com/dictionary/extensor%20muscle), [flexor carpi radialis](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [extensor carpi ulnaris](https://www.merriam-webster.com/medical/extensor%20carpi%20ulnaris) |
+| Flexor carpi radialis | FLEK-ser KAR-pye ray-dee-AY-luhs | cut, long, long i, alternates | [flexor](https://www.merriam-webster.com/medical/flexor), [flexor carpi radialis](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis) |
+| Flexor carpi ulnaris | FLEK-ser KAR-pye uhl-NARR-uhs | cut, long, long i, alternates | [flexor](https://www.merriam-webster.com/medical/flexor), [flexor carpi radialis](https://www.merriam-webster.com/dictionary/flexor%20carpi%20radialis), [flexor carpi ulnaris](https://www.merriam-webster.com/dictionary/flexor%20carpi%20ulnaris) |
+| Extensor digitorum | ik-STEN-ser dij-uh-TOR-uhm | cut, long, alternates | [extensor](https://www.merriam-webster.com/dictionary/extensor%20muscle), [extensor digitorum brevis](https://www.merriam-webster.com/medical/extensor%20digitorum%20brevis) |
+| Flexor digitorum superficialis | FLEK-ser dij-uh-TOR-uhm soo-per-fish-ee-AY-luhs | cut, long, alternates | [flexor](https://www.merriam-webster.com/medical/flexor), [extensor digitorum brevis](https://www.merriam-webster.com/medical/extensor%20digitorum%20brevis), [flexor digitorum superficialis](https://www.merriam-webster.com/dictionary/flexor%20digitorum%20superficialis) |
+| Biceps brachii | BYE-seps BRAY-kee-ee | long i, alternates | [biceps](https://www.merriam-webster.com/dictionary/biceps%20brachii), [biceps brachii](https://www.merriam-webster.com/dictionary/biceps%20brachii) |
+| Brachioradialis | bray-kee-oh-rayd-ee-AL-uhs | long, alternates | [brachioradialis](https://www.merriam-webster.com/medical/brachioradialis) |
+| Latissimus dorsi | luh-TIS-uh-muhs DOR-sye | cut, long i | [latissimus dorsi](https://www.merriam-webster.com/medical/latissimus%20dorsi) |
+| Transversus abdominis | trans-VUR-suhs uhb-DAHM-uh-nuhs | cut, long | [transversus abdominis](https://www.merriam-webster.com/dictionary/transversus%20abdominis) |
+| Brachialis | bray-kee-AL-uhs | alternates | [brachialis](https://www.merriam-webster.com/medical/brachialis) |
+| Diaphragm | DYE-uh-fram | long i | [diaphragm](https://www.merriam-webster.com/dictionary/diaphragm) |
+| External oblique | external oh-BLEEK | alternates | [oblique](https://www.merriam-webster.com/medical/oblique) |
+| Infraspinatus | in-fruh-spye-NAYT-uhs | long i | [infraspinatus](https://www.merriam-webster.com/medical/infraspinati) |
+| Internal oblique | internal oh-BLEEK | alternates | [oblique](https://www.merriam-webster.com/medical/oblique) |
+| Masseter | muh-SEET-er | alternates | [masseter](https://www.merriam-webster.com/dictionary/masseter) |
+| Occipitofrontalis (frontal belly) | ahk-sip-uht-oh-fruhn-TAY-luhs | long | [occipitofrontalis](https://www.merriam-webster.com/dictionary/occipitofrontalis) |
+| Sternocleidomastoid | stur-noh-klide-uh-MAS-toyd | long i | [sternocleidomastoid](https://www.merriam-webster.com/dictionary/sternocleidomastoid%20muscle) |
+| Teres major | TERR-eez major | alternates | [teres major](https://www.merriam-webster.com/medical/teres%20major) |
+| Teres minor | TERR-eez minor | alternates | [teres major](https://www.merriam-webster.com/medical/teres%20major) |
+| Trapezius | truh-PEE-zee-uhs | alternates | [trapezius](https://www.merriam-webster.com/dictionary/trapezius) |
+| Triceps brachii | TRYE-seps BRAY-kee-eye | long i | [triceps](https://www.merriam-webster.com/medical/triceps), [triceps brachii](https://www.merriam-webster.com/dictionary/triceps%20brachii) |
+| Buccinator | BUHK-suh-nayt-er | none | [buccinator](https://www.merriam-webster.com/dictionary/buccinator%20muscle) |
+| Deltoid | DEL-toyd | none | [deltoid](https://www.merriam-webster.com/dictionary/deltoid%20muscle) |
+| External intercostals | external int-er-KAHS-tuhl | none | [intercostal](https://www.merriam-webster.com/medical/intercostal) |
+| Internal intercostals | internal int-er-KAHS-tuhl | none | [intercostal](https://www.merriam-webster.com/medical/intercostal) |
+| Palmaris longus | pal-MARR-uhs LAWNG-guhs | none | [palmaris](https://www.merriam-webster.com/medical/palmaris), [palmaris longus](https://www.merriam-webster.com/dictionary/palmaris%20longus) |
+| Pectoralis major | pek-tuh-RAY-luhs major | none | [pectoralis](https://www.merriam-webster.com/medical/pectoralis) |
+| Pronator teres | PROH-nayt-er TEER-eez | none | [pronator](https://www.merriam-webster.com/medical/pronator), [pronator teres](https://www.merriam-webster.com/dictionary/pronator%20teres) |
+| Quadratus lumborum | kwah-DRAYT-uhs luhm-BOR-uhm | none | [pronator quadratus](https://www.merriam-webster.com/medical/pronator%20quadratus), [quadratus lumborum](https://www.merriam-webster.com/dictionary/quadratus%20lumborum) |
+| Rectus abdominis | REK-tuhs ab-DAHM-uh-nuhs | none | [rectus](https://www.merriam-webster.com/medical/rectus), [rectus abdominis](https://www.merriam-webster.com/medical/rectus%20abdominis) |
+| Serratus anterior | seh-RAYT-uhs anterior | none | [serratus](https://www.merriam-webster.com/medical/serratus) |
+| Subscapularis | suhb-skap-yuh-LARR-uhs | none | [subscapularis](https://www.merriam-webster.com/medical/subscapularis) |
+| Supinator | SOO-puh-nayt-er | none | [supinator](https://www.merriam-webster.com/medical/supinator) |
+| Temporalis | tem-puh-RAY-luhs | none | [temporalis](https://www.merriam-webster.com/dictionary/temporalis%20muscle) |
 
 ## Notes
 

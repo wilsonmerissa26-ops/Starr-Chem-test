@@ -50,16 +50,16 @@ for (const [k, ws] of cuts) md += `| ${esc(P.SOURCES[k].entry)} | \\${esc(first(
 md += "\n## Audio spot-check list\n\nThe two readings above confirm the notation was copied correctly. They do not prove that the simple spelling sounds right, " +
   "which needs a person to listen. For each name: open its source link, play Merriam-Webster's audio, read the Say it line aloud, and mark match or not. " +
   "Names are sorted by how many of these risks apply: **cut** (piece of a longer notation), **long** (7 or more syllables), **long i** (uses the spelling rule for the i in kite), " +
-  "**alternates** (MW lists more than one pronunciation; the app shows the first).\n\n| Name | Say it | Risks |\n|---|---|---|\n";
+  "**alternates** (MW lists more than one pronunciation; the app shows the first).\n\n| Name | Say it | Risks | Hear it |\n|---|---|---|---|\n";
 const risk = rows.map(x => {
   const looked = x.r.parts.filter(p => !p.plain), tags = [];
   if (looked.some(p => cutWords.has(p.word + "|" + p.source))) tags.push("cut");
   if (looked.reduce((n, p) => n + p.mw.split("-").filter(Boolean).length, 0) >= 7) tags.push("long");
   if (looked.some(p => p.mw.includes("ī"))) tags.push("long i");
   if (x.r.sources.some(s => s.notation.includes(","))) tags.push("alternates");
-  return { name: x.name, text: x.r.text, tags };
+  return { name: x.name, text: x.r.text, tags, links: x.r.sources.map(s => `[${esc(s.entry)}](${s.url.replace(/ /g, "%20")})`).join(", ") };
 }).sort((a, b) => b.tags.length - a.tags.length || a.name.localeCompare(b.name));
-for (const x of risk) md += `| ${x.name} | ${x.text} | ${x.tags.join(", ") || "none"} |\n`;
+for (const x of risk) md += `| ${x.name} | ${x.text} | ${x.tags.join(", ") || "none"} | ${x.links} |\n`;
 md += "\n## Notes\n\n";
 md += "- Merriam-Webster lists two accepted pronunciations for some words, and different entries put a different one first. " +
   "The app follows each muscle's own entry, so teres is TERR-eez in teres major and teres minor but TEER-eez in pronator teres, and brachii is BRAY-kee-ee in biceps brachii but BRAY-kee-eye in triceps brachii. Both forms are correct.\n";
