@@ -164,6 +164,13 @@ So each drawing yields one new-picture answer in total. A drawing counts as seen
 
 **Study songs.** `lessons/ap-muscles/songs.js` lists songs per set (`set`, `title`, `src`, optional `muscles` and `lyrics`); audio files go in `lessons/ap-muscles/songs/`. Songs appear at the top of that set's learn step; playing one is a `teach` event, never evidence. With no songs listed, no song panel shows. The separate Physiology Music Lab is unchanged.
 
+**Chapter 10: how a muscle fiber contracts (`lessons/ap-ch10/`).** Textbook-based preparation for Exam 3 (Nov 17), following OpenStax *Anatomy and Physiology 2e* sections 10.2 and 10.3 (Figures 10.6, 10.8 to 10.12, shown labeled). Dr. Granger has not issued a Chapter 10 objective list. Five objectives: `bio131.ch10.nmj`, `bio131.ch10.ec-coupling`, `bio131.ch10.crossbridge-atp`, `bio131.ch10.relaxation`, `bio131.ch10.energy`.
+- Learn: eight short stages, one per screen (signal crosses the gap, spreads, calcium unlocks actin, cross-bridges pull, what shortens, relaxing, ATP's three jobs, where new ATP comes from), each with a collapsed "if this step fails" or similar note. Viewing is a `teach` event.
+- Put it in order (guided): tap the next step of contraction (10 steps) and relaxation (4). A wrong tap shows a hint naming the topic. Recorded per topic as `guided`, `assistance.guided`, never independent; `sequence-order` when a topic had a wrong tap. Finishing both unlocks "On your own."
+- Explain it: a self-check against four points, with a model answer behind a tap. Her text stays on screen and is never saved or graded.
+- On your own: five new multiple-choice questions per visit, one per topic; the next day brings five different ones (25 in all, 5 days). Choice order is stable across reloads. Each wrong choice names its mix-up (for example `calcium-target`, `atp-role`, `energy-system`) and explains why it doesn't fit. Application questions describe a mechanism ("a toxin blocks ACh release") rather than a named drug, so each answer follows from the textbook steps. Results list the mix-ups with a link to the stage that teaches each one.
+- Images: `tools/build-ap-ch10-images.py`.
+
 **Steps:**
 
 1. **Teach:** labeled figure, plus location, action and a "how to recognize it" cue for each muscle.

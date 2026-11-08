@@ -144,7 +144,12 @@ const PILOT_OBJECTIVES=[
  {id:"bio131.ch9.muscle-name-roots",course:"BIO131",subject:"ap",title:"A&P: decode muscle names",resource:"ap-muscles"},
  {id:"bio131.ch9.trunk-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify trunk muscles",resource:"ap-trunk"},
  {id:"bio131.ch9.trunk-actions",course:"BIO131",subject:"ap",title:"A&P: trunk muscle actions",resource:"ap-trunk"},
- {id:"bio131.ch9.trunk-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify trunk muscles on new pictures",resource:"ap-trunk"}
+ {id:"bio131.ch9.trunk-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify trunk muscles on new pictures",resource:"ap-trunk"},
+ {id:"bio131.ch10.nmj",course:"BIO131",subject:"ap",title:"A&P: the neuromuscular junction",resource:"ap-ch10"},
+ {id:"bio131.ch10.ec-coupling",course:"BIO131",subject:"ap",title:"A&P: excitation-contraction coupling",resource:"ap-ch10"},
+ {id:"bio131.ch10.crossbridge-atp",course:"BIO131",subject:"ap",title:"A&P: the cross-bridge cycle and ATP",resource:"ap-ch10"},
+ {id:"bio131.ch10.relaxation",course:"BIO131",subject:"ap",title:"A&P: how a muscle fiber relaxes",resource:"ap-ch10"},
+ {id:"bio131.ch10.energy",course:"BIO131",subject:"ap",title:"A&P: where muscle ATP comes from",resource:"ap-ch10"}
 ];
 function daysToNextExam(subject){const e=SEED.filter(t=>t.subject===subject&&t.kind==="exam"&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];if(!e)return 999;return Math.round((parse(e.date)-parse(today))/86400000);}
 function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)return;
@@ -167,7 +172,8 @@ const RESOURCE_LIBRARY=Object.freeze({
   physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"},
   "chem-ch8":{title:"Chemistry · Chapter 8: Adding HBr and HCl to alkenes",src:"./lessons/chem-ch8/"},
   "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"},
-  "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"}
+  "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"},
+  "ap-ch10":{title:"A&P · Chapter 10: How a muscle fiber contracts",src:"./lessons/ap-ch10/index.html"}
 });
 function openResource(key){
   if(!Object.prototype.hasOwnProperty.call(RESOURCE_LIBRARY,key))return false;
