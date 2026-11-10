@@ -237,5 +237,5 @@
   var MIXUP_STAGE = { "calcium-target": "calcium", "tropomyosin-role": "calcium", "ion-source": "calcium", "sequence-skip": "calcium",
     "ttubule-sr-confused": "spread", "structure-confused": "spread", "atp-role": "atp", "sarcomere-bands": "sliding", "energy-system": "energy",
     "ache-role": "relax", "relaxation-mixup": "relax", "synapse-gap": "nmj", "ion-confused": "nmj" };
-  global.Ch10Lesson = { OBJ: OBJ, STATUS: STATUS, STAGES: STAGES, ORDERS: ORDERS, EXPLAIN: EXPLAIN, ITEMS: ITEMS, MIXUPS: MIXUPS, MIXUP_STAGE: MIXUP_STAGE, PER_DAY: 5 };
+  global.LESSON = global.Ch10Lesson = { NAME: "Chapter 10", PREFIX: "ap-ch10", SOURCE: "lesson-ap-ch10", OBJ: OBJ, STATUS: STATUS, STAGES: STAGES, ORDERS: ORDERS, EXPLAIN: EXPLAIN, ITEMS: ITEMS, MIXUPS: MIXUPS, MIXUP_STAGE: MIXUP_STAGE, PER_DAY: 5 };
 })(typeof window !== "undefined" ? window : globalThis);

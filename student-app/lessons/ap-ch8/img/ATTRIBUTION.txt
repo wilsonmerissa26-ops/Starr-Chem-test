@@ -1,0 +1,11 @@
+Images: OpenStax, Anatomy and Physiology 2e (https://openstax.org/details/books/anatomy-and-physiology-2e),
+licensed CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Resized only.
+
+fibrous.jpg: Fibrous Joints (section 9.2) (source file 904_Fibrous_Joints.jpg)
+cartilaginous.jpg: Cartilaginous Joints (section 9.3) (source file 906_Cartilaginous_Joints.jpg)
+synovial.jpg: Figure 9.8 Synovial Joints (source file 907_Synovial_Joints.jpg)
+types.jpg: Figure 9.10 Types of Synovial Joints (source file 909_Types_of_Synovial_Joints.jpg)
+moves1.jpg: Movements of the Body, part 1 (section 9.5) (source file 911_Body_Movements(Page 1).jpg)
+moves2.jpg: Movements of the Body, part 2 (section 9.5) (source file 911_Body_Movements(Page 2).jpg)
+elbow.jpg: Figure 9.17 Elbow Joint (source file 915_Elbow_Joint.jpg)
+knee.jpg: Figure 9.19 Knee Joint (source file 917_Knee_Joint.jpg)

@@ -179,6 +179,15 @@ So each drawing yields one new-picture answer in total. A drawing counts as seen
 - On your own: five new multiple-choice questions per visit, one per topic; the next day brings five different ones (25 in all, 5 days). Choice order is stable across reloads. Each wrong choice names its mix-up (for example `calcium-target`, `atp-role`, `energy-system`) and explains why it doesn't fit. Application questions describe a mechanism ("a toxin blocks ACh release") rather than a named drug, so each answer follows from the textbook steps. Results list the mix-ups with a link to the stage that teaches each one.
 - Images: `tools/build-ap-ch10-images.py`.
 
+**Shared engine (`lessons/shared/process-lesson.js`).** Chapters 8 and 10 run on one engine; each page sets `window.LESSON` (name, item prefix, objectives, stages, practice, questions, mix-ups). Guided practice is either put-in-order (`ORDERS`, Chapter 10) or sort-into-categories (`SORTS`, Chapter 8). After a day's five questions, an optional button offers the next five now, for when the exam leaves too few days; the page says spacing them out helps memory more. A same-day extra set is still recorded as `independent`; a set on a later day is `review`.
+
+**Chapter 8: joints and movements (`lessons/ap-ch8/`).** Textbook-based preparation for Exam 3, following OpenStax *Anatomy and Physiology 2e* Chapter 9 (Joints), sections 9.1 to 9.6; movements are named from anatomical position. Objectives: `bio131.ch8.classification`, `bio131.ch8.synovial-structure`, `bio131.ch8.synovial-types`, `bio131.ch8.movements`, `bio131.ch8.selected-joints`.
+- Learn: nine stages (two ways to classify, fibrous, cartilaginous, synovial parts, the six synovial types, movements in two parts, shoulder and elbow, hip and knee). The shoulder and elbow stage ties back to the rotator cuff and arm muscles (Chapter 9) and the cross-bridge cycle (Chapter 10).
+- Sort them (guided): eight joints into fibrous, cartilaginous or synovial, then eight into the six synovial types. A wrong tap shows a clue that never names the category; the right tap shows why. Recorded per topic as `guided`.
+- Explain it: why the shoulder moves more than the elbow, and what it gives up.
+- On your own: 25 questions, five per visit, one per topic, with a mix-up and explanation for every wrong choice.
+- Images: `tools/build-ap-ch8-images.py` (OpenStax Chapter 9 figures; figure numbers given only where checked).
+
 **Steps:**
 
 1. **Teach:** labeled figure, plus location, action and a "how to recognize it" cue for each muscle.
