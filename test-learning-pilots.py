@@ -1185,6 +1185,103 @@ with sync_playwright() as p:
     guarded("pictures", t_pictures)
 
     # =====================================================================================
+    section("A&P Chapter 10 (muscle physiology): accurate content, guided order, independent evidence, next-day review")
+    CH10 = BASE + "lessons/ap-ch10/"
+    def ch10_order(page, mistakes=0):
+        page.click("[data-step='order']"); page.wait_for_selector(".choice")
+        O = page.evaluate("Ch10Lesson.ORDERS")
+        for oi, o in enumerate(O):
+            if oi == 0 and mistakes: page.locator(".choice", has_text=o["events"][3]["t"]).first.click(); page.wait_for_timeout(80)
+            for e in o["events"]:
+                page.locator(".choice", has_text=e["t"]).first.click(); page.wait_for_timeout(50)
+            page.wait_for_timeout(250)
+            if oi < len(O) - 1: page.click("#nextOrder"); page.wait_for_selector(".choice")
+        page.wait_for_timeout(300)
+    def ch10_answer(page, text):
+        page.locator("#q .choice", has_text=text).first.click(); page.wait_for_selector("#nextq")
+        fbk = page.inner_text("#qfb"); page.click("#nextq"); page.wait_for_timeout(200)
+        return fbk
+    def t_ch10_data():
+        ctx, page, errs = fresh(url=CH10); page.wait_for_selector("#screen h2")
+        L = page.evaluate("Ch10Lesson")
+        items = L["ITEMS"]
+        days = [items[d * 5:(d + 1) * 5] for d in range(5)]
+        check("25 independent questions, 5 per topic, and every day's 5 cover all five topics once",
+              len(items) == 25 and all(sorted(i["obj"] for i in d) == sorted(L["OBJ"]) for d in days) and len({i["id"] for i in items}) == 25)
+        bad = [i["id"] for i in items if len(i["wrong"]) != 3 or any(w["err"] not in L["MIXUPS"] or not w["why"] for w in i["wrong"])
+               or i["right"]["t"] in [w["t"] for w in i["wrong"]] or not i["right"]["why"]]
+        check("Every wrong choice names its mix-up and explains why it doesn't fit; no choice repeats the answer", not bad, bad)
+        give = [i["id"] for i in items if i["right"]["t"].lower().rstrip(".") in i["prompt"].lower()]
+        check("No question contains its own answer", not give, give)
+        R = {i["id"].replace("ap-ch10-", ""): i["right"]["t"] for i in items}
+        anchors = [("ec-calcium-binds", "Troponin"), ("xb-detach", "new ATP binds"), ("xb-power-stroke", "Pi is released"), ("xb-hydrolysis", "cocks the myosin head"),
+                   ("xb-sarcomere", "A band stays the same width"), ("xb-rigor", "no ATP is available"), ("relax-requires", "pumped back into the sarcoplasmic reticulum, using ATP"),
+                   ("relax-ache", "breaks down ACh"), ("nmj-released", "Acetylcholine"), ("ec-ca-store", "sarcoplasmic reticulum"), ("energy-first-seconds", "Creatine phosphate"),
+                   ("energy-glycolysis", "net 2 ATP"), ("energy-rest", "Aerobic respiration"), ("energy-aerobic-where", "mitochondria")]
+        off = [(k, v) for k, v in anchors if v not in R.get(k, "")]
+        check("Key facts match OpenStax 10.2 and 10.3: Ca²⁺ binds troponin, ATP binding detaches myosin, Pi release triggers the power stroke, splitting ATP re-cocks, A band constant, AChE, energy systems", not off, off)
+        text = json.dumps(L["STAGES"], ensure_ascii=False)
+        facts = ["About 15 seconds", "net 2 ATP", "About 36 ATP", "about 95%", "−60 to −90 mV", "about 10 nm", "A band keeps its width", "not powered by ATP"]
+        check("Teaching screens state the textbook numbers (15 s, net 2 ATP, about 36 ATP, 95%, −60 to −90 mV, 10 nm)", all(f in text for f in facts), [f for f in facts if f not in text])
+        stage_ids = [x["id"] for x in L["STAGES"]]
+        check("Every mix-up review link points to a real teaching stage", all(v in stage_ids for v in L["MIXUP_STAGE"].values()))
+        figs = [x["fig"] for x in L["STAGES"] if x["fig"]]
+        check("Every teaching figure exists, with an OpenStax attribution file", all(os.path.exists(os.path.join(ROOT, "student-app/lessons/ap-ch10", f)) for f in figs)
+              and "CC BY-NC-SA 4.0" in open(os.path.join(ROOT, "student-app/lessons/ap-ch10/img/ATTRIBUTION.txt")).read())
+        hub = open(os.path.join(ROOT, "student-app/index.html")).read(); appjs = open(os.path.join(ROOT, "student-app/app.js")).read()
+        check("The hub opens the lesson and the study plan tracks its five objectives",
+              'data-resource="ap-ch10"' in hub and '"ap-ch10":{title:"A&P · Chapter 10: How a muscle fiber contracts",src:"./lessons/ap-ch10/index.html"}' in appjs
+              and all('{id:"%s"' % o in appjs for o in L["OBJ"].values()))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+    guarded("ch10 data", t_ch10_data)
+    def t_ch10_flow():
+        ctx, page, errs = fresh(url=CH10); page.wait_for_selector("#screen h2")
+        check("Lesson opens on teaching (stage 1 of 8), with no question on screen", "Stage 1 of 8" in page.inner_text("#screen") and not page.query_selector("#q"))
+        check("'On your own' is locked until the steps are put in order", page.is_disabled("[data-step='independent']"))
+        for _ in range(7): page.click("#nextStage"); page.wait_for_timeout(60)
+        t = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] == "teach"]
+        check("Each teaching stage is noted as viewed, never as evidence", len(t) == 8 and all(e["correct"] is None and not e["independent"] for e in t), len(t))
+        ch10_order(page, mistakes=1)
+        g = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] == "guided"]
+        nmj = [e for e in g if e["itemId"] == "ap-ch10-order-contraction-nmj"]
+        check("Ordering is guided practice: help on every wrong tap, recorded per topic, never independent",
+              len(g) == 4 and all(not e["independent"] and e["assistance"]["guided"] for e in g) and nmj and nmj[0]["correct"] is False and nmj[0]["errorType"] == "sequence-order",
+              [(e["itemId"], e["correct"]) for e in g])
+        check("Finishing both sequences unlocks 'On your own'", not page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='explain']"); page.wait_for_selector("#explainBox")
+        page.fill("#explainBox", "synthetic test explanation"); page.check("#ex0"); page.wait_for_timeout(200)
+        ex = [e for e in evs(page, {"course": "BIO131"}) if "explain" in e["itemId"]]
+        check("Explain it is a self-check: her text is not saved and nothing is graded", len(ex) == 1 and ex[0]["correct"] is None and "synthetic" not in json.dumps(evs(page)), len(ex))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q .choice")
+        L = page.evaluate("Ch10Lesson")
+        order1 = page.eval_on_selector_all("#q .choice", "els => els.map(e => e.textContent)")
+        page.reload(); page.wait_for_selector("#screen h2"); page.click("[data-step='independent']"); page.wait_for_selector("#q .choice")
+        check("Choices keep the same order after a reload", page.eval_on_selector_all("#q .choice", "els => els.map(e => e.textContent)") == order1)
+        day1 = L["ITEMS"][:5]
+        fbs = [ch10_answer(page, day1[0]["right"]["t"]), ch10_answer(page, day1[1]["wrong"][0]["t"])] + [ch10_answer(page, it["right"]["t"]) for it in day1[2:]]
+        check("A wrong choice gets the right answer, why her choice doesn't fit, and a note that the miss stays",
+              "The answer is: Troponin" in fbs[1] and "Tropomyosin is the protein that gets moved" in fbs[1] and "stays in your history" in fbs[1], fbs[1][:200])
+        res = page.inner_text("#screen")
+        check("Results name the mix-up and link back to the stage that teaches it", "4 of 5 correct" in res and "what Ca²⁺ binds" in res and "Review: 3. Calcium unlocks actin" in res, res[:200])
+        e1 = {e["itemId"]: e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")}
+        check("Day 1: five first answers are independent evidence, one per topic, and the miss keeps its error type",
+              len(e1) == 5 and all(e["independent"] and e["unfamiliar"] for e in e1.values()) and e1["ap-ch10-ec-calcium-binds"]["errorType"] == "calcium-target"
+              and sorted(e["objectiveId"] for e in e1.values()) == sorted(L["OBJ"].values()))
+        check("E-C coupling needs review after the miss; the others are shown once", status(page, "bio131.ch10.ec-coupling")["status"] == "needs-review"
+              and status(page, "bio131.ch10.nmj")["status"] == "shown-once", (status(page, "bio131.ch10.ec-coupling")["status"], status(page, "bio131.ch10.nmj")["status"]))
+        page.click("[data-stage]"); page.wait_for_timeout(200)
+        check("The review link opens that teaching stage", "Calcium unlocks actin" in page.inner_text("#screen h2"))
+        check("Chapter 10 work never changes Chapter 9 objectives", status(page, "bio131.ch9.facial-muscle-id")["status"] == "not-started")
+        p2, e2 = page_at(ctx, DAY2, CH10); p2.wait_for_selector("#q .choice", timeout=8000)
+        check("Next day the lesson opens on NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
+        for it in L["ITEMS"][5:10]: ch10_answer(p2, it["right"]["t"])
+        new = [e for e in evs(p2, {"course": "BIO131"}) if e["activity"] == "review"]
+        check("Day 2 gives five different questions, one per topic, recorded as review", sorted(e["itemId"] for e in new) == sorted(i["id"] for i in L["ITEMS"][5:10]), [e["itemId"] for e in new])
+        check("The day 1 miss is still in her history", any(e["itemId"] == "ap-ch10-ec-calcium-binds" and e["correct"] is False for e in evs(p2, {"course": "BIO131"})))
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+    guarded("ch10 flow", t_ch10_flow)
+
+    # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")
     def t_shared():
         ctx, page, errs = fresh(url=CHEM); page.wait_for_selector("#screen h2"); chem_guided_complete(page)

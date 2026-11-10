@@ -1,0 +1,9 @@
+Images: OpenStax, Anatomy and Physiology 2e (https://openstax.org/details/books/anatomy-and-physiology-2e),
+licensed CC BY-NC-SA 4.0 (https://creativecommons.org/licenses/by-nc-sa/4.0/). Resized; nmj.jpg is cropped to one panel.
+
+nmj.jpg: Figure 10.6 Motor End-Plate and Innervation (bottom panel) (source file 1009_Motor_End_Plate_and_Innervation.jpg)
+contraction.jpg: Figure 10.8 Contraction of a Muscle Fiber (source file 1010a_Contraction_new.jpg)
+relaxation.jpg: Figure 10.9 Relaxation of a Muscle Fiber (source file 1010b_Relaxation_new.jpg)
+crossbridge.jpg: Figure 10.11 Skeletal Muscle Contraction (cross-bridge cycle) (source file 1008_Skeletal_Muscle_Contraction.jpg)
+sliding.jpg: Figure 10.10 The Sliding Filament Model of Muscle Contraction (source file 1006_Sliding_Filament_Model_of_Muscle_Contraction.jpg)
+metabolism.jpg: Figure 10.12 Muscle Metabolism (source file 1016_Muscle_Metabolism.jpg)
