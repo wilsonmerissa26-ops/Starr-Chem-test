@@ -5,7 +5,7 @@ on:
     branches: [ "main", "learning-pilots-ab" ]
   pull_request:
     # Also run on PRs stacked on the pilot branches (#112 targets learning-pilots-ab, #113 targets ap-upper-limb).
-    branches: [ "main", "learning-pilots-ab", "ap-upper-limb" ]
+    branches: [ "main", "learning-pilots-ab", "ap-upper-limb", "ap-ch10" ]
   workflow_dispatch:
 
 jobs:
