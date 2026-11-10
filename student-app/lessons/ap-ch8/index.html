@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chapter 8: Joints and Movements</title>
+<link rel="stylesheet" href="../lessons.css">
+<style>
+.fig{margin:10px auto;max-width:640px}
+.fig img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff}
+ul.points{margin:10px 0;padding-left:1.2em;display:grid;gap:8px;line-height:1.5}
+details.more{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff}
+details.more summary{cursor:pointer;font-weight:700;min-height:32px;padding-top:4px}
+.choices{display:grid;gap:8px;margin-top:10px}
+.choice{text-align:left;font:inherit;line-height:1.4;padding:12px 14px;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.choice:disabled{cursor:default;opacity:.75}
+.choice.right{border-color:var(--good);background:var(--good-bg);opacity:1}
+.choice.wrong{border-color:var(--bad);background:var(--bad-bg);opacity:1}
+.cats{grid-template-columns:repeat(auto-fit,minmax(9rem,1fr))}
+.cats .choice{text-align:center;font-weight:700}
+ol.placed{margin:10px 0;padding-left:1.4em;display:grid;gap:6px}
+ol.placed li{background:var(--lav);border-radius:8px;padding:6px 10px}
+.prompt{font-weight:650;font-size:1.05rem}
+textarea{width:100%;font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px;margin:6px 0 10px}
+label.check{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+label.check input{width:20px;height:20px;margin-top:2px}
+.linkbtn{font:inherit;background:none;border:0;color:var(--purple);text-decoration:underline;cursor:pointer;padding:4px 0;min-height:32px}
+.locked{margin-top:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="eyebrow">BIO 131 · Chapter 8 · Articulations · Amerman, Human Anatomy and Physiology, 3rd ed.</div>
+  <h1>Joints and the movements they allow</h1>
+  <p class="badge">Textbook-based preparation for Exam 3 (Nov 17): classifying joints, synovial joint parts and types, body movements, and the shoulder, elbow, hip and knee. Dr. Granger has not issued a Chapter 8 objective list, so check the details against Amerman Chapter 8 and your lecture notes.</p>
+  <div class="row" style="margin-top:10px"><span class="chip" id="status-chip">Checking your progress…</span><span class="small muted" id="review-note"></span></div>
+  <nav class="steps" aria-label="Lesson steps" id="stepnav"></nav>
+  <section id="screen" aria-live="polite"></section>
+  <p class="source">Content follows OpenStax <i>Anatomy and Physiology 2e</i>, Chapter 9 (Joints), sections 9.1 to 9.6. Images: OpenStax, <i>Anatomy and Physiology 2e</i>, Chapter 9 figures, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>; resized. Non-commercial study use only.</p>
+</main>
+<script src="../../learning-record.js"></script>
+<script src="./ch8.js"></script>
+<script src="../shared/process-lesson.js"></script>
+</body>
+</html>

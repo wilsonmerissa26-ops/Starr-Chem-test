@@ -149,7 +149,12 @@ const PILOT_OBJECTIVES=[
  {id:"bio131.ch10.ec-coupling",course:"BIO131",subject:"ap",title:"A&P: excitation-contraction coupling",resource:"ap-ch10"},
  {id:"bio131.ch10.crossbridge-atp",course:"BIO131",subject:"ap",title:"A&P: the cross-bridge cycle and ATP",resource:"ap-ch10"},
  {id:"bio131.ch10.relaxation",course:"BIO131",subject:"ap",title:"A&P: how a muscle fiber relaxes",resource:"ap-ch10"},
- {id:"bio131.ch10.energy",course:"BIO131",subject:"ap",title:"A&P: where muscle ATP comes from",resource:"ap-ch10"}
+ {id:"bio131.ch10.energy",course:"BIO131",subject:"ap",title:"A&P: where muscle ATP comes from",resource:"ap-ch10"},
+ {id:"bio131.ch8.classification",course:"BIO131",subject:"ap",title:"A&P: classifying joints",resource:"ap-ch8"},
+ {id:"bio131.ch8.synovial-structure",course:"BIO131",subject:"ap",title:"A&P: parts of a synovial joint",resource:"ap-ch8"},
+ {id:"bio131.ch8.synovial-types",course:"BIO131",subject:"ap",title:"A&P: types of synovial joints",resource:"ap-ch8"},
+ {id:"bio131.ch8.movements",course:"BIO131",subject:"ap",title:"A&P: naming body movements",resource:"ap-ch8"},
+ {id:"bio131.ch8.selected-joints",course:"BIO131",subject:"ap",title:"A&P: shoulder, elbow, hip and knee",resource:"ap-ch8"}
 ];
 function daysToNextExam(subject){const e=SEED.filter(t=>t.subject===subject&&t.kind==="exam"&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];if(!e)return 999;return Math.round((parse(e.date)-parse(today))/86400000);}
 function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)return;
@@ -173,7 +178,8 @@ const RESOURCE_LIBRARY=Object.freeze({
   "chem-ch8":{title:"Chemistry · Chapter 8: Adding HBr and HCl to alkenes",src:"./lessons/chem-ch8/"},
   "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"},
   "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"},
-  "ap-ch10":{title:"A&P · Chapter 10: How a muscle fiber contracts",src:"./lessons/ap-ch10/index.html"}
+  "ap-ch10":{title:"A&P · Chapter 10: How a muscle fiber contracts",src:"./lessons/ap-ch10/index.html"},
+  "ap-ch8":{title:"A&P · Chapter 8: Joints and movements",src:"./lessons/ap-ch8/index.html"}
 });
 function openResource(key){
   if(!Object.prototype.hasOwnProperty.call(RESOURCE_LIBRARY,key))return false;

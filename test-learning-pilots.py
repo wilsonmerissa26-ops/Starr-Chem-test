@@ -1005,6 +1005,91 @@ with sync_playwright() as p:
     guarded("ch10 flow", t_ch10_flow)
 
     # =====================================================================================
+    section("A&P Chapter 8 (articulations): accurate content, guided sorting, independent evidence, optional extra set, review")
+    CH8 = BASE + "lessons/ap-ch8/"
+    def ch8_sort(page, mistakes=0):
+        page.click("[data-step='order']"); page.wait_for_selector("#sortCard")
+        S = page.evaluate("Ch8Lesson.SORTS")
+        clue = ""
+        for si, srt in enumerate(S):
+            for _ in srt["cards"]:
+                card = page.inner_text("#sortCard"); c = next(x for x in srt["cards"] if x["t"] == card)
+                if mistakes and si == 0 and not clue:
+                    other = next(k["id"] for k in srt["cats"] if k["id"] != c["cat"])
+                    page.click("[data-cat='%s']" % other); page.wait_for_timeout(80); clue = page.inner_text("#ofb")
+                page.click("[data-cat='%s']" % c["cat"]); page.wait_for_timeout(60)
+            page.wait_for_timeout(250)
+            if si < len(S) - 1: page.click("#nextSort"); page.wait_for_selector("#sortCard")
+        page.wait_for_timeout(300)
+        return clue
+    def t_ch8_data():
+        ctx, page, errs = fresh(url=CH8); page.wait_for_selector("#screen h2")
+        L = page.evaluate("Ch8Lesson"); items = L["ITEMS"]
+        days = [items[d * 5:(d + 1) * 5] for d in range(5)]
+        check("25 independent questions, 5 per topic, and every day's 5 cover all five topics once",
+              len(items) == 25 and all(sorted(i["obj"] for i in d) == sorted(L["OBJ"]) for d in days) and len({i["id"] for i in items}) == 25)
+        bad = [i["id"] for i in items if len(i["wrong"]) != 3 or any(w["err"] not in L["MIXUPS"] or not w["why"] for w in i["wrong"])
+               or i["right"]["t"] in [w["t"] for w in i["wrong"]] or not i["right"]["why"]]
+        check("Every wrong choice names its mix-up and explains why it doesn't fit; no choice repeats the answer", not bad, bad)
+        give = [i["id"] for i in items if i["right"]["t"].lower().rstrip(".") in i["prompt"].lower()]
+        check("No question contains its own answer", not give, give)
+        R = {i["id"].replace("ap-ch8-", ""): i["right"]["t"] for i in items}
+        anchors = [("cls-gomphosis", "fibrous joint (gomphosis)"), ("cls-pubic", "fibrocartilage) and an amphiarthrosis"), ("cls-all-synovial", "Diarthrosis"),
+                   ("cls-growth-plate", "synchondrosis"), ("parts-cover", "Hyaline"), ("parts-secretes", "synovial membrane"), ("parts-meniscus", "Fibrocartilage"),
+                   ("types-atlas", "Pivot"), ("types-saddle", "first carpometacarpal"), ("types-ball", "shoulder (glenohumeral joint) and the hip"), ("types-knuckle", "Condyloid"),
+                   ("moves-abduction", "Abduction"), ("moves-tiptoe", "Plantar flexion"), ("moves-pronation", "Pronation"), ("moves-circle", "Circumduction"), ("moves-retraction", "Retraction"),
+                   ("joints-rotator", "Supraspinatus, infraspinatus, teres minor and subscapularis"), ("joints-pronation-where", "proximal radioulnar joint, a pivot"),
+                   ("joints-acl", "Hyperextension"), ("joints-triad", "tibial (medial) collateral ligament, the medial meniscus and the ACL")]
+        off = [(k, v) for k, v in anchors if v.lower() not in R.get(k, "").lower()]
+        check("Key facts match OpenStax Chapter 9 (Joints): classes, synovial parts, joint types and examples, movements, rotator cuff, ACL, terrible triad", not off, off)
+        cards = [c for srt in L["SORTS"] for c in srt["cards"]]
+        badc = [c["t"] for c in cards if not c["hint"] or not c["why"] or c["obj"] not in L["OBJ"]]
+        leak = [c["t"] for srt in L["SORTS"] for c in srt["cards"] for k in srt["cats"] if k["id"] == c["cat"] and k["label"].lower() in c["hint"].lower()]
+        check("Sorting cards: every card has a clue and an explanation, and no clue names the right category", not badc and not leak, (badc, leak))
+        stage_ids = [x["id"] for x in L["STAGES"]]
+        check("Every mix-up review link points to a real teaching stage", all(v in stage_ids for v in L["MIXUP_STAGE"].values()) and all(i["stage"] in stage_ids for i in items if i["stage"]))
+        figs = [x["fig"] for x in L["STAGES"] if x["fig"]]
+        check("Every teaching figure exists, with an OpenStax attribution file", all(os.path.exists(os.path.join(ROOT, "student-app/lessons/ap-ch8", f)) for f in figs)
+              and "CC BY-NC-SA 4.0" in open(os.path.join(ROOT, "student-app/lessons/ap-ch8/img/ATTRIBUTION.txt")).read())
+        hub = open(os.path.join(ROOT, "student-app/index.html")).read(); appjs = open(os.path.join(ROOT, "student-app/app.js")).read()
+        check("The hub opens the lesson and the study plan tracks its five objectives",
+              'data-resource="ap-ch8"' in hub and '"ap-ch8":{title:"A&P · Chapter 8: Joints and movements",src:"./lessons/ap-ch8/index.html"}' in appjs and all('{id:"%s"' % o in appjs for o in L["OBJ"].values()))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+    guarded("ch8 data", t_ch8_data)
+    def t_ch8_flow():
+        ctx, page, errs = fresh(url=CH8); page.wait_for_selector("#screen h2")
+        check("Lesson opens on teaching (stage 1 of 9), and 'On your own' is locked", "Stage 1 of 9" in page.inner_text("#screen") and page.is_disabled("[data-step='independent']"))
+        clue = ch8_sort(page, mistakes=1)
+        check("A wrong sort shows a clue, not the answer", "Clue:" in clue and "Not quite" in clue, clue[:120])
+        g = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] == "guided"]
+        check("Sorting is guided practice: recorded per topic, never independent, and the miss is kept",
+              sorted(e["itemId"] for e in g) == ["ap-ch8-sort-structure-cls", "ap-ch8-sort-type-types"] and all(not e["independent"] and e["assistance"]["guided"] for e in g)
+              and [e for e in g if e["itemId"] == "ap-ch8-sort-structure-cls"][0]["correct"] is False, [(e["itemId"], e["correct"]) for e in g])
+        check("Finishing both sorts unlocks 'On your own'", not page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q .choice")
+        L = page.evaluate("Ch8Lesson"); day1 = L["ITEMS"][:5]
+        for k, it in enumerate(day1): ch10_answer(page, it["right"]["t"] if k != 3 else "Flexion")
+        res = page.inner_text("#screen")
+        check("A miss on raising the arm sideways is diagnosed as direction and links to the movements stage",
+              "4 of 5 correct" in res and "which direction the movement goes" in res and "Review: 6. Naming movements, part 1" in res, res[:220])
+        e1 = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")]
+        check("Day 1: five independent first answers, one per topic", len(e1) == 5 and all(e["independent"] for e in e1) and sorted(e["objectiveId"] for e in e1) == sorted(L["OBJ"].values()))
+        more = page.inner_text("#moreNow") if page.query_selector("#moreNow") else ""
+        check("An optional 'more now' button offers the next set and says spacing helps memory more", "Optional: 5 more now" in more and "Spacing them out helps memory more" in res, more)
+        page.click("#moreNow"); page.wait_for_selector("#q .choice")
+        check("The extra set on the same day is still 'On your own', not review", "On your own" in page.inner_text("#screen h2"))
+        for it in L["ITEMS"][5:10]: ch10_answer(page, it["right"]["t"])
+        e2 = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")]
+        check("The extra set records the next five questions as independent first answers", len(e2) == 10 and sorted(e["itemId"] for e in e2[5:]) == sorted(i["id"] for i in L["ITEMS"][5:10])
+              and all(e["activity"] == "independent" for e in e2), [(e["itemId"], e["activity"]) for e in e2[5:]])
+        check("Chapter 8 work never changes Chapter 10 objectives", status(page, "bio131.ch10.nmj")["status"] == "not-started")
+        p2, x2 = page_at(ctx, DAY2, CH8); p2.wait_for_selector("#q .choice", timeout=8000)
+        check("Next day the lesson opens on NEW review questions (the third set)", "Review: new questions" in p2.inner_text("#screen h2")
+              and p2.inner_text("#q .prompt") == L["ITEMS"][10]["prompt"], p2.inner_text("#q .prompt")[:80])
+        check("No page errors", not errs and not x2, (errs + x2)[:1]); ctx.close()
+    guarded("ch8 flow", t_ch8_flow)
+
+    # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")
     def t_shared():
         ctx, page, errs = fresh(url=CHEM); page.wait_for_selector("#screen h2"); chem_guided_complete(page)
