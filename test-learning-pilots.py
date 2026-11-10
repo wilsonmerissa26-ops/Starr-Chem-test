@@ -1215,11 +1215,19 @@ with sync_playwright() as p:
         page.click("#gnames [data-name='%s']" % page.evaluate("MuscleSets.forearm.GUIDED[0].muscle")); page.wait_for_timeout(150)
         g1 = page.inner_text("#gfb")
         check("Guided pins: no pronunciation before she answers; Say it appears after a correct answer", g0 == 0 and "Say it: PROH-nayt-er TEER-eez" in g1, (g0, g1[:120]))
+        HEAR = "a[href^='https://www.merriam-webster.com/']"
+        h1 = page.eval_on_selector_all("#gfb .say-hear " + HEAR, "as => as.map(a => [a.textContent, a.href, a.target, a.rel])")
+        check("After the answer, Hear it links open each Merriam-Webster page in a new tab, labeled with the words that page covers",
+              h1 == [["pronator", "https://www.merriam-webster.com/medical/pronator", "_blank", "noopener"], ["teres", "https://www.merriam-webster.com/dictionary/pronator%20teres", "_blank", "noopener"]], h1)
         forearm_guided(page); page.click("[data-step='independent']"); page.wait_for_selector("#q")
-        q0 = page.locator("#screen .say").count()
-        f1 = ap_type(page, "pronator teres"); f2 = ap_type(page, "flexor carpi ulnaris")
-        check("On your own: no pronunciation on the question; Say it after a right answer and after a wrong one (the right name's)",
+        q0 = page.locator("#screen .say").count() + page.locator("#screen " + HEAR).count()
+        f1 = ap_type(page, "pronator teres")
+        page.fill("#ans", "flexor carpi ulnaris"); page.click("#sub"); page.wait_for_selector("#nextq")
+        f2 = page.inner_text("#qfb"); h2 = page.eval_on_selector_all("#qfb .say-hear " + HEAR, "as => as.map(a => a.textContent)")
+        page.click("#nextq"); page.wait_for_timeout(250)
+        check("On your own: no pronunciation or dictionary link on the question; Say it after a right answer and after a wrong one (the right name's)",
               q0 == 0 and "Say it: PROH-nayt-er TEER-eez" in f1 and "Say it: FLEK-ser KAR-pye ray-dee-AY-luhs" in f2, (q0, f1[:100], f2[:140]))
+        check("A wrong answer's feedback links the right name's pages (flexor, then carpi radialis), not the name she typed", h2 == ["flexor", "carpi radialis"] and "Hear it on Merriam-Webster" in f2, (h2, f2[:200]))
         l = [e for e in evs(page, {"course": "BIO131"}) if e["activity"] in ("independent", "review")]
         check("Answers are graded exactly as before: pronunciation is not part of any answer or record", len(l) == 2 and l[0]["correct"] and not l[1]["correct"] and all("say" not in json.dumps(e["response"]).lower() for e in l), [e["response"] for e in l])
         check("No page errors", not errs, errs[:1]); ctx.close()

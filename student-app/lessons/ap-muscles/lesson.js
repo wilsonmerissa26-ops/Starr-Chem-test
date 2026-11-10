@@ -81,11 +81,25 @@
     if (!r || !r.ok) return "";
     var html = '<p class="say"><span class="say-label">Say it:</span> <span class="say-r">' + esc(r.text) + "</span>" +
       (r.singular.length ? ' <span class="small muted">(Merriam-Webster gives the singular, ' + esc(r.singular.join(", ")) + ")</span>" : "") + "</p>";
-    if (!withSource) return html;
+    if (!withSource) return html + hearIt(r);
     return html + '<details class="say-src"><summary>Pronunciation source</summary>' + r.sources.map(function (src) {
       return '<p class="small">' + esc(src.dict) + ", \u201c" + esc(src.entry) + '\u201d: <span class="mw">\\' + esc(src.notation) + "\\</span> · checked " +
         esc(LR.formatDay ? LR.formatDay(src.checked) : src.checked) + ' · <a href="' + esc(src.url) + '" target="_blank" rel="noopener">Hear it on Merriam-Webster</a></p>';
     }).join("") + '<p class="small muted">The first pronunciation listed is used. The audio is on Merriam-Webster\'s site and needs internet; the written form works offline.</p></details>';
+  }
+  // Under a Say it line after an answer (and on the See screen): one link per dictionary page, labeled with the words of
+  // this name that page covers, so "quadratus" is not labeled with the other muscle's entry it comes from.
+  function hearIt(r) {
+    var pages = [], at = {};
+    r.parts.forEach(function (p) {
+      if (p.plain) return;
+      var url = PR.SOURCES[p.source].url;
+      if (!Object.prototype.hasOwnProperty.call(at, url)) { at[url] = pages.length; pages.push({ url: url, words: [] }); }
+      pages[at[url]].words.push(p.singular || p.word);
+    });
+    return '<p class="say-hear small">Hear it on Merriam-Webster: ' + pages.map(function (pg) {
+      return '<a href="' + esc(pg.url) + '" target="_blank" rel="noopener">' + esc(pg.words.join(" ")) + "</a>";
+    }).join(" · ") + ' <span class="muted">(needs internet)</span></p>';
   }
   function sayAloudBox() {
     if (!PR) return "";
