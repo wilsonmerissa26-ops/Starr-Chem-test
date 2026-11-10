@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Chapter 9: Head and Neck Muscles</title>
+<link rel="stylesheet" href="../lessons.css">
+<style>
+.fig{position:relative;margin:10px auto;max-width:640px}
+.fig img{display:block;width:100%;height:auto;border-radius:12px;border:1px solid var(--line);background:#fff}
+.pin{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;border:3px solid #fff;background:var(--purple);color:#fff;font-weight:800;font-size:1rem;box-shadow:0 2px 6px rgba(0,0,0,.3);cursor:pointer;padding:0}
+.pin[aria-current="true"]{background:#d2427f;outline:3px solid #ffd3e6}
+.pin.good{background:var(--good)}.pin.bad{background:var(--bad)}
+.musclecards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.mcard{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+.mcard h3{margin:0 0 6px}.mcard p{margin:4px 0;font-size:.92rem}
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px}.compare>div{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}
+@media(max-width:560px){.compare{grid-template-columns:1fr}}
+.roots{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.root{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fff;display:grid;gap:2px}
+.song audio{width:100%}
+.stages{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:4px 0 14px}.stages li{border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.85rem;color:var(--muted)}.stages li.now{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700}.stages li.done{color:var(--good);border-color:var(--good)}
+.kicker{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted);margin:0}
+.root-word{color:var(--purple)}
+details.more{margin-top:12px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:#fff}details.more summary{cursor:pointer;font-weight:700;min-height:32px;padding-top:4px}
+ul.history{margin:2px 0 0;padding-left:18px}
+.check-pt{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid var(--line);border-radius:10px;margin:6px 0;min-height:44px}.check-pt input{width:22px;height:22px;flex:none;margin-top:2px}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <div class="eyebrow">BIO 131 · Chapter 9 · Muscular system · Amerman, Human Anatomy and Physiology, 3rd ed.</div>
+  <h1>Head and neck muscles</h1>
+  <p class="badge">Textbook-based preparation for the Head, Neck and Trunk lab and the cumulative Lab Practical 2 (Dec 2). These are common Chapter 9 muscles. Dr. Granger has not issued a muscle checklist, so this is not a list of what the practical covers. Trunk muscles are in their own lesson.</p>
+  <div class="row" style="margin-top:10px"><span class="chip" id="status-chip">Checking your progress…</span><span class="small muted" id="review-note"></span></div>
+  <nav class="steps" aria-label="Lesson steps" id="stepnav"></nav>
+  <section id="screen" aria-live="polite"></section>
+  <p class="source">Images: OpenStax, <i>Anatomy and Physiology 2e</i>, licensed <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>; cropped, with labels covered for practice. Muscle actions follow OpenStax <i>Anatomy and Physiology 2e</i>, section on axial muscles of the head, neck and back. Names use standard anatomical terms; confirm spelling and required detail against Amerman 3rd ed. and your lab handout. Non-commercial study use only.</p>
+</main>
+<script src="../../learning-record.js"></script>
+<script src="./muscle-core.js"></script>
+<script src="./muscles.js"></script>
+<script src="./names.js"></script>
+<script src="./songs.js"></script>
+<script src="./deep.js"></script>
+<script src="./lesson.js"></script>
+</body>
+</html>
