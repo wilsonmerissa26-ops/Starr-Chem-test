@@ -4,7 +4,8 @@ on:
   push:
     branches: [ "main", "phase1-chemistry-accuracy" ]
   pull_request:
-    branches: [ "main" ]
+    # Also run on PRs stacked on the pilot branches (#112 targets learning-pilots-ab, #113 targets ap-upper-limb).
+    branches: [ "main", "learning-pilots-ab", "ap-upper-limb" ]
   workflow_dispatch:
 
 jobs:

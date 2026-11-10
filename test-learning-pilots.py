@@ -474,10 +474,22 @@ with sync_playwright() as p:
         teach = page.inner_text("#screen").lower()
         N = page.evaluate("MuscleNames")
         check("Decode step teaches first: the root table and worked examples come before any question", "worked examples" in teach and "root words" in teach and not page.query_selector("#dcheck"))
-        used = {p for it in N["ITEMS"] + [N["GUIDED"]] for p in it["parts"]}
-        check("Every root used in a practice name is taught in the table", all(f"\n{r}\n" in "\n" + page.inner_text("#screen") + "\n" or r in teach for r in used) and used <= set(N["ROOTS"]), sorted(used - set(N["ROOTS"])))
-        leaked = [it["name"] for it in N["ITEMS"] if it["name"].lower() in teach]
-        check("No practice name appears on the teaching screen, so every practice name is new", not leaked, leaked)
+        used = {p for it in N["ITEMS"] + N["ALL_GUIDED"] for p in it["parts"]}
+        check("Every root used in any practice name is a defined root", used <= set(N["ROOTS"]), sorted(used - set(N["ROOTS"])))
+        # Each lesson's names screen: its own roots are shown open, other lessons' roots one tap away, and no practice name appears anywhere (hidden text included).
+        for url, key in [(AP, "head"), (AP + "trunk.html", "trunk"), (AP + "upper.html", "upper"), (AP + "forearm.html", "forearm")]:
+            pg = page if key == "head" else ctx.new_page()
+            if key != "head": pg.goto(url); pg.wait_for_selector("#toDecodeGuided")
+            P = N["SETS"][key]; mine = {p for it in P["worked"] + [P["guided"]] + P["items"] for p in it["parts"]}
+            shown = set(pg.eval_on_selector_all("#screen .root[data-root]", "els => els.filter(e => !e.closest('details')).map(e => e.dataset.root)"))
+            hidden = set(pg.eval_on_selector_all("#screen details .root[data-root]", "els => els.map(e => e.dataset.root)"))
+            check("%s names screen: every root its names use is shown open, the rest are behind one tap" % key, mine == shown and shown | hidden == set(N["ROOTS"]) and not shown & hidden, sorted(mine ^ shown))
+            all_text = pg.eval_on_selector("#screen", "e => e.textContent").lower()
+            leaked = [it["name"] for it in N["ITEMS"] if it["name"].lower() in all_text]
+            check("%s names screen: no practice name from any lesson appears, even in hidden text" % key, not leaked, leaked)
+            if key != "head": pg.close()
+        pairs = page.evaluate("() => { const N=MuscleNames, out=[]; N.ITEMS.concat(N.ALL_GUIDED).forEach(it => it.parts.forEach(p => { const c=N.choices(it.id,p); N.CLOSE.forEach(q => { if (q.includes(p) && c.includes(q[0]) && c.includes(q[1])) out.push(it.name+': '+q.join('/')); }); })); return out; }")
+        check("A root's near-synonym (extensor/erector, levator/erector, superficialis/external, teres/orbicularis) is never offered as a wrong choice for it", not pairs, pairs)
         page.click("#toDecodeGuided"); page.wait_for_selector("#dq [data-c]")
         page.click("#dtable"); f1 = decode_answer(page, N["GUIDED"], wrong_part=0)
         check("Guided wrong answer names the right meaning and what she actually chose", "zygomaticus means" in f1 and "You chose" in f1, f1[:160])
@@ -560,6 +572,8 @@ with sync_playwright() as p:
 
     # =====================================================================================
     TRUNK = AP + "trunk.html"
+    UPPER = AP + "upper.html"
+    FOREARM = AP + "forearm.html"
     section("A&P trunk set: teaching, guided, independent and delayed review (criteria 1 to 5, 7)")
     def trunk_guided(page):
         page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
@@ -681,7 +695,7 @@ with sync_playwright() as p:
 
     section("A&P: Feel it step and study songs (learning only, never evidence)")
     def t_feel_songs():
-        for url, key in [(AP, "head"), (TRUNK, "trunk")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             check("Every %s muscle has a 'feel it' instruction and what to notice" % key, all(m["feel"]["do"] and m["feel"]["notice"] for m in S["MUSCLES"].values()))
@@ -714,7 +728,7 @@ with sync_playwright() as p:
 
     section("A&P: no teaching or guided screen ever shows a view used as 'new' in independent questions (criterion 7)")
     def t_no_view_leak():
-        for url, key in [(AP, "head"), (TRUNK, "trunk")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             new_views = {i["fig"] for i in S["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"}
@@ -874,6 +888,253 @@ with sync_playwright() as p:
             check("OCR check of in-depth images (skipped: pytesseract not installed)", True)
     guarded("deep lesson", t_deep)
 
+    section("A&P shoulder and arm set: teaching, independent identification and review (criteria 1 to 5, 7)")
+    def t_upper():
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        U = page.evaluate("MuscleSets.upper")
+        check("Shoulder and arm lesson opens on teaching (decode the names first), with no question on screen",
+              "Decode the name" in page.inner_text("#screen h2") and not page.query_selector("#ans"))
+        check("It covers 14 shoulder and arm muscles, with the rotator cuff taught as SITS and teres major excluded",
+              len(U["MUSCLES"]) == 14 and "SITS" in U["SET"]["learnIntro"] and "Teres major is NOT in the rotator cuff" in U["SET"]["learnIntro"])
+        check("'On your own' is locked until guided pins are done", page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Fourteen shoulder and arm muscles")
+        check("Learn shows five labeled teaching figures and a card for every muscle",
+              page.locator("#screen .fig img").count() == 5 and page.locator("#screen .mcard").count() == 14)
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        for g in U["GUIDED"]:
+            page.wait_for_selector("#gnames [data-name='%s']" % g["muscle"]); page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(100)
+        page.wait_for_timeout(300)
+        check("Guided pins unlock 'On your own'", not page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        img = page.get_attribute("#q img", "src")
+        check("Day 1 first question uses the whole-body back view, never shown labeled", "upper-body-back-unlabeled" in img, img)
+        check("The whole-body front and back views name their OpenStax drawings (front shared with trunk and SCM)",
+              U["FIGURES"]["upper-body-front"]["drawing"] == "openstax-1105-front" and U["FIGURES"]["upper-body-back"]["drawing"] == "openstax-1105-back")
+        f1 = ap_type(page, "supraspinatus")          # infraspinatus pin: look-alike
+        f2 = ap_type(page, "deltoid")                # abducts the arm
+        f3 = ap_type(page, "biceps")                 # biceps on the front view: short name accepted with a note
+        f4 = ap_type(page, "infraspinatus")          # subscapularis by function: opposite-rotation look-alike
+        check("Supraspinatus for infraspinatus is diagnosed with the spine-of-the-scapula rule", "look-alike" in f1 and "spine of the scapula as the dividing line" in f1, f1[:200])
+        check("'Biceps' alone is accepted with its full name", "Correct" in f3 and "biceps brachii" in f3.lower(), f3[:160])
+        check("Infraspinatus for subscapularis is diagnosed as opposite surfaces and rotations", "opposite surfaces" in f4, f4[:200])
+        l = {e["itemId"]: e for e in evs(page, {"course": "BIO131"})}
+        check("New-picture identification and function questions are independent evidence; misses keep their error types",
+              l["ap-ch9-upper-back-name-infraspinatus"]["independent"] and l["ap-ch9-upper-back-name-infraspinatus"]["errorType"] == "lookalike-infraspinatus-vs-supraspinatus"
+              and l["ap-ch9-upper-act-abduct"]["independent"] and l["ap-ch9-upper-act-cuff-front"]["errorType"] == "lookalike-infraspinatus-vs-subscapularis")
+        check("Only the first answer on the back drawing is a new picture; the next back-view answer is 'seen before'",
+              l["ap-ch9-upper-back-name-infraspinatus"]["objectiveId"] == "bio131.ch9.upper-limb-id-new-picture"
+              and l["ap-ch9-upper-front-name-biceps"]["objectiveId"] == "bio131.ch9.upper-limb-id-new-picture")
+        check("Shoulder and arm work never changes head, neck or trunk objectives",
+              status(page, "bio131.ch9.trunk-muscle-id")["status"] == "not-started" and status(page, "bio131.ch9.jaw-neck-id")["status"] == "not-started")
+        p2, e2 = page_at(ctx, DAY2, UPPER); p2.wait_for_selector("#q", timeout=8000)
+        check("Next day the lesson opens to NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
+        before = set(l); ap_type(p2, "latissimus dorsi")
+        new = [e for e in evs(p2, {"course": "BIO131"}) if e["itemId"] not in before]
+        check("Day 2 question is a different item, recorded as review", new and new[0]["activity"] == "review" and new[0]["itemId"] == "ap-ch9-upper-back-name-latissimus", [(e["itemId"], e["activity"]) for e in new])
+        check("Day 2 back-view answer is filed as a picture seen before", new and new[0]["objectiveId"] == "bio131.ch9.upper-limb-id" and new[0]["response"]["picture"] == "seen")
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+    guarded("upper lesson", t_upper)
+
+    section("A&P shoulder and arm set: data, images and name matching (accuracy)")
+    def t_upper_data():
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        cases = [("supraspinatus", "supraspinatus", True, None), ("infraspinatus", "supraspinatus", False, "lookalike-infraspinatus-vs-supraspinatus"),
+                 ("teres major", "teres-minor", False, "lookalike-teres-major-vs-teres-minor"), ("teres", "teres-major", False, "incomplete-name"),
+                 ("latissimus", "latissimus-dorsi", False, "incomplete-name"), ("latisimus dorsi", "latissimus-dorsi", True, "spelling-close"),
+                 ("brachialis", "biceps-brachii", False, "lookalike-biceps-brachii-vs-brachialis"), ("brachialis", "brachioradialis", False, "lookalike-brachialis-vs-brachioradialis"),
+                 ("triceps", "triceps-brachii", True, None), ("traps", "trapezius", True, None), ("deltoid", "trapezius", False, "wrong-muscle"),
+                 ("rotator cuff", "subscapularis", False, "incomplete-name"), ("subscapularis", "infraspinatus", False, "lookalike-infraspinatus-vs-subscapularis")]
+        res = page.evaluate("cs => cs.map(c => MuscleSets.upper.match(c[0], c[1]))", [[c[0], c[1]] for c in cases])
+        bad = [(c[0], c[1], r) for c, r in zip(cases, res) if r["correct"] != c[2] or r["errorType"] != c[3]]
+        check("Shoulder and arm name matching (%d cases, incl. supra/infra, teres major/minor, biceps/brachialis)" % len(cases), not bad, bad)
+        U = page.evaluate("MuscleSets.upper")
+        check("Pin positions match the image build output exactly", U["PINS"] == json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-upper.json"))))
+        anchors = {"deltoid": "main abductor", "supraspinatus": "Abducts the arm", "infraspinatus": "Laterally rotates", "teres-minor": "Laterally rotates",
+                   "subscapularis": "Medially rotates", "teres-major": "Extends and medially rotates", "biceps-brachii": "supinates", "brachialis": "Flexes the forearm",
+                   "brachioradialis": "Flexes the forearm", "triceps-brachii": "Extends the forearm", "latissimus-dorsi": "Extends, adducts and medially rotates",
+                   "pectoralis-major": "Flexes, adducts and medially rotates", "serratus-anterior": "Protracts the scapula", "trapezius": "Elevates the scapula"}
+        off = [k for k, v in anchors.items() if v not in U["MUSCLES"][k]["action"]]
+        check("Every action matches the OpenStax 11.5 text and standard anatomy (infraspinatus and teres minor rotate laterally, not 'extension; adduction' as the OpenStax table says)", not off, off)
+        cuff = [k for k, m in U["MUSCLES"].items() if "Rotator cuff muscle" in m["location"]]
+        check("Exactly the four SITS muscles are marked as rotator cuff", sorted(cuff) == ["infraspinatus", "subscapularis", "supraspinatus", "teres-minor"], cuff)
+        taught = {g["fig"] for g in U["GUIDED"]} | {x["fig"] for x in U["SET"]["learn"]}
+        unf = [i for i in U["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"]
+        check("Every new-picture item uses fig. 1105, never a teaching or guided figure", all(i["fig"] in ("upper-body-front", "upper-body-back") and i["fig"] not in taught for i in unf))
+        seen = {}
+        dup = [i["id"] for i in unf if (i["fig"], i["muscle"]) in seen or seen.setdefault((i["fig"], i["muscle"]), 1) is None]
+        check("Each muscle is asked about at most once per new picture", not dup, dup)
+        check("Subscapularis (one view only) is practice-only for pin naming", all(not i["unfamiliar"] for i in U["ITEMS"] if i["kind"] == "name-pin" and i["muscle"] == "subscapularis"))
+        check("Every item has a pin on its figure, a unique ID with the upper prefix",
+              all(i["kind"] == "name-fn" or i["muscle"] in U["PINS"][i["fig"]] for i in U["ITEMS"]) and len({i["id"] for i in U["ITEMS"]}) == len(U["ITEMS"]) and all(i["id"].startswith("ap-ch9-upper-") for i in U["ITEMS"]))
+        ctx.close()
+        try:
+            import pytesseract
+            from PIL import Image
+            names = ["trapez", "deltoid", "pectoralis", "serratus", "latissimus", "dorsi", "supraspin", "infraspin", "teres", "subscap", "biceps", "brachii",
+                     "brachialis", "brachiorad", "triceps", "scapula", "humerus", "coracoid", "rhomboid", "flexor", "extensor", "pronator", "palmaris"]
+            found = {}
+            for f in ["upper-girdle", "upper-humerus", "upper-shoulder-deep", "upper-arm", "upper-forearm-palmar", "upper-body-front", "upper-body-back"]:
+                im = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s-unlabeled.jpg" % f))
+                t = (pytesseract.image_to_string(im) + pytesseract.image_to_string(im.resize((im.width * 2, im.height * 2)), config="--psm 11")).lower()
+                hit = [n for n in names if n in t]
+                if hit: found[f] = hit
+            check("OCR finds no label text on any unlabeled shoulder and arm image", not found, found)
+        except ImportError:
+            check("OCR shoulder and arm label check (skipped: pytesseract not installed)", True)
+    guarded("upper data", t_upper_data)
+
+    section("A&P forearm set: teaching, independent identification and review (criteria 1 to 5, 7)")
+    def forearm_guided(page):
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        for g in page.evaluate("MuscleSets.forearm.GUIDED"):
+            page.wait_for_selector("#gnames [data-name='%s']" % g["muscle"]); page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(100)
+        page.wait_for_timeout(300)
+    def t_forearm():
+        ctx, page, errs = fresh(url=FOREARM); page.wait_for_selector("#screen h2")
+        F = page.evaluate("MuscleSets.forearm")
+        check("Forearm lesson opens on teaching (decode the names first), with no question on screen",
+              "Decode the name" in page.inner_text("#screen h2") and not page.query_selector("#ans") and not page.query_selector("#dcheck"))
+        check("It covers 9 forearm muscles: the pronator and supinator, three wrist flexors, the superficial finger flexor and three extensors", len(F["MUSCLES"]) == 9, sorted(F["MUSCLES"]))
+        check("'On your own' is locked until guided pins are done", page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Nine forearm muscles")
+        srcs = page.eval_on_selector_all("#screen .fig img", "els => els.map(e => e.getAttribute('src'))")
+        check("Learn shows three labeled teaching figures (palm side, back, deep) and a card for every muscle",
+              srcs == ["img/forearm-front-labeled.jpg", "img/forearm-back-labeled.jpg", "img/forearm-deep-labeled.jpg"] and page.locator("#screen .mcard").count() == 9, srcs)
+        forearm_guided(page)
+        check("Guided pins unlock 'On your own'", not page.is_disabled("[data-step='independent']"))
+        g = [e for e in evs(page, {"objectiveId": "bio131.ch9.forearm-id"}) if e["activity"] == "guided"]
+        check("Guided forearm pins are assisted practice", len(g) == 9 and all(not e["independent"] for e in g), len(g))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        img = page.get_attribute("#q img", "src")
+        check("Day 1 first question uses the whole-body front view, never shown labeled", "forearm-body-front-unlabeled" in img, img)
+        f1 = ap_type(page, "pronator teres")         # pronator teres on fig. 1105 front: first answer on that drawing
+        f2 = ap_type(page, "flexor carpi ulnaris")   # FCR by function: radial/ulnar look-alike
+        f3 = ap_type(page, "extensor digitorum")     # ED on fig. 1105 back: first answer on that drawing
+        f4 = ap_type(page, "pronator teres")         # supinator by function: opposite-movement look-alike
+        check("First answer on each whole-body drawing is credited as a new picture, and she is told so", "Correct" in f1 and "never seen" in f1 and "never seen" in f3, (f1[:120], f3[:120]))
+        check("Flexor carpi ulnaris for radialis is diagnosed as the thumb-side vs little-finger-side pair", "look-alike" in f2 and "thumb side" in f2 and "little-finger side" in f2, f2[:220])
+        check("Pronator teres for supinator is diagnosed as opposite movements", "look-alike" in f4 and "Opposite movements" in f4, f4[:220])
+        l = {e["itemId"]: e for e in evs(page, {"course": "BIO131"})}
+        check("New-picture answers are filed under 'ID on new pictures'; function answers under 'Function'; misses keep their error types",
+              l["ap-ch9-forearm-front-name-pronator-teres"]["objectiveId"] == "bio131.ch9.forearm-id-new-picture" and l["ap-ch9-forearm-front-name-pronator-teres"]["independent"]
+              and l["ap-ch9-forearm-back-name-extensor-digitorum"]["objectiveId"] == "bio131.ch9.forearm-id-new-picture"
+              and l["ap-ch9-forearm-act-wrist-thumb-flex"]["objectiveId"] == "bio131.ch9.forearm-actions" and l["ap-ch9-forearm-act-wrist-thumb-flex"]["errorType"] == "lookalike-flexor-carpi-radialis-vs-flexor-carpi-ulnaris"
+              and l["ap-ch9-forearm-act-palm-up"]["errorType"] == "lookalike-pronator-teres-vs-supinator")
+        check("Forearm work never changes shoulder and arm objectives",
+              status(page, "bio131.ch9.upper-limb-id")["status"] == "not-started" and status(page, "bio131.ch9.upper-limb-actions")["status"] == "not-started")
+        p2, e2 = page_at(ctx, DAY2, FOREARM); p2.wait_for_selector("#q", timeout=8000)
+        check("Next day the lesson opens to NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
+        before = set(l); ap_type(p2, "extensor carpi ulnaris"); ap_type(p2, "flexor digitorum superficialis"); f7 = ap_type(p2, "flexor carpi radialis")
+        new = [e for e in evs(p2, {"course": "BIO131"}) if e["itemId"] not in before]
+        ids = [e["itemId"] for e in new]
+        check("Day 2 questions are different items, recorded as review", ids[:3] == ["ap-ch9-forearm-act-wrist-little-extend", "ap-ch9-forearm-act-curl-fingers", "ap-ch9-forearm-front-name-flexor-carpi-radialis"]
+              and all(e["activity"] == "review" for e in new), [(e["itemId"], e["activity"]) for e in new])
+        fcr = new[2] if len(new) > 2 else {}
+        check("Day 2 front-view answer is independent but filed as a picture seen before, and she is told so",
+              fcr.get("independent") and fcr.get("objectiveId") == "bio131.ch9.forearm-id" and (fcr.get("response") or {}).get("picture") == "seen" and "picture you have seen before" in f7, (fcr.get("objectiveId"), f7[:160]))
+        check("Day 1 answers are kept: the record still holds the day 1 miss", any(e["itemId"] == "ap-ch9-forearm-act-wrist-thumb-flex" and e["correct"] is False for e in evs(p2, {"course": "BIO131"})))
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+    guarded("forearm lesson", t_forearm)
+
+    section("A&P forearm set: data, images and name matching (accuracy)")
+    def t_forearm_data():
+        ctx, page, errs = fresh(url=FOREARM); page.wait_for_selector("#screen h2")
+        cases = [("flexor carpi radialis", "flexor-carpi-radialis", True, None),
+                 ("flexor carpi ulnaris", "flexor-carpi-radialis", False, "lookalike-flexor-carpi-radialis-vs-flexor-carpi-ulnaris"),
+                 ("extensor carpi ulnaris", "extensor-carpi-radialis-longus", False, "lookalike-extensor-carpi-radialis-longus-vs-extensor-carpi-ulnaris"),
+                 ("supinator", "pronator-teres", False, "lookalike-pronator-teres-vs-supinator"),
+                 ("extensor digitorum", "flexor-digitorum-superficialis", False, "lookalike-extensor-digitorum-vs-flexor-digitorum-superficialis"),
+                 ("flexor carpi", "flexor-carpi-ulnaris", False, "incomplete-name"), ("extensor carpi radialis", "extensor-carpi-radialis-longus", False, "incomplete-name"),
+                 ("flexor digitorum", "flexor-digitorum-superficialis", False, "incomplete-name"), ("pronator", "pronator-teres", False, "incomplete-name"),
+                 ("palmaris longis", "palmaris-longus", True, "spelling-close"), ("flexor carpi ulnaris", "extensor-carpi-ulnaris", False, "wrong-muscle"),
+                 ("brachioradialis", "supinator", False, "not-recognized"), ("", "supinator", False, "no-answer")]
+        res = page.evaluate("cs => cs.map(c => MuscleSets.forearm.match(c[0], c[1]))", [[c[0], c[1]] for c in cases])
+        bad = [(c[0], c[1], r) for c, r in zip(cases, res) if r["correct"] != c[2] or r["errorType"] != c[3]]
+        check("Forearm name matching (%d cases, incl. radialis/ulnaris, flexor/extensor, pronator/supinator, partial names)" % len(cases), not bad, bad)
+        F = page.evaluate("MuscleSets.forearm")
+        check("Pin positions match the image build output exactly", F["PINS"] == json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-forearm.json"))))
+        anchors = {"pronator-teres": "Pronates the forearm", "supinator": "Supinates the forearm", "flexor-carpi-radialis": "Flexes the hand at the wrist and abducts it",
+                   "flexor-carpi-ulnaris": "Flexes the hand at the wrist and adducts it", "palmaris-longus": "weak flexor", "flexor-digitorum-superficialis": "Flexes the fingers",
+                   "extensor-carpi-radialis-longus": "Extends the hand at the wrist and abducts it", "extensor-carpi-ulnaris": "Extends the hand at the wrist and adducts it",
+                   "extensor-digitorum": "Extends the fingers"}
+        off = [k for k, v in anchors.items() if v not in F["MUSCLES"][k]["action"]]
+        check("Every action uses standard terms; flexor carpi ulnaris adducts (toward the little finger), not 'away from the body' as the OpenStax table says",
+              not off and "toward the little-finger side" in F["MUSCLES"]["flexor-carpi-ulnaris"]["action"] and "away from the body" not in json.dumps(F["MUSCLES"]), off)
+        origins = {"medial epicondyle": ["pronator-teres", "flexor-carpi-radialis", "palmaris-longus", "flexor-carpi-ulnaris", "flexor-digitorum-superficialis"],
+                   "lateral epicondyle": ["extensor-digitorum", "extensor-carpi-ulnaris", "supinator"], "lateral supracondylar ridge": ["extensor-carpi-radialis-longus"]}
+        off = [(o, k) for o, ks in origins.items() for k in ks if o not in F["MUSCLES"][k]["location"]]
+        check("Origins match OpenStax 11.5: flexors and pronator teres from the medial epicondyle, extensors and supinator from the lateral side", not off, off)
+        check("The OpenStax table's 'extensor radialis longus' typo is not used", "extensor radialis longus" not in json.dumps(F).lower())
+        taught = {g["fig"] for g in F["GUIDED"]} | {x["fig"] for x in F["SET"]["learn"]}
+        unf = [i for i in F["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"]
+        check("Every new-picture item uses fig. 1105 (named drawing), never a teaching or guided figure",
+              unf and all(i["fig"] in ("forearm-body-front", "forearm-body-back") and i["fig"] not in taught and F["FIGURES"][i["fig"]].get("drawing") for i in unf))
+        seen = {}
+        dup = [i["id"] for i in unf if (i["fig"], i["muscle"]) in seen or seen.setdefault((i["fig"], i["muscle"]), 1) is None]
+        check("Each muscle is asked about at most once per new picture", not dup, dup)
+        check("Items on the studied 1120 figures are practice, not new pictures", all(not i["unfamiliar"] for i in F["ITEMS"] if i["kind"] == "name-pin" and i["fig"] in taught))
+        fn = [i for i in F["ITEMS"] if i["kind"] == "name-fn"]
+        give = [i["id"] for i in fn if F["MUSCLES"][i["muscle"]]["name"].lower() in i["prompt"].lower()]
+        check("Every muscle has one function question, and no prompt contains its own answer", sorted(i["muscle"] for i in fn) == sorted(F["MUSCLES"]) and not give, give)
+        check("Every item has a pin on its figure, a unique ID with the forearm prefix",
+              all(i["kind"] == "name-fn" or i["muscle"] in F["PINS"][i["fig"]] for i in F["ITEMS"]) and len({i["id"] for i in F["ITEMS"]}) == len(F["ITEMS"]) and all(i["id"].startswith("ap-ch9-forearm-") for i in F["ITEMS"]))
+        ctx.close()
+        try:
+            import pytesseract
+            from PIL import Image
+            names = ["flexor", "extensor", "pronator", "supinator", "palmaris", "carpi", "radialis", "ulnaris", "digitorum", "superficialis", "longus",
+                     "brachii", "brachioradialis", "biceps", "triceps", "epicondyle", "humerus", "pollicis", "anconeus", "retinaculum"]
+            found = {}
+            for f in ["forearm-front", "forearm-back", "forearm-deep", "forearm-body-front", "forearm-body-back"]:
+                im = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s-unlabeled.jpg" % f))
+                t = (pytesseract.image_to_string(im) + pytesseract.image_to_string(im.resize((im.width * 2, im.height * 2)), config="--psm 11")).lower()
+                hit = [n for n in names if n in t]
+                if hit: found[f] = hit
+            check("OCR finds no label text on any unlabeled forearm image", not found, found)
+        except ImportError:
+            check("OCR forearm label check (skipped: pytesseract not installed)", True)
+    guarded("forearm data", t_forearm_data)
+    def t_forearm_decode():
+        # The shoulder and arm lesson's labeled palm-side figure already shows five forearm names, so decoding them afterwards is practice.
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Fourteen shoulder and arm muscles"); page.wait_for_timeout(300)
+        fa = ctx.new_page(); fa.goto(FOREARM); fa.wait_for_selector("#toDecodeGuided")
+        N = fa.evaluate("MuscleNames"); P = N["SETS"]["forearm"]
+        fa.click("#toDecodeGuided"); fa.wait_for_selector("#dq [data-c]"); decode_answer(fa, P["guided"]); fa.click("#dind")
+        fa.wait_for_selector("text=No root table"); fa.wait_for_selector("#dq [data-c]")
+        names = []
+        for k in range(3):
+            name = fa.inner_text("#dq .prompt b"); it = next(x for x in P["items"] if x["name"] == name); names.append(it)
+            f = decode_answer(fa, it); fa.click("#dnext")
+            if k < 2: fa.wait_for_function("n => { const b = document.querySelector('#dq .prompt b'); return b && b.textContent !== n; }", arg=name)
+        l = {e["itemId"]: e for e in evs(fa, {"objectiveId": N["OBJ"]})}
+        both = [it for it in names if isinstance(it.get("taughtBy"), list)]
+        only = [it for it in names if not isinstance(it.get("taughtBy"), list)]
+        check("Forearm names already shown labeled in the shoulder and arm lesson count as practice; names only taught in the forearm lesson stay independent",
+              both and only and all(l[it["id"]]["activity"] == "check" and not l[it["id"]]["independent"] for it in both) and all(l[it["id"]]["independent"] for it in only),
+              [(it["name"], l[it["id"]]["activity"]) for it in names])
+        check("No page errors", not errs, errs[:1]); ctx.close()
+    guarded("forearm decode", t_forearm_decode)
+
+    section("A&P: pins never overlap on figures shown with all their pins (criterion 1)")
+    def t_pin_spacing():
+        from PIL import Image
+        import math
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm")]:
+            ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
+            S = page.evaluate("k => MuscleSets[k]", key)
+            figs = {g["fig"] for g in S["GUIDED"]} | ({S["SET"]["find"]["fig"]} if S["SET"].get("find") else set())
+            close = []
+            for f in figs:
+                w, h = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles", S["FIGURES"][f]["img"])).size
+                W, H = 640, 640 * h / w; ps = list(S["PINS"][f].items())
+                for i in range(len(ps)):
+                    for j in range(i + 1, len(ps)):
+                        d = math.hypot((ps[i][1][0] - ps[j][1][0]) / 100 * W, (ps[i][1][1] - ps[j][1][1]) / 100 * H)
+                        if d < 46: close.append((f, ps[i][0], ps[j][0], round(d)))
+            check("%s set: on every guided and worked-example figure at iPad width (640 px), 44 px pins are at least 46 px apart" % key, not close, close)
+            ctx.close()
+    guarded("pin spacing", t_pin_spacing)
     section("Picture familiarity: only the first answer on a drawing counts as a new picture, across lessons (criterion 7)")
     def t_pictures():
         # Same drawing twice in one lesson: the second question is "a picture seen before".
@@ -898,6 +1159,22 @@ with sync_playwright() as p:
         r = [x for x in evs(t, {"course": "BIO131"}) if x["itemId"] == "ap-ch9-trunk-front-name-rectus"][0]
         check("The trunk front view is then NOT a new picture: same drawing already seen in the head and neck lesson",
               r["independent"] and r["objectiveId"] == "bio131.ch9.trunk-muscle-id" and r["response"]["picture"] == "seen" and "picture you have seen before" in f, (r["objectiveId"], r["response"].get("picture")))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+        # Across lessons: after the shoulder and arm lesson's 1105 answers, the forearm's 1105 questions are pictures seen before.
+        ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        for g in page.evaluate("MuscleSets.upper.GUIDED"):
+            page.wait_for_selector("#gnames [data-name='%s']" % g["muscle"]); page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(100)
+        page.wait_for_timeout(300); page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        for t in ["infraspinatus", "deltoid", "biceps brachii", "subscapularis"]: ap_type(page, t)
+        fa = ctx.new_page(); fa.goto(FOREARM); fa.wait_for_selector("#screen h2"); forearm_guided(fa)
+        fa.click("[data-step='independent']"); fa.wait_for_selector("#q")
+        f = ap_type(fa, "pronator teres"); ap_type(fa, "flexor carpi radialis"); ap_type(fa, "extensor digitorum")
+        l = {x["itemId"]: x for x in evs(fa, {"course": "BIO131"})}
+        pt, ed = l["ap-ch9-forearm-front-name-pronator-teres"], l["ap-ch9-forearm-back-name-extensor-digitorum"]
+        check("Forearm questions on fig. 1105 are NOT new pictures after the shoulder and arm lesson used the same drawings",
+              pt["independent"] and pt["objectiveId"] == "bio131.ch9.forearm-id" and pt["response"]["picture"] == "seen" and ed["response"]["picture"] == "seen" and "picture you have seen before" in f,
+              (pt["objectiveId"], pt["response"].get("picture"), ed["response"].get("picture")))
         check("No page errors", not errs, errs[:1]); ctx.close()
         # Data: every new-picture item's figure names its source drawing.
         ctx, page, errs = fresh(url=TRUNK); page.wait_for_selector("#screen h2")
