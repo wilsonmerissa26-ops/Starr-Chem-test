@@ -74,9 +74,28 @@
     });
     return html + "</div>";
   }
+  // ---------- Pronunciation: shown in teaching and after an answer, never before one. Optional, ungraded, never recorded. ----------
+  var PR = window.Pronunciations || null;
+  function sayIt(name, withSource) {
+    var r = PR ? PR.forTerm(name) : null;
+    if (!r || !r.ok) return "";
+    var html = '<p class="say"><span class="say-label">Say it:</span> <span class="say-r">' + esc(r.text) + "</span>" +
+      (r.singular.length ? ' <span class="small muted">(Merriam-Webster gives the singular, ' + esc(r.singular.join(", ")) + ")</span>" : "") + "</p>";
+    if (!withSource) return html;
+    return html + '<details class="say-src"><summary>Pronunciation source</summary>' + r.sources.map(function (src) {
+      return '<p class="small">' + esc(src.dict) + ", \u201c" + esc(src.entry) + '\u201d: <span class="mw">\\' + esc(src.notation) + "\\</span> · checked " +
+        esc(LR.formatDay ? LR.formatDay(src.checked) : src.checked) + ' · <a href="' + esc(src.url) + '" target="_blank" rel="noopener">Hear it on Merriam-Webster</a></p>';
+    }).join("") + '<p class="small muted">The first pronunciation listed is used. The audio is on Merriam-Webster\'s site and needs internet; the written form works offline.</p></details>';
+  }
+  function sayAloudBox() {
+    if (!PR) return "";
+    return '<details class="say-aloud"><summary>How to read the pronunciations, plus an optional say-it-aloud practice</summary><p class="small">' + esc(PR.KEY) + "</p>" +
+      "<p><b>Say it aloud (optional).</b> Read a muscle's Say it line, say the name out loud twice, then look away and say it once more with what the muscle does.</p>" +
+      '<p class="small muted">Never graded and never needed to move on. Skip it anywhere you need to stay quiet. A name with no Say it line has no dictionary pronunciation to check against yet.</p></details>';
+  }
   function card(k) {
     var m = M.MUSCLES[k];
-    return '<div class="mcard"><h3>' + esc(m.name) + "</h3><p><b>Where:</b> " + esc(m.location) + "</p><p><b>Action:</b> " + esc(m.action) + "</p><p><b>Recognize it:</b> " + esc(m.cue) + "</p></div>";
+    return '<div class="mcard"><h3>' + esc(m.name) + "</h3>" + sayIt(m.name, true) + "<p><b>Where:</b> " + esc(m.location) + "</p><p><b>Action:</b> " + esc(m.action) + "</p><p><b>Recognize it:</b> " + esc(m.cue) + "</p></div>";
   }
   function lookalikeCard(a, b) {
     var note = M.LOOKALIKE_NOTES[M.pairKey(a, b)];
@@ -160,7 +179,7 @@
   }
   function deepSee(L) {
     markViewed("deep-" + L.key + "-see", "teach", L.objective);
-    deepShell(L, "see", "<h2>See it</h2>" + figure(L.see.fig, { labeled: true }) + "<p>" + esc(L.see.text) + "</p>" +
+    deepShell(L, "see", "<h2>See it</h2>" + sayIt(M.MUSCLES[L.key].name) + figure(L.see.fig, { labeled: true }) + "<p>" + esc(L.see.text) + "</p>" +
       '<details class="more"><summary>More detail</summary>' + card(L.key) + "</details>" + deepNext(L, "see", "Move it"));
     document.getElementById("dnext").onclick = function () { deepMove(L); };
   }
@@ -225,7 +244,7 @@
         save({ objectiveId: objectiveId(L.objective), itemId: R.id, itemVersion: 1, activity: "check", correct: r.correct, errorType: r.errorType,
           response: { typed: document.getElementById("ans").value }, unfamiliar: false }).catch(function () {});
         var host = document.getElementById("dfb");
-        host.innerHTML = r.correct ? fb("good", "Correct.", r.note ? "<p>" + esc(r.note) + "</p>" : "") : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", r.note ? "<p>" + esc(r.note) + "</p>" : "");
+        host.innerHTML = r.correct ? fb("good", "Correct.", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + sayIt(M.MUSCLES[L.key].name)) : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + sayIt(M.MUSCLES[L.key].name));
         if (r.correct) { host.insertAdjacentHTML("beforeend", deepNext(L, "recall", "Next question")); document.getElementById("dnext").onclick = function () { deepRecall(L, 1); }; }
         else confusionAsk(L, R.action, host, function () { host.insertAdjacentHTML("beforeend", deepNext(L, "recall", "Next question")); document.getElementById("dnext").onclick = function () { deepRecall(L, 1); }; }, R.id);
       };
@@ -285,8 +304,8 @@
           }).then(function (ev) {
             results.push({ skill: sk.label, correct: r.correct });
             var host = document.getElementById("dfb");
-            host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), (r.note ? "<p>" + esc(r.note) + "</p>" : "") + pictureNote(ev, picRef))
-              : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + pictureNote(ev, picRef) + "<p>This miss stays in your history, even after you get later questions right.</p>")) +
+            host.innerHTML = (r.correct ? fb("good", "Correct" + (ev && ev.independent ? ", on your own." : "."), (r.note ? "<p>" + esc(r.note) + "</p>" : "") + sayIt(M.MUSCLES[L.key].name) + pictureNote(ev, picRef))
+              : fb("bad", "The answer is " + M.MUSCLES[L.key].name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + sayIt(M.MUSCLES[L.key].name) + pictureNote(ev, picRef) + "<p>This miss stays in your history, even after you get later questions right.</p>")) +
               '<details class="more"><summary>How you could know</summary><ul>' + q.how.map(function (h) { return "<li>" + esc(h) + "</li>"; }).join("") + "</ul>" +
               (q.kind === "pin" && !r.correct ? figure(L.see.fig, { labeled: true }) : "") + "</details>" +
               '<div class="row" style="margin-top:14px"><button class="btn" type="button" id="dnext">' + (i + 1 < queue.length ? "Next question" : "Finish") + " →</button></div>";
@@ -327,7 +346,7 @@
   }
   function learn() {
     markViewed(SET.learnItem, "teach");
-    var html = '<div class="card"><h2>' + esc(SET.learnTitle) + "</h2><p>" + esc(SET.learnIntro) + "</p>" + songsHtml();
+    var html = '<div class="card"><h2>' + esc(SET.learnTitle) + "</h2><p>" + esc(SET.learnIntro) + "</p>" + sayAloudBox() + songsHtml();
     SET.learn.forEach(function (sec, i) {
       html += "<h3" + (i ? ' style="margin-top:18px"' : "") + ">" + esc(sec.h) + "</h3>" + figure(sec.fig, { labeled: true }) + '<div class="musclecards">' + sec.muscles.map(card).join("") + "</div>";
     });
@@ -547,7 +566,7 @@
       save({ objectiveId: objectiveId(objKey), itemId: "ap-ch9-guided-" + g.fig + "-" + g.muscle, itemVersion: 1, activity: "guided", correct: ok, errorType: err,
         response: { picked: pick }, assistance: { hints: hints, guided: true } }).catch(function () {});
       if (ok) {
-        document.getElementById("gfb").innerHTML = fb("good", "Yes: " + M.MUSCLES[g.muscle].name + ".", "<p>" + esc(M.MUSCLES[g.muscle].cue) + "</p>");
+        document.getElementById("gfb").innerHTML = fb("good", "Yes: " + M.MUSCLES[g.muscle].name + ".", sayIt(M.MUSCLES[g.muscle].name) + "<p>" + esc(M.MUSCLES[g.muscle].cue) + "</p>");
         idx++; setTimeout(paint, 0);
       } else {
         b.classList.add("wrong");
@@ -632,14 +651,14 @@
     }
     function feedback(it, r, ev, pic) {
       var m = M.MUSCLES[it.muscle], html;
-      if (r.correct) html = fb("good", "Correct: " + m.name + ".", (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p><b>Action:</b> " + esc(m.action) + "</p>" + pictureNote(ev, pic) + (ev && !ev.independent ? '<p class="small muted">Recorded as practice: ' + (it.fig === "face-lateral" ? "this side view is the same drawing as the jaw figure you studied." : "this question used a figure you already practiced on.") + "</p>" : ""));
+      if (r.correct) html = fb("good", "Correct: " + m.name + ".", sayIt(m.name) + (r.note ? "<p>" + esc(r.note) + "</p>" : "") + "<p><b>Action:</b> " + esc(m.action) + "</p>" + pictureNote(ev, pic) + (ev && !ev.independent ? '<p class="small muted">Recorded as practice: ' + (it.fig === "face-lateral" ? "this side view is the same drawing as the jaw figure you studied." : "this question used a figure you already practiced on.") + "</p>" : ""));
       else {
         var why = r.errorType === "dont-know" ? "No problem. Here is how to recognize it." :
           r.errorType === "incomplete-name" ? r.note :
           r.errorType && r.errorType.indexOf("lookalike") === 0 ? "You named its look-alike, " + M.MUSCLES[r.matched].name + "." :
           r.errorType === "wrong-muscle" ? "That is " + M.MUSCLES[r.matched].name + ", a different region." :
           r.errorType === "no-answer" ? "No answer was entered." : "That name was not recognized as one of the lesson muscles.";
-        html = fb("bad", "The answer is " + m.name + ".", "<p>" + esc(why) + "</p>" + pictureNote(ev, pic)) +
+        html = fb("bad", "The answer is " + m.name + ".", sayIt(m.name) + "<p>" + esc(why) + "</p>" + pictureNote(ev, pic)) +
           '<div class="reteach"><b>Reteach: ' + esc(m.name) + "</b><p><b>Where:</b> " + esc(m.location) + "</p><p><b>Action:</b> " + esc(m.action) + "</p><p><b>Recognize it:</b> " + esc(m.cue) + "</p>" +
           (it.fig ? figure(it.fig === "face-lateral" ? "face-anterior" : it.fig, { labeled: true }) : "") + "</div>" +
           (r.matched && r.matched !== it.muscle ? lookalikeCard(it.muscle, r.matched) : "");
