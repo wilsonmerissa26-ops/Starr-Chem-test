@@ -237,5 +237,10 @@
   var MIXUP_STAGE = { "calcium-target": "calcium", "tropomyosin-role": "calcium", "ion-source": "calcium", "sequence-skip": "calcium",
     "ttubule-sr-confused": "spread", "structure-confused": "spread", "atp-role": "atp", "sarcomere-bands": "sliding", "energy-system": "energy",
     "ache-role": "relax", "relaxation-mixup": "relax", "synapse-gap": "nmj", "ion-confused": "nmj" };
-  global.LESSON = global.Ch10Lesson = { NAME: "Chapter 10", PREFIX: "ap-ch10", SOURCE: "lesson-ap-ch10", OBJ: OBJ, STATUS: STATUS, STAGES: STAGES, ORDERS: ORDERS, EXPLAIN: EXPLAIN, ITEMS: ITEMS, MIXUPS: MIXUPS, MIXUP_STAGE: MIXUP_STAGE, PER_DAY: 5 };
+  // Say it: the hard terms on each stage, shown with their Merriam-Webster pronunciation (pronunciation.js). A term with an
+  // unverified word shows nothing (troponin and synaptic have no full dictionary pronunciation).
+  var SAY = { nmj: ["Acetylcholine", "Synaptic cleft"], spread: ["Sarcolemma", "Terminal cisternae"], calcium: ["Sarcoplasmic reticulum", "Troponin", "Tropomyosin"],
+    cycle: ["Myosin", "Actin"], sliding: ["Sarcomere"], relax: ["Acetylcholinesterase"],
+    energy: ["Creatine phosphate", "Anaerobic glycolysis", "Aerobic respiration", "Mitochondria"] };
+  global.LESSON = global.Ch10Lesson = { NAME: "Chapter 10", PREFIX: "ap-ch10", SOURCE: "lesson-ap-ch10", OBJ: OBJ, STATUS: STATUS, STAGES: STAGES, ORDERS: ORDERS, EXPLAIN: EXPLAIN, ITEMS: ITEMS, MIXUPS: MIXUPS, MIXUP_STAGE: MIXUP_STAGE, PER_DAY: 5, SAY: SAY };
 })(typeof window !== "undefined" ? window : globalThis);

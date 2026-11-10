@@ -1,7 +1,8 @@
 /* Verified pronunciations for lesson terms (shared by every lesson; no network use, so it works offline once cached).
  *
  * Source: Merriam-Webster (merriam-webster.com), Medical Dictionary where it has an entry, otherwise the general
- * dictionary. Each source keeps MW's own notation exactly as the entry shows it, its URL and the date it was read,
+ * dictionary. For a single word whose medical entry gives only a shortened form (starting with a hyphen), the general
+ * dictionary's full pronunciation is used when it has one (Chapter 8 and 10 terms, read 2026-11-10). Each source keeps MW's own notation exactly as the entry shows it, its URL and the date it was read,
  * so any line can be audited. Each notation was read from the live entry twice, with two differently worded requests,
  * and both reads agreed character for character. Rules:
  *   - Only a word whose pronunciation MW gives in full is shown. No pronunciation is ever made up or pieced together.
@@ -63,7 +64,50 @@
     extensorCarpiRadialisLongus: { entry: "extensor carpi radialis longus", dict: MED, url: MW + "medical/extensor%20carpi%20radialis%20longus", notation: "-ˈlȯŋ-gəs" },
     extensorDigitorumBrevis: { entry: "extensor digitorum brevis", dict: MED, url: MW + "medical/extensor%20digitorum%20brevis", notation: "-ˌdij-ə-ˈtōr-əm-ˈbrev-əs" },
     flexorDigitorumSuperficialis: { entry: "flexor digitorum superficialis", dict: MED, url: MW + "dictionary/flexor%20digitorum%20superficialis", notation: "-ˌsü-pər-ˌfish-ē-ˈā-ləs" },
-    extensor: { entry: "extensor", dict: MED, url: MW + "dictionary/extensor%20muscle", notation: "ik-ˈsten(t)-sər, -sȯ(ə)r" }
+    extensor: { entry: "extensor", dict: MED, url: MW + "dictionary/extensor%20muscle", notation: "ik-ˈsten(t)-sər, -sȯ(ə)r" },
+    // Chapter 10 and Chapter 8 terms, read 2026-11-10, twice each with differently worded requests; the first pronunciation
+    // agreed in both reads for every entry. Alternatives MW prints in separate brackets are joined here with a comma.
+    acetylcholine: { entry: "acetylcholine", dict: MED, url: MW + "dictionary/acetylcholine", notation: "ə-ˌset-ᵊl-ˈkō-ˌlēn, -ˌsēt-; ˌas-ə-ˌtēl-", checked: "2026-11-10" },
+    acetylcholinesterase: { entry: "acetylcholinesterase", dict: GEN, url: MW + "dictionary/acetylcholinesterase", notation: "ə-ˌse-tᵊl-ˌkō-lə-ˈne-stə-ˌrās, -ˌrāz", checked: "2026-11-10", why: "The medical entry gives only a shortened form, -ˌkō-lə-ˈnes-tə-ˌrās." },
+    sarcolemma: { entry: "sarcolemma", dict: MED, url: MW + "dictionary/sarcolemma", notation: "ˌsär-kə-ˈlem-ə", checked: "2026-11-10" },
+    cisternae: { entry: "cisterna, plural cisternae", dict: GEN, url: MW + "dictionary/cisternae", notation: "si-ˈstər-ˌnē", checked: "2026-11-10", why: "The medical entry gives only a shortened plural, -ˌnē." },
+    sarcoplasmic: { entry: "sarcoplasm, adjective sarcoplasmic", dict: GEN, url: MW + "dictionary/sarcoplasmic", notation: "ˌsär-kə-ˈplaz-mik", checked: "2026-11-10", why: "The medical entry gives a pronunciation only for the noun, sarcoplasm." },
+    reticulum: { entry: "reticulum", dict: MED, url: MW + "dictionary/reticulum", notation: "ri-ˈtik-yə-ləm", checked: "2026-11-10" },
+    tropomyosin: { entry: "tropomyosin", dict: MED, url: MW + "dictionary/tropomyosin", notation: "ˌträp-ə-ˈmī-ə-sən, ˌtrōp-", checked: "2026-11-10" },
+    myosin: { entry: "myosin", dict: MED, url: MW + "dictionary/myosin", notation: "ˈmī-ə-sən", checked: "2026-11-10" },
+    actin: { entry: "actin", dict: MED, url: MW + "dictionary/actin", notation: "ˈak-tən", checked: "2026-11-10" },
+    sarcomere: { entry: "sarcomere", dict: MED, url: MW + "dictionary/sarcomere", notation: "ˈsär-kə-ˌmi(ə)r", checked: "2026-11-10" },
+    creatine: { entry: "creatine", dict: MED, url: MW + "dictionary/creatine", notation: "ˈkrē-ə-ˌtēn, -ət-ᵊn", checked: "2026-11-10" },
+    phosphate: { entry: "phosphate", dict: MED, url: MW + "dictionary/phosphate", notation: "ˈfäs-ˌfāt", checked: "2026-11-10" },
+    glycolysis: { entry: "glycolysis", dict: MED, url: MW + "dictionary/glycolysis", notation: "glī-ˈkäl-ə-səs", checked: "2026-11-10" },
+    anaerobic: { entry: "anaerobic", dict: MED, url: MW + "dictionary/anaerobic", notation: "ˌan-ə-ˈrō-bik; ˌan-ˌa(-ə)r-ˈō-, -ˌe(-ə)r-", checked: "2026-11-10" },
+    aerobic: { entry: "aerobic", dict: MED, url: MW + "dictionary/aerobic", notation: "ˌa(-ə)r-ˈō-bik, ˌe(-ə)r-", checked: "2026-11-10" },
+    mitochondria: { entry: "mitochondrion, plural mitochondria", dict: GEN, url: MW + "dictionary/mitochondrion", notation: "ˌmī-tə-ˈkän-drē-ə", checked: "2026-11-10", why: "The medical entry gives only a shortened plural, -drē-ə." },
+    synovial: { entry: "synovial", dict: GEN, url: MW + "dictionary/synovial", notation: "sə-ˈnō-vē-əl", checked: "2026-11-10", why: "The medical entry gives only a shortened form, -vē-əl." },
+    synarthrosis: { entry: "synarthrosis", dict: GEN, url: MW + "dictionary/synarthrosis", notation: "ˌsin-är-ˈthrō-səs", checked: "2026-11-10", why: "The medical entry gives only a shortened form, -ˈthrō-səs." },
+    diarthrosis: { entry: "diarthrosis", dict: MED, url: MW + "dictionary/diarthrosis", notation: "ˌdī-är-ˈthrō-səs", checked: "2026-11-10" },
+    gomphosis: { entry: "gomphosis", dict: MED, url: MW + "medical/gomphosis", notation: "gäm-ˈfō-səs", checked: "2026-11-10" },
+    syndesmosis: { entry: "syndesmosis", dict: MED, url: MW + "dictionary/syndesmosis", notation: "ˌsin-ˌdez-ˈmō-səs, -ˌdes-", checked: "2026-11-10" },
+    synchondrosis: { entry: "synchondrosis", dict: MED, url: MW + "medical/synchondrosis", notation: "ˌsin-ˌkän-ˈdrō-səs", checked: "2026-11-10" },
+    symphysis: { entry: "symphysis", dict: MED, url: MW + "dictionary/symphysis", notation: "ˈsim(p)-fə-səs", checked: "2026-11-10" },
+    hyaline: { entry: "hyaline (adjective)", dict: MED, url: MW + "dictionary/hyaline", notation: "ˈhī-ə-lən, -ˌlīn", checked: "2026-11-10" },
+    epiphyseal: { entry: "epiphyseal", dict: MED, url: MW + "dictionary/epiphyseal", notation: "i-ˌpif-ə-ˈsē-əl", checked: "2026-11-10" },
+    menisci: { entry: "meniscus, plural menisci", dict: GEN, url: MW + "dictionary/menisci", notation: "mə-ˈni-ˌskī, -ˌskē, -ˌsī", checked: "2026-11-10", why: "The medical entry gives only a shortened plural, -ˈnis-ˌ(k)ī." },
+    bursae: { entry: "bursa, plural bursae", dict: GEN, url: MW + "dictionary/bursa", notation: "ˈbər-ˌsē, -ˌsī", checked: "2026-11-10", why: "The medical entry gives only a shortened plural, -ˌsē." },
+    condyloid: { entry: "condyle, adjective condyloid", dict: GEN, url: MW + "dictionary/condyloid", notation: "ˈkän-də-ˌlȯid", checked: "2026-11-10", why: "The medical entry gives a pronunciation only for the noun, condyle." },
+    circumduction: { entry: "circumduction", dict: MED, url: MW + "medical/circumduction", notation: "ˌsər-kəm-ˈdək-shən", checked: "2026-11-10" },
+    abduction: { entry: "abduction", dict: GEN, url: MW + "dictionary/abduction", notation: "ab-ˈdək-shən, əb-", checked: "2026-11-10", why: "The page has no medical entry for abduction." },
+    adduction: { entry: "adduction", dict: MED, url: MW + "dictionary/adduction", notation: "ə-ˈdək-shən, a-", checked: "2026-11-10" },
+    pronation: { entry: "pronation", dict: MED, url: MW + "dictionary/pronation", notation: "prō-ˈnā-shən", checked: "2026-11-10" },
+    supination: { entry: "supination", dict: MED, url: MW + "dictionary/supination", notation: "ˌsü-pə-ˈnā-shən", checked: "2026-11-10" },
+    dorsiflexion: { entry: "dorsiflexion", dict: MED, url: MW + "medical/dorsiflexion", notation: "ˌdȯr-sə-ˈflek-shən", checked: "2026-11-10" },
+    plantar: { entry: "plantar", dict: MED, url: MW + "dictionary/plantar", notation: "ˈplant-ər, ˈplan-ˌtär", checked: "2026-11-10" },
+    flexion: { entry: "flexion", dict: MED, url: MW + "dictionary/flexion", notation: "ˈflek-shən", checked: "2026-11-10" },
+    eversion: { entry: "eversion", dict: MED, url: MW + "dictionary/eversion", notation: "i-ˈvər-zhən, -shən", checked: "2026-11-10" },
+    protraction: { entry: "protraction", dict: GEN, url: MW + "dictionary/protraction", notation: "prō-ˈtrak-shən, prə-", checked: "2026-11-10", why: "The medical entry gives only a shortened form, -ˈtrak-shən." },
+    glenoid: { entry: "glenoid", dict: MED, url: MW + "medical/glenoid", notation: "ˈglen-ˌȯid, ˈglēn-", checked: "2026-11-10" },
+    labrum: { entry: "labrum", dict: MED, url: MW + "dictionary/labrum", notation: "ˈlā-brəm", checked: "2026-11-10" },
+    radioulnar: { entry: "radioulnar", dict: MED, url: MW + "medical/radioulnar", notation: "ˌrād-ē-ō-ˈəl-nər", checked: "2026-11-10" }
   };
   // word: [the part of the source notation for this word (first listed pronunciation), source key]
   var WORDS = {
@@ -83,6 +127,13 @@
     palmaris: ["pal-ˈmar-əs", "palmaris"], longus: ["ˈlȯŋ-gəs", "palmarisLongus"], digitorum: ["ˌdij-ə-ˈtōr-əm", "extensorDigitorumBrevis"],
     superficialis: ["ˌsü-pər-ˌfish-ē-ˈā-ləs", "flexorDigitorumSuperficialis"], extensor: ["ik-ˈsten(t)-sər", "extensor"]
   };
+  // Chapter 10 and Chapter 8 words: each is its entry's whole first pronunciation.
+  ["acetylcholine", "acetylcholinesterase", "sarcolemma", "cisternae", "sarcoplasmic", "reticulum", "tropomyosin", "myosin", "actin", "sarcomere",
+    "creatine", "phosphate", "glycolysis", "anaerobic", "aerobic", "mitochondria", "synovial", "synarthrosis", "diarthrosis", "gomphosis", "syndesmosis",
+    "synchondrosis", "symphysis", "hyaline", "epiphyseal", "menisci", "bursae", "condyloid", "circumduction", "abduction", "adduction", "pronation",
+    "supination", "dorsiflexion", "plantar", "flexion", "eversion", "protraction", "glenoid", "labrum", "radioulnar"].forEach(function (w) {
+    WORDS[w] = [SOURCES[w].notation.split(/[,;]/)[0].trim(), w];
+  });
   // A term's own entry beats the default source for a word.
   var IN_TERM = {
     "transversus abdominis": { abdominis: ["əb-ˈdäm-ə-nəs", "transversusAbdominis"] },
@@ -92,7 +143,7 @@
     "extensor carpi ulnaris": { ulnaris: ["ˌəl-ˈnar-əs", "extensorCarpiUlnaris"] }
   };
   // Everyday English words: shown as written, never looked up.
-  var EVERYDAY = ["external", "internal", "major", "minor", "anterior", "frontal", "belly"];
+  var EVERYDAY = ["external", "internal", "major", "minor", "anterior", "frontal", "belly", "terminal", "cleft", "respiration"];
   // MW gives the singular only; the term shows it with a note rather than adding a sound.
   var SINGULAR = { intercostals: "intercostal" };
   // Checked and not shown, with the reason (also listed in docs/PRONUNCIATION_REPORT.md).
@@ -102,7 +153,14 @@
   var UNDER_REVIEW = {};
   var NOT_VERIFIED = {
     orbicularis: "Merriam-Webster has no entry for orbicularis by itself. Its orbicularis oris entry gives a pronunciation only for oris, and its orbicularis oculi entry gives none.",
-    supraspinatus: "Merriam-Webster gives only a shortened form, -ˌspī-ˈnāt-əs, that depends on a neighboring entry, so there is no full pronunciation to show."
+    supraspinatus: "Merriam-Webster gives only a shortened form, -ˌspī-ˈnāt-əs, that depends on a neighboring entry, so there is no full pronunciation to show.",
+    troponin: "No Merriam-Webster entry for troponin turned up when searched on Nov 10.",
+    synaptic: "Merriam-Webster's synapse and synaptic vesicle entries print no pronunciation for synaptic.",
+    cartilaginous: "The medical entry gives only a shortened form, -nəs. The general entry, ˌkär-tə-ˈla-jə-nəs, ends a syllable with the a in cat (la), which this spelling key cannot write without it reading as ah.",
+    acetabulum: "The medical entry gives only a shortened form, -ˈtab-yə-ləm. The general entry, ˌa-sə-ˈta-byə-ləm, ends syllables with the a in cat (a, ta), which this spelling key cannot write without them reading as ah.",
+    amphiarthrosis: "Merriam-Webster gives only a shortened form, -ˈthrō-səs, and has no general dictionary entry for it.",
+    fibrocartilage: "No Merriam-Webster entry for fibrocartilage turned up when searched on Nov 10.",
+    humeroulnar: "No Merriam-Webster entry for humeroulnar turned up when searched on Nov 10."
   };
 
   // ---- MW notation -> simple spelling (one fixed key; see KEY) ----
@@ -142,11 +200,11 @@
     return primary ? out.toUpperCase() : out;
   }
   function respell(mw) {
-    var first = mw.split(",")[0].trim().replace(/\([^)]*\)/g, "").replace(/^-+|-+$/g, "");
+    var first = mw.split(/[,;]/)[0].trim().replace(/\([^)]*\)/g, "").replace(/^-+|-+$/g, "");
     return first.split("-").filter(Boolean).map(respellSyllable).join("-");
   }
   var KEY = "CAPITALS = the syllable to stress · uh = a in about · ay = say · ee = see · ah = father · oh = go · aw = law · oo = food · " +
-    "eye, ye or i-consonant-e = the i in kite (KAR-pye, klide) · er = butter · ur = fur · arr = carry · err = merry · eer = deer";
+    "eye, ye or i-consonant-e = the i in kite (KAR-pye, klide) · er = butter · ur = fur · arr = carry · err = merry · eer = deer · zh = the s in vision";
 
   // ---- terms ----
   function termWords(name) { return name.replace(/\([^)]*\)/g, " ").trim().toLowerCase().split(/\s+/); }
@@ -169,8 +227,20 @@
     var srcs = []; looked.forEach(function (p) { if (srcs.indexOf(p.source) < 0) srcs.push(p.source); });
     return { ok: true, missing: [], parts: parts, text: parts.map(function (p) { return p.plain ? p.word : p.say; }).join(" "),
       singular: looked.filter(function (p) { return p.singular; }).map(function (p) { return p.singular; }),
-      sources: srcs.map(function (k) { var s = SOURCES[k]; return { key: k, entry: s.entry, dict: s.dict, url: s.url, notation: s.notation, checked: CHECKED }; }) };
+      sources: srcs.map(function (k) { var s = SOURCES[k]; return { key: k, entry: s.entry, dict: s.dict, url: s.url, notation: s.notation, checked: s.checked || CHECKED }; }) };
+  }
+  // One link per dictionary page a term uses, labeled with the words of the term that page covers (so "quadratus" is not
+  // labeled with the other muscle's entry it comes from). Used for every "Hear it" line.
+  function pages(r) {
+    var out = [], at = {};
+    (r.parts || []).forEach(function (p) {
+      if (p.plain) return;
+      var url = SOURCES[p.source].url;
+      if (!Object.prototype.hasOwnProperty.call(at, url)) { at[url] = out.length; out.push({ url: url, words: [] }); }
+      out[at[url]].words.push(p.singular || p.word);
+    });
+    return out;
   }
   global.Pronunciations = { SOURCES: SOURCES, WORDS: WORDS, IN_TERM: IN_TERM, EVERYDAY: EVERYDAY, SINGULAR: SINGULAR, NOT_VERIFIED: NOT_VERIFIED, UNDER_REVIEW: UNDER_REVIEW,
-    CHECKED: CHECKED, KEY: KEY, respell: respell, forTerm: forTerm };
+    CHECKED: CHECKED, KEY: KEY, respell: respell, forTerm: forTerm, pages: pages };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -1145,6 +1145,17 @@ with sync_playwright() as p:
         "biceps": "BYE-seps", "brachii": "BRAY-kee-ee", "brachialis": "bray-kee-AL-uhs", "brachioradialis": "bray-kee-oh-rayd-ee-AL-uhs", "triceps": "TRYE-seps",
         "pronator": "PROH-nayt-er", "supinator": "SOO-puh-nayt-er", "flexor": "FLEK-ser", "carpi": "KAR-pye", "radialis": "ray-dee-AY-luhs", "ulnaris": "uhl-NARR-uhs",
         "palmaris": "pal-MARR-uhs", "longus": "LAWNG-guhs", "digitorum": "dij-uh-TOR-uhm", "superficialis": "soo-per-fish-ee-AY-luhs", "extensor": "ik-STEN-ser"}
+    # Chapter 10 and 8 words (Merriam-Webster, read Nov 10).
+    EXPECT_CH = {"acetylcholine": "uh-set-uhl-KOH-leen", "acetylcholinesterase": "uh-seh-tuhl-koh-luh-NEH-stuh-rays", "sarcolemma": "sar-kuh-LEM-uh",
+        "cisternae": "sih-STUR-nee", "sarcoplasmic": "sar-kuh-PLAZ-mik", "reticulum": "rih-TIK-yuh-luhm", "tropomyosin": "trahp-uh-MYE-uh-suhn", "myosin": "MYE-uh-suhn",
+        "actin": "AK-tuhn", "sarcomere": "SAR-kuh-meer", "creatine": "KREE-uh-teen", "phosphate": "FAHS-fayt", "glycolysis": "glye-KAHL-uh-suhs",
+        "anaerobic": "an-uh-ROH-bik", "aerobic": "arr-OH-bik", "mitochondria": "mye-tuh-KAHN-dree-uh", "synovial": "suh-NOH-vee-uhl", "synarthrosis": "sin-ar-THROH-suhs",
+        "diarthrosis": "dye-ar-THROH-suhs", "gomphosis": "gahm-FOH-suhs", "syndesmosis": "sin-dez-MOH-suhs", "synchondrosis": "sin-kahn-DROH-suhs", "symphysis": "SIM-fuh-suhs",
+        "hyaline": "HYE-uh-luhn", "epiphyseal": "ih-pif-uh-SEE-uhl", "menisci": "muh-NIH-skye", "bursae": "BUR-see", "condyloid": "KAHN-duh-loyd",
+        "circumduction": "sur-kuhm-DUHK-shuhn", "abduction": "ab-DUHK-shuhn", "adduction": "uh-DUHK-shuhn", "pronation": "proh-NAY-shuhn", "supination": "soo-puh-NAY-shuhn",
+        "dorsiflexion": "dor-suh-FLEK-shuhn", "plantar": "PLANT-er", "flexion": "FLEK-shuhn", "eversion": "ih-VUR-zhuhn", "protraction": "proh-TRAK-shuhn",
+        "glenoid": "GLEN-oyd", "labrum": "LAY-bruhm", "radioulnar": "rayd-ee-oh-UHL-ner"}
+    NOT_CH = ["troponin", "synaptic", "cartilaginous", "acetabulum", "amphiarthrosis", "fibrocartilage", "humeroulnar"]
     def t_pronunciation():
         src = open(os.path.join(ROOT, "student-app/lessons/pronunciation.js"), encoding="utf-8").read()
         check("Pronunciations are plain data in the app: no network calls and no audio files, so the written forms work offline",
@@ -1154,10 +1165,11 @@ with sync_playwright() as p:
         ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
         P = page.evaluate("Pronunciations")
         got = page.evaluate("() => Object.fromEntries(Object.entries(Pronunciations.WORDS).map(([w, v]) => [w, Pronunciations.respell(v[0])]))")
-        check("Every simple spelling is computed from MW's notation by one fixed key (%d words checked)" % len(EXPECT_SAY), got == EXPECT_SAY, {k: got.get(k) for k in EXPECT_SAY if got.get(k) != EXPECT_SAY[k]})
-        caps = [w for w, sp in got.items() for part in [sp.split("-")] if sum(1 for x in part if x.isupper()) != sum(1 for x in P["WORDS"][w][0].split(",")[0].split("-") if "\u02c8" in x)]
+        want_all = dict(EXPECT_SAY, **EXPECT_CH)
+        check("Every simple spelling is computed from MW's notation by one fixed key (%d words checked)" % len(want_all), got == want_all, {k: got.get(k) for k in set(want_all) | set(got) if got.get(k) != want_all.get(k)})
+        caps = [w for w, sp in got.items() for part in [sp.split("-")] if sum(1 for x in part if x.isupper()) != sum(1 for x in re.split(r"[,;]", P["WORDS"][w][0])[0].split("-") if "\u02c8" in x)]
         check("Exactly one syllable per word is in capitals, the one MW marks with the main stress mark", not caps, caps)
-        def first(n): return "-" + n.split(",")[0].strip().strip("-") + "-"
+        def first(n): return "-" + re.split(r"[,;]", n)[0].strip().strip("-") + "-"
         bad = [w for w, (mw, k) in P["WORDS"].items() if k not in P["SOURCES"] or "-" + mw + "-" not in first(P["SOURCES"][k]["notation"])]
         bad += [t + ":" + w for t, o in P["IN_TERM"].items() for w, (mw, k) in o.items() if "-" + mw + "-" not in first(P["SOURCES"][k]["notation"])]
         check("Every word's pronunciation is a whole-syllable run copied from the FIRST pronunciation its Merriam-Webster entry lists, never pieced together", not bad, bad)
@@ -1167,7 +1179,7 @@ with sync_playwright() as p:
             const add = (w, mw, k) => (by[k] = by[k] || []).push([w, mw]);
             Object.entries(P.WORDS).forEach(([w, v]) => add(w, v[0], v[1]));
             Object.values(P.IN_TERM).forEach(o => Object.entries(o).forEach(([w, v]) => add(w, v[0], v[1])));
-            return Object.entries(by).map(([k, ws]) => [k, P.SOURCES[k].notation.split(',')[0].trim().replace(/^-|-$/g, ''), ws])
+            return Object.entries(by).map(([k, ws]) => [k, P.SOURCES[k].notation.split(/[,;]/)[0].trim().replace(/^-|-$/g, ''), ws])
               .filter(([k, full, ws]) => ws.some(x => x[1] !== full)); }""")
         part = [k for k, full, ws in splits if not ("-" + full + "-").startswith("-" + "-".join(x[1] for x in ws) + "-")]
         check("Words cut from one longer notation (latissimus + dorsi, carpi + radialis, transversus + abdominis, digitorum) are consecutive whole syllables from its start, in order, with nothing skipped",
@@ -1183,9 +1195,12 @@ with sync_playwright() as p:
             return [before, word.ok, word.held, other, term.ok, minor, Object.keys(P.UNDER_REVIEW).length]; }""")
         check("A word or name held for review shows no pronunciation anywhere it appears, and nothing else is affected",
               held == [True, False, ["carpi"], True, False, True, 0], held)
-        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"]]
-        check("Every source names its Merriam-Webster dictionary, page URL and exact notation, read on %s" % P["CHECKED"], not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
-        check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == ["orbicularis", "supraspinatus"])
+        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"] or v.get("checked", P["CHECKED"]) not in ("2026-11-06", "2026-11-10")]
+        check("Every source names its Merriam-Webster dictionary, page URL, exact notation and the day it was read (Nov 6 for muscles, Nov 10 for Chapters 10 and 8)", not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
+        check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == sorted(["orbicularis", "supraspinatus"] + NOT_CH), sorted(P["NOT_VERIFIED"]))
+        gen = [k for k, v in P["SOURCES"].items() if v.get("checked") == "2026-11-10" and ("general" in v["dict"]) != bool(v.get("why"))]
+        med = [k for k, v in P["SOURCES"].items() if v.get("checked") == "2026-11-10" and "Medical" in v["dict"] and v["notation"].startswith("-")]
+        check("Chapter 10 and 8: the general dictionary is used only where the medical entry is shortened or missing, with the reason kept; no shortened form is used", not gen and not med, (gen, med))
         r = page.evaluate("['Supraspinatus','Orbicularis oculi','Orbicularis oris','Pectoralis major','External intercostals','Occipitofrontalis (frontal belly)'].map(n => Pronunciations.forTerm(n))")
         check("A name with any unverified word shows nothing; everyday words are shown as written",
               not r[0]["ok"] and not r[1]["ok"] and not r[2]["ok"] and r[3]["text"] == "pek-tuh-RAY-luhs major" and r[4]["singular"] == ["intercostal"] and r[5]["text"] == "ahk-sip-uht-oh-fruhn-TAY-luhs", [x.get("text") for x in r])
@@ -1470,6 +1485,64 @@ with sync_playwright() as p:
               and p2.inner_text("#q .prompt") == L["ITEMS"][10]["prompt"], p2.inner_text("#q .prompt")[:80])
         check("No page errors", not errs and not x2, (errs + x2)[:1]); ctx.close()
     guarded("ch8 flow", t_ch8_flow)
+
+    # =====================================================================================
+    section("Pronunciation in Chapters 10 and 8: Say it on learn stages only, verified terms only, never recorded")
+    def say_rows(page): return page.eval_on_selector_all("#screen .say-list li", "ls => ls.map(l => [l.querySelector('b').textContent, l.querySelector('.say-r').textContent, [...l.querySelectorAll('a')].map(a => [a.textContent, a.href, a.target, a.rel])])")
+    def t_pron_chapters():
+        ctx, page, errs = fresh(url=CH10); page.wait_for_selector("#screen h2")
+        r1 = say_rows(page)
+        check("Chapter 10 stage 1: acetylcholine shows its Say it line and a Hear it link to its own Merriam-Webster page; synaptic cleft shows nothing (no dictionary pronunciation)",
+              r1 == [["Acetylcholine", "uh-set-uhl-KOH-leen", [["acetylcholine", "https://www.merriam-webster.com/dictionary/acetylcholine", "_blank", "noopener"]]]], r1)
+        src = page.eval_on_selector("#screen .say-list details", "d => [d.open, d.textContent]")
+        check("The key and MW's own notation sit in a collapsed box, with the day each was read", src[0] is False and "\\\u0259-\u02ccset-\u1d4al-\u02c8k\u014d-\u02ccl\u0113n, -\u02ccs\u0113t-; \u02ccas-\u0259-\u02cct\u0113l-\\" in src[1] and "checked" in src[1] and "zh = the s in vision" in src[1], src[1][:200])
+        page.click("#screen .say-list details summary"); page.wait_for_timeout(200)
+        L10 = page.evaluate("Ch10Lesson"); shown = {}
+        for i, S in enumerate(L10["STAGES"]):
+            if i: page.click("#nextStage"); page.wait_for_timeout(60)
+            shown[S["id"]] = [x[0] for x in say_rows(page)]
+        want10 = {S["id"]: [t for t in L10["SAY"].get(S["id"], []) if page.evaluate("t => Pronunciations.forTerm(t).ok", t)] for S in L10["STAGES"]}
+        check("Every Chapter 10 stage shows exactly its verified terms (troponin and synaptic cleft never; nothing on the ATP stage)",
+              shown == want10 and "Troponin" not in sum(shown.values(), []) and shown["atp"] == [] and len(sum(shown.values(), [])) == 13, shown)
+        ev = evs(page, {"course": "BIO131"})
+        check("Opening the Say it box and reading the stages records nothing but the usual 'viewed this stage' notes",
+              len(ev) == 8 and all(e["activity"] == "teach" for e in ev) and not [e for e in ev if re.search("say|pronun", e["itemId"])], [e["itemId"] for e in ev])
+        ch10_order(page)
+        o = page.locator("#screen .say-list").count() + page.locator("#screen a[href*='merriam-webster']").count()
+        page.click("[data-step='independent']"); page.wait_for_selector("#q .choice")
+        q = page.locator("#screen .say-list").count() + page.locator("#screen a[href*='merriam-webster']").count()
+        check("No pronunciation or dictionary link on the ordering practice or on a question", o == 0 and q == 0, (o, q))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+        ctx, page, errs = fresh(url=CH8); page.wait_for_selector("#screen h2")
+        r8 = say_rows(page)
+        check("Chapter 8 stage 1: synovial, synarthrosis, diarthrosis shown; cartilaginous and amphiarthrosis not (no full pronunciation the key can show)",
+              [x[0] for x in r8] == ["Synovial", "Synarthrosis", "Diarthrosis"] and r8[0][1] == "suh-NOH-vee-uhl", r8)
+        L8 = page.evaluate("Ch8Lesson"); shown = {}
+        for i, S in enumerate(L8["STAGES"]):
+            if i: page.click("#nextStage"); page.wait_for_timeout(60)
+            shown[S["id"]] = say_rows(page)
+        pf = [x for x in shown["moves2"] if x[0] == "Plantar flexion"]
+        check("A two-word term links each dictionary page it uses, labeled by word (plantar, flexion)",
+              pf and pf[0][1] == "PLANT-er FLEK-shuhn" and [a[0] for a in pf[0][2]] == ["plantar", "flexion"] and all(a[2] == "_blank" for a in pf[0][2]), pf)
+        names8 = sum([[x[0] for x in v] for v in shown.values()], [])
+        check("Every Chapter 8 stage shows only verified terms (26 lines; acetabulum, humeroulnar and fibrocartilage never)",
+              len(names8) == 26 and not {"Acetabulum", "Humeroulnar", "Fibrocartilage", "Cartilaginous", "Amphiarthrosis"} & set(names8), names8)
+        ch8_sort(page)
+        o = page.locator("#screen .say-list").count()
+        page.click("[data-step='independent']"); page.wait_for_selector("#q .choice")
+        q = page.locator("#screen .say-list").count() + page.locator("#screen a[href*='merriam-webster']").count()
+        check("No pronunciation on the sorting practice or on a question", o == 0 and q == 0, (o, q))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+        # Every listed term appears on its own stage, and the shown/not-shown split matches the report.
+        for name, L in (("Chapter 10", L10), ("Chapter 8", L8)):
+            off = [(sid, t) for sid, ts in L["SAY"].items() for t in ts if t.lower() not in json.dumps([S for S in L["STAGES"] if S["id"] == sid][0], ensure_ascii=False).lower()]
+            check(name + ": every Say it term is a word that stage actually teaches", not off, off)
+        ctx, page, errs = fresh()
+        page.route("**/*", lambda rt: rt.abort() if not rt.request.url.startswith(BASE) else rt.continue_())
+        page.goto(CH8); page.wait_for_selector("#screen h2")
+        check("With every outside request blocked, the Chapter 8 Say it box still shows its three lines", len(say_rows(page)) == 3, say_rows(page))
+        check("No page errors", not errs, errs[:1]); ctx.close()
+    guarded("pronunciation chapters", t_pron_chapters)
 
     # =====================================================================================
     section("Both courses share one record and one study plan (criterion 6)")

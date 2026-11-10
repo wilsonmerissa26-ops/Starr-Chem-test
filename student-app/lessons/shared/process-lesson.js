@@ -63,13 +63,30 @@
     })).catch(function () {});
   }
 
+  // ---------- Say it: written pronunciations for a stage's hard terms (teaching only; optional, never graded or recorded) ----------
+  var PR = window.Pronunciations || null;
+  function sayBox(S) {
+    var terms = PR && L.SAY && L.SAY[S.id];
+    var rows = (terms || []).map(function (t) { return { t: t, r: PR.forTerm(t) }; }).filter(function (x) { return x.r.ok; });
+    if (!rows.length) return "";
+    return '<div class="say-list"><p class="say-label">Say it</p><ul>' + rows.map(function (x) {
+      return "<li><b>" + esc(x.t) + '</b>: <span class="say-r">' + esc(x.r.text) + '</span><br><span class="say-hear small">Hear it on Merriam-Webster: ' +
+        PR.pages(x.r).map(function (pg) { return '<a href="' + esc(pg.url) + '" target="_blank" rel="noopener">' + esc(pg.words.join(" ")) + "</a>"; }).join(" · ") +
+        "</span></li>";
+    }).join("") + '</ul><p class="small muted">Hear it opens Merriam-Webster\'s own audio and needs internet. The written spellings work offline.</p><details class="say-src"><summary>How to read these, and the dictionary sources</summary><p class="small">' + esc(PR.KEY) + "</p>" +
+      rows.map(function (x) { return x.r.sources.map(function (s) {
+        return '<p class="small">' + esc(s.dict) + ", \u201c" + esc(s.entry) + '\u201d: <span class="mw">\\' + esc(s.notation) + "\\</span> · checked " + esc(LR.formatDay ? LR.formatDay(s.checked) : s.checked) + "</p>";
+      }).join(""); }).join("") +
+      '<p class="small muted">The first pronunciation Merriam-Webster lists is used. Optional practice: never graded and never needed to move on. A term with no Say it line has no full dictionary pronunciation to check against.</p></details></div>';
+  }
+
   // ---------- 1. Learn: one stage per screen ----------
   function learn() {
     var S = L.STAGES[stage];
     markViewed(S.id, S.obj);
     screen.innerHTML = '<div class="card"><p class="small muted">Stage ' + (stage + 1) + " of " + L.STAGES.length + "</p><h2>" + esc(S.title) + "</h2>" +
       (S.fig ? '<figure class="fig"><img src="' + S.fig + '" alt="' + esc(S.alt) + '" loading="lazy"></figure>' : "") +
-      '<ul class="points">' + S.points.map(function (p) { return "<li>" + p + "</li>"; }).join("") + "</ul>" +
+      '<ul class="points">' + S.points.map(function (p) { return "<li>" + p + "</li>"; }).join("") + "</ul>" + sayBox(S) +
       '<details class="more"><summary>' + esc(S.more || "If this step fails") + "</summary><p>" + esc(S.fails) + "</p></details>" +
       '<div class="row" style="margin-top:14px">' + (stage > 0 ? '<button type="button" class="btn secondary" id="prevStage">Back</button>' : "") +
       (stage < L.STAGES.length - 1 ? '<button type="button" class="btn" id="nextStage">Next stage</button>' : '<button type="button" class="btn" data-go="order">' + esc(L.SORTS ? "Sort them" : "Put the steps in order") + "</button>") + "</div></div>";

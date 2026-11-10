@@ -246,6 +246,13 @@
     "struct-parts": "synovial", "struct-cartilage": "synovial", "struct-ligament": "synovial", "struct-meniscus": "synovial",
     "types-shape": "types", "types-axes": "types", "types-examples": "types", "joints-support": "shoulder-elbow", "joints-rotator": "shoulder-elbow",
     "joints-elbow": "shoulder-elbow", "joints-knee": "hip-knee" };
+  // Say it: the hard terms on each stage, shown with their Merriam-Webster pronunciation (pronunciation.js). Terms with no full
+  // dictionary pronunciation (cartilaginous, amphiarthrosis, fibrocartilage, humeroulnar, acetabulum) show nothing.
+  var SAY = { classify: ["Cartilaginous", "Synovial", "Synarthrosis", "Amphiarthrosis", "Diarthrosis"], fibrous: ["Gomphosis", "Syndesmosis"],
+    cartilaginous: ["Synchondrosis", "Hyaline", "Epiphyseal", "Symphysis", "Fibrocartilage"], synovial: ["Synovial", "Menisci", "Bursae"],
+    types: ["Condyloid"], moves1: ["Flexion", "Abduction", "Adduction", "Circumduction"],
+    moves2: ["Pronation", "Supination", "Dorsiflexion", "Plantar flexion", "Eversion", "Protraction"],
+    "shoulder-elbow": ["Glenoid labrum", "Humeroulnar", "Radioulnar"], "hip-knee": ["Acetabulum", "Menisci"] };
   global.LESSON = global.Ch8Lesson = { NAME: "Chapter 8", LEARN_LABEL: "1 · Learn it", PREFIX: "ap-ch8", SOURCE: "lesson-ap-ch8", OBJ: OBJ, STATUS: STATUS, STAGES: STAGES, SORTS: SORTS,
-    EXPLAIN: EXPLAIN, ITEMS: ITEMS, MIXUPS: MIXUPS, MIXUP_STAGE: MIXUP_STAGE, PER_DAY: 5 };
+    EXPLAIN: EXPLAIN, ITEMS: ITEMS, MIXUPS: MIXUPS, MIXUP_STAGE: MIXUP_STAGE, PER_DAY: 5, SAY: SAY };
 })(typeof window !== "undefined" ? window : globalThis);
