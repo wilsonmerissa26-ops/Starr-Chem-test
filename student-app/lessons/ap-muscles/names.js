@@ -76,7 +76,7 @@
     "latissimus": { m: "widest", cat: "size", ex: "" },
     "longus": { m: "long", cat: "size", ex: "longus colli" },
     "brevis": { m: "short", cat: "size", ex: "adductor brevis" },
-    "medius": { m: "middle-sized", cat: "size", ex: "scalenus medius" },
+    "medius": { m: "middle", cat: "size", ex: "scalenus medius" },
     "magnus": { m: "large", cat: "size", ex: "" },
     "vastus": { m: "huge, vast", cat: "size", ex: "vastus intermedius" },
     "latae": { m: "wide, broad", cat: "size", ex: "" },
@@ -172,7 +172,7 @@
     tells: "The huge muscle on the outer side of the thigh." };
   // Gracilis, pectineus, sartorius and iliacus are left out: each name is a single word, so it would not test decoding.
   var THIGH_ITEMS = [
-    { id: "ap-ch9-names-gluteus-medius", name: "Gluteus medius", parts: ["gluteus", "medius"], tells: "The middle-sized buttock muscle.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-gluteus-medius", name: "Gluteus medius", parts: ["gluteus", "medius"], tells: "The middle buttock muscle: the middle one of the three gluteal muscles in size and depth.", taughtBy: THIGH_TAUGHT },
     { id: "ap-ch9-names-psoas-major", name: "Psoas major", parts: ["psoas", "major"], tells: "The larger muscle of the loin, beside the lumbar spine.", taughtBy: [TRUNK_TAUGHT, THIGH_TAUGHT] }, // the trunk lesson's labeled posterior abdominal wall already shows it
     { id: "ap-ch9-names-vastus-medialis", name: "Vastus medialis", parts: ["vastus", "medialis"], tells: "The huge muscle on the inner side of the thigh, toward the midline.", taughtBy: THIGH_TAUGHT },
     { id: "ap-ch9-names-adductor-magnus", name: "Adductor magnus", parts: ["adductor", "magnus"], tells: "The large muscle that pulls the thigh toward the midline.", taughtBy: THIGH_TAUGHT },
@@ -210,7 +210,7 @@
   // Pairs whose meanings overlap enough that either could look right; one is never offered as a wrong choice for the other.
   var CLOSE = [["extensor", "erector"], ["levator", "erector"], ["superficialis", "external"], ["teres", "orbicularis"],
     ["vastus", "maximus"], ["vastus", "major"], ["vastus", "magnus"], ["magnus", "major"], ["magnus", "maximus"], ["latae", "latissimus"],
-    ["lateralis", "external"], ["medialis", "internal"], ["posterior", "dorsi"]];
+    ["lateralis", "external"], ["medialis", "internal"], ["posterior", "dorsi"], ["medius", "medialis"]];
   function close(a, b) { return CLOSE.some(function (p) { return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a); }); }
   // Four choices per part: the right meaning plus three from the same clue category (then others), in a fixed order per item.
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }

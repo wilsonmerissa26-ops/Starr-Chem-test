@@ -194,9 +194,9 @@
     vastus: "Merriam-Webster's vastus entry prints no pronunciation, and its vastus lateralis, medialis and intermedius entries give only the second word, so there is no full pronunciation of vastus to show.",
     lateralis: "Not used: vastus lateralis cannot show a pronunciation, because vastus has none.",
     medialis: "Not used: vastus medialis cannot show a pronunciation, because vastus has none.",
-    magnus: "Merriam-Webster's adductor magnus entry prints no pronunciation, and no other entry checked gives one for magnus.",
+    magnus: "Not verified yet. Merriam-Webster's adductor page lists adductor magnus with no pronunciation, its magnus page prints none, and its dedicated adductor magnus entry could not be opened from here to read twice. An outside review (Nov 12) reports that entry prints -ˈmag-nəs; it will be shown once read twice.",
     medius: "Merriam-Webster's gluteus medius entry prints -ˈmē-dē-us, with the letters \"us\" where its pronunciation key uses ə. That is not a symbol in its key, so it is not used.",
-    fibularis: "Merriam-Webster has no entry for fibularis; it lists these muscles under the older name, peroneus.",
+    fibularis: "No Merriam-Webster entry for fibularis turned up when searched on Nov 12; its entries use the older name, peroneus.",
     brevis: "Not used: fibularis brevis cannot show a pronunciation, because fibularis has no entry."
   };
 

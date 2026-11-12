@@ -1201,12 +1201,17 @@ with sync_playwright() as p:
                    "sartorius": "Flexes the leg at the knee, and flexes, abducts and laterally rotates the thigh", "rectus-femoris": "Extends the leg at the knee and flexes the thigh",
                    "vastus-lateralis": "Extends the leg at the knee", "vastus-medialis": "Extends the leg at the knee", "pectineus": "Adducts and flexes the thigh",
                    "adductor-longus": "Adducts the thigh", "adductor-magnus": "Adducts the thigh", "gracilis": "Adducts the thigh and flexes the leg at the knee",
-                   "gluteus-maximus": "Extends the thigh at the hip", "gluteus-medius": "Abducts the thigh", "biceps-femoris": "Flexes the leg at the knee and extends the thigh at the hip",
+                   "gluteus-maximus": "Extends the thigh at the hip", "gluteus-medius": "Abducts the thigh", "biceps-femoris": "Flexes the leg at the knee (both heads). The long head also extends the thigh at the hip",
                    "semitendinosus": "Flexes the leg at the knee and extends the thigh at the hip", "semimembranosus": "Flexes the leg at the knee and extends the thigh at the hip"}
         off = [k for k, v in anchors.items() if not T["MUSCLES"][k]["action"].startswith(v)]
         check("Every action matches OpenStax 11.6's text in standard terms; the pectineus adducts (the caption's 'opens the thigh' is not used)",
               not off and "abduct" not in T["MUSCLES"]["pectineus"]["action"].lower() and "opens the thigh" not in json.dumps(T["MUSCLES"]) and "brings the thighs" not in json.dumps(T["MUSCLES"]), off)
-        check("Adductor longus flexes the thigh and adductor magnus extends it, as OpenStax's text says", "helps flex" in T["MUSCLES"]["adductor-longus"]["action"] and "extends the thigh" in T["MUSCLES"]["adductor-magnus"]["action"])
+        check("Adductor longus helps flex the thigh; adductor magnus's back (hamstring) part extends it and its front (adductor) part helps flex it (Nov 12 audit, Kenhub)",
+              "helps flex" in T["MUSCLES"]["adductor-longus"]["action"] and "hamstring) part, from the ischial tuberosity, also extends the thigh" in T["MUSCLES"]["adductor-magnus"]["action"]
+              and "front (adductor) part helps flex it" in T["MUSCLES"]["adductor-magnus"]["action"] and "gluteal tuberosity" in T["MUSCLES"]["adductor-magnus"]["location"])
+        check("Only the long head of the biceps femoris extends the thigh; the short head acts only at the knee (Nov 12 audit, Kenhub)", "short head starts on the femur, so it acts only at the knee" in T["MUSCLES"]["biceps-femoris"]["action"])
+        gm = [i for i in T["ITEMS"] if i["id"] == "ap-ch9-thigh-act-level-pelvis"][0]["prompt"]
+        check("The gluteus medius question names its insertion (greater trochanter) and depth, so the tensor fasciae latae cannot also fit", "greater trochanter" in gm and "under the largest buttock muscle" in gm, gm)
         origins = {"ischial tuberosity": ["biceps-femoris", "semitendinosus", "semimembranosus", "adductor-magnus"], "pubis": ["adductor-longus", "pectineus", "gracilis"],
                    "anterior superior iliac spine": ["sartorius", "tensor-fasciae-latae"], "anterior inferior iliac spine": ["rectus-femoris"], "lumbar vertebrae": ["psoas-major"],
                    "iliac fossa": ["iliacus"], "greater trochanter": ["vastus-lateralis"], "linea aspera": ["vastus-medialis", "vastus-lateralis"], "surface of the ilium": ["gluteus-medius"],
@@ -1353,6 +1358,7 @@ with sync_playwright() as p:
                    "tibialis-posterior": "Plantar flexes the foot and inverts it", "flexor-digitorum-longus": "Flexes toes 2 to 5", "flexor-hallucis-longus": "Flexes the big toe"}
         off = [k for k, v in anchors.items() if not G["MUSCLES"][k]["action"].startswith(v)]
         check("Every action matches OpenStax 11.6 in standard terms (front dorsiflexes, lateral everts, back plantar flexes)", not off, off)
+        check("Tibialis posterior ends mainly on the navicular and medial cuneiform (Nov 12 audit, Kenhub)", "mainly on the navicular and medial cuneiform" in G["MUSCLES"]["tibialis-posterior"]["location"])
         check("Only the gastrocnemius crosses the knee: it alone also flexes the knee, and the soleus says it does not", "flex the leg at the knee" in G["MUSCLES"]["gastrocnemius"]["action"]
               and "knee" not in G["MUSCLES"]["soleus"]["action"] and "does not cross the knee" in G["MUSCLES"]["soleus"]["location"])
         origins = {"lateral condyle and upper shaft of the tibia": ["tibialis-anterior"], "lateral condyle of the tibia, the upper fibula": ["extensor-digitorum-longus"],

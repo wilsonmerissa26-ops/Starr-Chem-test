@@ -64,7 +64,7 @@
       lookalike: "gastrocnemius" },
     "tibialis-posterior": { name: "Tibialis posterior", region: "back of the leg, deepest muscle",
       accept: ["tibialis posterior"],
-      location: "The deepest muscle on the back of the leg, between the tibia and fibula: from the upper tibia and fibula and the interosseous membrane. Its tendon passes behind the medial malleolus (inner ankle bone) to bones on the inner side of the sole.",
+      location: "The deepest muscle on the back of the leg, between the tibia and fibula: from the upper tibia and fibula and the interosseous membrane. Its tendon passes behind the medial malleolus (inner ankle bone) and ends mainly on the navicular and medial cuneiform, with slips to other tarsal bones and the bases of metatarsals 2 to 4.",
       action: "Plantar flexes the foot and inverts it (turns the sole inward).",
       cue: "Tibialis (tibia) + posterior (back): the deepest back muscle, between the two leg bones.",
       feel: { do: "Point your foot down and turn the sole inward.", notice: "It is the deepest calf muscle, so you feel the movement, not the muscle; a tendon may stand out just behind the inner ankle bone." },

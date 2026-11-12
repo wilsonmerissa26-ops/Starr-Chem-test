@@ -23,10 +23,10 @@ Key: CAPITALS = the syllable to stress · uh = a in about · ay = say · ee = se
 | Hip and thigh | Vastus lateralis | lateralis | Not used: vastus lateralis cannot show a pronunciation, because vastus has none. |
 | Hip and thigh | Vastus medialis | vastus | Merriam-Webster's vastus entry prints no pronunciation, and its vastus lateralis, medialis and intermedius entries give only the second word, so there is no full pronunciation of vastus to show. |
 | Hip and thigh | Vastus medialis | medialis | Not used: vastus medialis cannot show a pronunciation, because vastus has none. |
-| Hip and thigh | Adductor magnus | magnus | Merriam-Webster's adductor magnus entry prints no pronunciation, and no other entry checked gives one for magnus. |
+| Hip and thigh | Adductor magnus | magnus | Not verified yet. Merriam-Webster's adductor page lists adductor magnus with no pronunciation, its magnus page prints none, and its dedicated adductor magnus entry could not be opened from here to read twice. An outside review (Nov 12) reports that entry prints -ˈmag-nəs; it will be shown once read twice. |
 | Hip and thigh | Gluteus medius | medius | Merriam-Webster's gluteus medius entry prints -ˈmē-dē-us, with the letters "us" where its pronunciation key uses ə. That is not a symbol in its key, so it is not used. |
-| Lower leg | Fibularis longus | fibularis | Merriam-Webster has no entry for fibularis; it lists these muscles under the older name, peroneus. |
-| Lower leg | Fibularis brevis | fibularis | Merriam-Webster has no entry for fibularis; it lists these muscles under the older name, peroneus. |
+| Lower leg | Fibularis longus | fibularis | No Merriam-Webster entry for fibularis turned up when searched on Nov 12; its entries use the older name, peroneus. |
+| Lower leg | Fibularis brevis | fibularis | No Merriam-Webster entry for fibularis turned up when searched on Nov 12; its entries use the older name, peroneus. |
 | Lower leg | Fibularis brevis | brevis | Not used: fibularis brevis cannot show a pronunciation, because fibularis has no entry. |
 
 ## Shown
