@@ -151,6 +151,9 @@ const PILOT_OBJECTIVES=[
  {id:"bio131.ch9.forearm-id",course:"BIO131",subject:"ap",title:"A&P: identify forearm muscles",resource:"ap-forearm"},
  {id:"bio131.ch9.forearm-actions",course:"BIO131",subject:"ap",title:"A&P: forearm muscle actions",resource:"ap-forearm"},
  {id:"bio131.ch9.forearm-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify forearm muscles on new pictures",resource:"ap-forearm"},
+ {id:"bio131.ch9.thigh-id",course:"BIO131",subject:"ap",title:"A&P: identify hip and thigh muscles",resource:"ap-thigh"},
+ {id:"bio131.ch9.thigh-actions",course:"BIO131",subject:"ap",title:"A&P: hip and thigh muscle actions",resource:"ap-thigh"},
+ {id:"bio131.ch9.thigh-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify hip and thigh muscles on new pictures",resource:"ap-thigh"},
  {id:"bio131.ch10.nmj",course:"BIO131",subject:"ap",title:"A&P: the neuromuscular junction",resource:"ap-ch10"},
  {id:"bio131.ch10.ec-coupling",course:"BIO131",subject:"ap",title:"A&P: excitation-contraction coupling",resource:"ap-ch10"},
  {id:"bio131.ch10.crossbridge-atp",course:"BIO131",subject:"ap",title:"A&P: the cross-bridge cycle and ATP",resource:"ap-ch10"},
@@ -186,6 +189,7 @@ const RESOURCE_LIBRARY=Object.freeze({
   "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"},
   "ap-upper":{title:"A&P · Chapter 9: Shoulder and arm muscles",src:"./lessons/ap-muscles/upper.html"},
   "ap-forearm":{title:"A&P · Chapter 9: Forearm muscles",src:"./lessons/ap-muscles/forearm.html"},
+  "ap-thigh":{title:"A&P · Chapter 9: Hip and thigh muscles",src:"./lessons/ap-muscles/thigh.html"},
   "ap-ch10":{title:"A&P · Chapter 10: How a muscle fiber contracts",src:"./lessons/ap-ch10/index.html"},
   "ap-ch8":{title:"A&P · Chapter 8: Joints and movements",src:"./lessons/ap-ch8/index.html"}
 });

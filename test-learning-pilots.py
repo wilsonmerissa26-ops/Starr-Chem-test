@@ -477,7 +477,7 @@ with sync_playwright() as p:
         used = {p for it in N["ITEMS"] + N["ALL_GUIDED"] for p in it["parts"]}
         check("Every root used in any practice name is a defined root", used <= set(N["ROOTS"]), sorted(used - set(N["ROOTS"])))
         # Each lesson's names screen: its own roots are shown open, other lessons' roots one tap away, and no practice name appears anywhere (hidden text included).
-        for url, key in [(AP, "head"), (AP + "trunk.html", "trunk"), (AP + "upper.html", "upper"), (AP + "forearm.html", "forearm")]:
+        for url, key in [(AP, "head"), (AP + "trunk.html", "trunk"), (AP + "upper.html", "upper"), (AP + "forearm.html", "forearm"), (AP + "thigh.html", "thigh")]:
             pg = page if key == "head" else ctx.new_page()
             if key != "head": pg.goto(url); pg.wait_for_selector("#toDecodeGuided")
             P = N["SETS"][key]; mine = {p for it in P["worked"] + [P["guided"]] + P["items"] for p in it["parts"]}
@@ -574,6 +574,7 @@ with sync_playwright() as p:
     TRUNK = AP + "trunk.html"
     UPPER = AP + "upper.html"
     FOREARM = AP + "forearm.html"
+    THIGH = AP + "thigh.html"
     section("A&P trunk set: teaching, guided, independent and delayed review (criteria 1 to 5, 7)")
     def trunk_guided(page):
         page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
@@ -695,7 +696,7 @@ with sync_playwright() as p:
 
     section("A&P: Feel it step and study songs (learning only, never evidence)")
     def t_feel_songs():
-        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm"), (THIGH, "thigh")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             check("Every %s muscle has a 'feel it' instruction and what to notice" % key, all(m["feel"]["do"] and m["feel"]["notice"] for m in S["MUSCLES"].values()))
@@ -728,11 +729,11 @@ with sync_playwright() as p:
 
     section("A&P: no teaching or guided screen ever shows a view used as 'new' in independent questions (criterion 7)")
     def t_no_view_leak():
-        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm"), (THIGH, "thigh")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             new_views = {i["fig"] for i in S["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"}
-            taught = {g["fig"] for g in S["GUIDED"]} | {x["fig"] for x in S["SET"]["learn"]}
+            taught = {g["fig"] for g in S["GUIDED"]} | {x["fig"] for x in S["SET"]["learn"] if x.get("fig")}
             taught_labeled = {S["FIGURES"][f]["labeled"] for f in taught}
             banned = {S["FIGURES"][v]["img"] for v in new_views} | {S["FIGURES"][v]["labeled"] for v in new_views if S["FIGURES"][v]["labeled"] not in taught_labeled}
             banned |= {"img/face-labeled.jpg"}  # the full facial figure shows the side view labeled
@@ -1116,11 +1117,164 @@ with sync_playwright() as p:
         check("No page errors", not errs, errs[:1]); ctx.close()
     guarded("forearm decode", t_forearm_decode)
 
+    section("A&P hip and thigh set: teaching, independent identification and review (criteria 1 to 5, 7)")
+    def thigh_guided(page):
+        page.click("[data-step='guided']"); page.wait_for_selector("#gnames [data-name]")
+        for g in page.evaluate("MuscleSets.thigh.GUIDED"):
+            page.wait_for_selector("#gnames [data-name='%s']" % g["muscle"]); page.click("#gnames [data-name='%s']" % g["muscle"]); page.wait_for_timeout(100)
+        page.wait_for_timeout(300)
+    def t_thigh():
+        ctx, page, errs = fresh(url=THIGH); page.wait_for_selector("#screen h2")
+        T = page.evaluate("MuscleSets.thigh")
+        check("Hip and thigh lesson opens on teaching (decode the names first), with no question on screen",
+              "Decode the name" in page.inner_text("#screen h2") and not page.query_selector("#ans") and not page.query_selector("#dcheck"))
+        check("It covers 16 hip and thigh muscles: iliopsoas pair, tensor fasciae latae, sartorius, three quadriceps, four adductors, two gluteals, three hamstrings",
+              sorted(T["MUSCLES"]) == sorted(["psoas-major", "iliacus", "tensor-fasciae-latae", "sartorius", "rectus-femoris", "vastus-lateralis", "vastus-medialis", "pectineus",
+                                               "adductor-longus", "adductor-magnus", "gracilis", "gluteus-maximus", "gluteus-medius", "biceps-femoris", "semitendinosus", "semimembranosus"]), sorted(T["MUSCLES"]))
+        check("'On your own' is locked until guided pins are done", page.is_disabled("[data-step='independent']"))
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Sixteen hip and thigh muscles")
+        srcs = page.eval_on_selector_all("#screen .fig img", "els => els.map(e => e.getAttribute('src'))")
+        sec = [m for x in T["SET"]["learn"] for m in x["muscles"]]
+        check("Learn shows the labeled front and back figures once each, and a card for every muscle in exactly one group",
+              srcs == ["img/thigh-front-labeled.jpg", "img/thigh-back-labeled.jpg"] and page.locator("#screen .mcard").count() == 16 and sorted(sec) == sorted(T["MUSCLES"]), (srcs, len(sec)))
+        thigh_guided(page)
+        check("Guided pins unlock 'On your own'", not page.is_disabled("[data-step='independent']"))
+        g = [e for e in evs(page, {"objectiveId": "bio131.ch9.thigh-id"}) if e["activity"] == "guided"]
+        check("Guided hip and thigh pins are assisted practice", len(g) == 16 and all(not e["independent"] for e in g), len(g))
+        page.click("[data-step='independent']"); page.wait_for_selector("#q")
+        img = page.get_attribute("#q img", "src")
+        check("Day 1 first question uses the whole-body front view, never shown labeled", "thigh-body-front-unlabeled" in img, img)
+        f1 = ap_type(page, "rectus femoris")      # 1105 front: first answer on that drawing
+        f2 = ap_type(page, "vastus lateralis")    # vastus medialis by function: lateral/medial look-alike
+        f3 = ap_type(page, "adductor longus")     # 1122 deep front drawing: never shown in teaching
+        f4 = ap_type(page, "semimembranosus")     # semitendinosus by function: medial-hamstring look-alike
+        check("First answer on the whole-body front view and on the deep adductor drawing are each credited as a new picture", "Correct" in f1 and "never seen" in f1 and "Correct" in f3 and "never seen" in f3, (f1[:120], f3[:120]))
+        check("Vastus lateralis for medialis is diagnosed as the outer vs inner look-alike", "look-alike" in f2 and "outer side" in f2 and "inner side" in f2, f2[:220])
+        check("Semimembranosus for semitendinosus is diagnosed as the two medial hamstrings", "look-alike" in f4 and "cord-like tendon" in f4, f4[:220])
+        l = {e["itemId"]: e for e in evs(page, {"course": "BIO131"})}
+        check("New-picture answers are filed under 'ID on new pictures'; function answers under 'Function'; misses keep their error types",
+              l["ap-ch9-thigh-front-name-rectus-femoris"]["objectiveId"] == "bio131.ch9.thigh-id-new-picture" and l["ap-ch9-thigh-front-name-rectus-femoris"]["independent"]
+              and l["ap-ch9-thigh-deep-name-adductor-longus"]["objectiveId"] == "bio131.ch9.thigh-id-new-picture" and l["ap-ch9-thigh-deep-name-adductor-longus"]["response"]["drawing"] == "openstax-1122-deep"
+              and l["ap-ch9-thigh-act-teardrop"]["objectiveId"] == "bio131.ch9.thigh-actions" and l["ap-ch9-thigh-act-teardrop"]["errorType"] == "lookalike-vastus-lateralis-vs-vastus-medialis"
+              and l["ap-ch9-thigh-act-cord-tendon"]["errorType"] == "lookalike-semimembranosus-vs-semitendinosus")
+        check("Hip and thigh work never changes forearm or shoulder and arm objectives",
+              all(status(page, o)["status"] == "not-started" for o in ["bio131.ch9.forearm-id", "bio131.ch9.forearm-actions", "bio131.ch9.upper-limb-id", "bio131.ch9.upper-limb-actions"]))
+        p2, e2 = page_at(ctx, DAY2, THIGH); p2.wait_for_selector("#q", timeout=8000)
+        check("Next day the lesson opens to NEW review questions", "Review: new questions" in p2.inner_text("#screen h2"))
+        before = set(l); f5 = ap_type(p2, "biceps femoris"); ap_type(p2, "gluteus medius"); ap_type(p2, "psoas major")
+        new = [e for e in evs(p2, {"course": "BIO131"}) if e["itemId"] not in before]
+        ids = [e["itemId"] for e in new]
+        check("Day 2 questions are different items, recorded as review", ids[:3] == ["ap-ch9-thigh-back-name-biceps-femoris", "ap-ch9-thigh-act-level-pelvis", "ap-ch9-thigh-act-lumbar-flexor"]
+              and all(e["activity"] == "review" for e in new), [(e["itemId"], e["activity"]) for e in new])
+        bf = new[0] if new else {}
+        check("Day 2's first answer on the whole-body back view is still a new picture (first answer on that drawing)",
+              bf.get("objectiveId") == "bio131.ch9.thigh-id-new-picture" and (bf.get("response") or {}).get("picture") == "new" and "never seen" in f5, (bf.get("objectiveId"), f5[:160]))
+        check("Day 1 answers are kept: the record still holds the day 1 miss", any(e["itemId"] == "ap-ch9-thigh-act-teardrop" and e["correct"] is False for e in evs(p2, {"course": "BIO131"})))
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
+    guarded("thigh lesson", t_thigh)
+
+    section("A&P hip and thigh set: data, images and name matching (accuracy)")
+    def t_thigh_data():
+        ctx, page, errs = fresh(url=THIGH); page.wait_for_selector("#screen h2")
+        cases = [("vastus medialis", "vastus-medialis", True, None),
+                 ("vastus lateralis", "vastus-medialis", False, "lookalike-vastus-lateralis-vs-vastus-medialis"),
+                 ("semimembranosus", "semitendinosus", False, "lookalike-semimembranosus-vs-semitendinosus"),
+                 ("iliacus", "psoas-major", False, "lookalike-iliacus-vs-psoas-major"),
+                 ("gluteus medius", "gluteus-maximus", False, "lookalike-gluteus-maximus-vs-gluteus-medius"),
+                 ("gracilis", "sartorius", False, "lookalike-gracilis-vs-sartorius"),
+                 ("adductor magnus", "adductor-longus", False, "lookalike-adductor-longus-vs-adductor-magnus"),
+                 ("iliopsoas", "psoas-major", False, "incomplete-name"), ("gluteus", "gluteus-medius", False, "incomplete-name"),
+                 ("hamstrings", "biceps-femoris", False, "incomplete-name"), ("biceps", "biceps-femoris", False, "incomplete-name"),
+                 ("quadriceps", "rectus-femoris", False, "incomplete-name"), ("vastus", "vastus-lateralis", False, "incomplete-name"),
+                 ("tensor fascia latae", "tensor-fasciae-latae", True, None), ("tensor fasciae latae", "tensor-fasciae-latae", True, None),
+                 ("semitendinosis", "semitendinosus", True, "spelling-close"), ("gluteus maximus", "semitendinosus", False, "wrong-muscle"),
+                 ("tibialis anterior", "sartorius", False, "not-recognized"), ("", "gracilis", False, "no-answer")]
+        res = page.evaluate("cs => cs.map(c => MuscleSets.thigh.match(c[0], c[1]))", [[c[0], c[1]] for c in cases])
+        bad = [(c[0], c[1], r) for c, r in zip(cases, res) if r["correct"] != c[2] or r["errorType"] != c[3]]
+        check("Hip and thigh name matching (%d cases, incl. lateralis/medialis, the two medial hamstrings, group names, both spellings of tensor fasciae latae)" % len(cases), not bad, bad)
+        tfl = page.evaluate("MuscleSets.thigh.match('TFL', 'tensor-fasciae-latae')")
+        check("The abbreviation TFL is accepted with a note to use the full name", tfl["correct"] and "tensor fasciae latae" in (tfl["note"] or ""), tfl)
+        T = page.evaluate("MuscleSets.thigh")
+        check("Pin positions match the image build output exactly", T["PINS"] == json.load(open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/pins-thigh.json"))))
+        anchors = {"psoas-major": "Flexes the thigh at the hip", "iliacus": "Flexes the thigh at the hip", "tensor-fasciae-latae": "Flexes and abducts the thigh",
+                   "sartorius": "Flexes the leg at the knee, and flexes, abducts and laterally rotates the thigh", "rectus-femoris": "Extends the leg at the knee and flexes the thigh",
+                   "vastus-lateralis": "Extends the leg at the knee", "vastus-medialis": "Extends the leg at the knee", "pectineus": "Adducts and flexes the thigh",
+                   "adductor-longus": "Adducts the thigh", "adductor-magnus": "Adducts the thigh", "gracilis": "Adducts the thigh and flexes the leg at the knee",
+                   "gluteus-maximus": "Extends the thigh at the hip", "gluteus-medius": "Abducts the thigh", "biceps-femoris": "Flexes the leg at the knee and extends the thigh at the hip",
+                   "semitendinosus": "Flexes the leg at the knee and extends the thigh at the hip", "semimembranosus": "Flexes the leg at the knee and extends the thigh at the hip"}
+        off = [k for k, v in anchors.items() if not T["MUSCLES"][k]["action"].startswith(v)]
+        check("Every action matches OpenStax 11.6's text in standard terms; the pectineus adducts (the caption's 'opens the thigh' is not used)",
+              not off and "abduct" not in T["MUSCLES"]["pectineus"]["action"].lower() and "opens the thigh" not in json.dumps(T["MUSCLES"]) and "brings the thighs" not in json.dumps(T["MUSCLES"]), off)
+        check("Adductor longus flexes the thigh and adductor magnus extends it, as OpenStax's text says", "helps flex" in T["MUSCLES"]["adductor-longus"]["action"] and "extends the thigh" in T["MUSCLES"]["adductor-magnus"]["action"])
+        origins = {"ischial tuberosity": ["biceps-femoris", "semitendinosus", "semimembranosus", "adductor-magnus"], "pubis": ["adductor-longus", "pectineus", "gracilis"],
+                   "anterior superior iliac spine": ["sartorius", "tensor-fasciae-latae"], "anterior inferior iliac spine": ["rectus-femoris"], "lumbar vertebrae": ["psoas-major"],
+                   "iliac fossa": ["iliacus"], "greater trochanter": ["vastus-lateralis"], "linea aspera": ["vastus-medialis", "vastus-lateralis"], "surface of the ilium": ["gluteus-medius"],
+                   "sacrum and the coccyx": ["gluteus-maximus"]}
+        off = [(o, k) for o, ks in origins.items() for k in ks if o not in T["MUSCLES"][k]["location"]]
+        check("Origins match OpenStax 11.6 (ischial tuberosity for the hamstrings, pubis for the adductors, iliac spines, lumbar vertebrae, iliac fossa)", not off, off)
+        taught = {g["fig"] for g in T["GUIDED"]} | {x["fig"] for x in T["SET"]["learn"] if x.get("fig")}
+        unf = [i for i in T["ITEMS"] if i["unfamiliar"] and i["kind"] != "name-fn"]
+        check("Every new-picture item uses fig. 1105 or the deep adductor drawing (named drawings), never a teaching or guided figure",
+              unf and all(i["fig"] in ("thigh-body-front", "thigh-body-back", "thigh-deep") and i["fig"] not in taught and T["FIGURES"][i["fig"]].get("drawing") for i in unf))
+        check("The deep adductor drawing is never shown labeled: no labeled image is cut from it", "thigh-deep" not in json.dumps([T["FIGURES"][f]["labeled"] for f in T["FIGURES"]]))
+        seen = {}
+        dup = [i["id"] for i in unf if (i["fig"], i["muscle"]) in seen or seen.setdefault((i["fig"], i["muscle"]), 1) is None]
+        check("Each muscle is asked about at most once per new picture", not dup, dup)
+        check("Items on the studied 1122 crops are practice, not new pictures", all(not i["unfamiliar"] for i in T["ITEMS"] if i["kind"] == "name-pin" and i["fig"] in taught))
+        fn = [i for i in T["ITEMS"] if i["kind"] == "name-fn"]
+        give = [i["id"] for i in fn if any(w in i["prompt"].lower() for w in T["MUSCLES"][i["muscle"]]["name"].lower().split() if w not in ("major",))]
+        check("Every muscle has one function question, and no prompt contains any word of its own answer", sorted(i["muscle"] for i in fn) == sorted(T["MUSCLES"]) and not give, give)
+        check("Every item has a pin on its figure, a unique ID with the thigh prefix",
+              all(i["kind"] == "name-fn" or i["muscle"] in T["PINS"][i["fig"]] for i in T["ITEMS"]) and len({i["id"] for i in T["ITEMS"]}) == len(T["ITEMS"]) and all(i["id"].startswith("ap-ch9-thigh-") for i in T["ITEMS"]))
+        ctx.close()
+        try:
+            import pytesseract
+            from PIL import Image
+            names = ["gluteus", "medius", "maximus", "minimus", "psoas", "iliacus", "tensor", "fascia", "latae", "sartorius", "rectus", "femoris", "vastus", "lateralis",
+                     "medialis", "adductor", "longus", "magnus", "brevis", "gracilis", "pectineus", "biceps", "semitendinosus", "semimembranosus", "piriformis", "gemellus",
+                     "obturator", "quadratus", "iliopsoas", "femur", "pubis", "sacrum", "tendon", "ligament", "fibularis", "tibialis", "soleus"]
+            found = {}
+            for f in ["thigh-hip", "thigh-knee", "thigh-glutes", "thigh-hamstrings", "thigh-deep", "thigh-body-front", "thigh-body-back"]:
+                im = Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s-unlabeled.jpg" % f))
+                t = (pytesseract.image_to_string(im) + pytesseract.image_to_string(im.resize((im.width * 2, im.height * 2)), config="--psm 11")).lower()
+                hit = [n for n in names if n in t]
+                if hit: found[f] = hit
+            check("OCR finds no label text on any unlabeled hip and thigh image", not found, found)
+            lab = {f: pytesseract.image_to_string(Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s.jpg" % f))).lower() for f in ["thigh-front-labeled", "thigh-back-labeled"]}
+            missing = [(f, n) for f, ns in {"thigh-front-labeled": ["psoas", "liacus", "sartorius", "rectus", "vastus", "gracilis", "pectineus", "adductor"],
+                                            "thigh-back-labeled": ["gluteus", "biceps", "semitendinosus", "semimembranosus", "gracilis"]}.items() for n in ns if n not in lab[f]]
+            check("The labeled teaching figures keep every taught label readable (none blanked by the crop clean-up)", not missing, missing)
+        except ImportError:
+            check("OCR hip and thigh label check (skipped: pytesseract not installed)", True)
+    guarded("thigh data", t_thigh_data)
+    def t_thigh_decode():
+        # The trunk lesson's labeled posterior abdominal wall already shows psoas major, so decoding it afterwards is practice.
+        ctx, page, errs = fresh(url=TRUNK); page.wait_for_selector("#screen h2")
+        page.click("[data-step='learn']"); page.wait_for_timeout(500)
+        th = ctx.new_page(); th.goto(THIGH); th.wait_for_selector("#toDecodeGuided")
+        N = th.evaluate("MuscleNames"); P = N["SETS"]["thigh"]
+        th.click("#toDecodeGuided"); th.wait_for_selector("#dq [data-c]"); decode_answer(th, P["guided"]); th.click("#dind")
+        th.wait_for_selector("text=No root table"); th.wait_for_selector("#dq [data-c]")
+        names = []
+        for k in range(3):
+            name = th.inner_text("#dq .prompt b"); it = next(x for x in P["items"] if x["name"] == name); names.append(it)
+            decode_answer(th, it); th.click("#dnext")
+            if k < 2: th.wait_for_function("n => { const b = document.querySelector('#dq .prompt b'); return b && b.textContent !== n; }", arg=name)
+        l = {e["itemId"]: e for e in evs(th, {"objectiveId": N["OBJ"]})}
+        check("Psoas major, already shown labeled in the trunk lesson, is decoded as practice; names first shown in this lesson stay independent",
+              [it["name"] for it in names] == ["Gluteus medius", "Psoas major", "Vastus medialis"] and l["ap-ch9-names-psoas-major"]["activity"] == "check" and not l["ap-ch9-names-psoas-major"]["independent"]
+              and l["ap-ch9-names-gluteus-medius"]["independent"] and l["ap-ch9-names-vastus-medialis"]["independent"], [(it["name"], l[it["id"]]["activity"]) for it in names])
+        choices = th.evaluate("() => ['magnus','vastus','latae','lateralis','medialis'].map(r => [r, MuscleNames.choices('x-' + r, r)])")
+        bad = [(r, c) for r, c in choices for o in c if o != r and th.evaluate("([a, b]) => MuscleNames.CLOSE.some(p => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a))", [r, o])]
+        check("Near-synonym roots are never offered against each other (magnus, vastus, major and maximus; latae and latissimus; lateralis and external)", not bad, bad)
+        check("No page errors", not errs, errs[:1]); ctx.close()
+    guarded("thigh decode", t_thigh_decode)
+
     section("A&P: pins never overlap on figures shown with all their pins (criterion 1)")
     def t_pin_spacing():
         from PIL import Image
         import math
-        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm")]:
+        for url, key in [(AP, "head"), (TRUNK, "trunk"), (UPPER, "upper"), (FOREARM, "forearm"), (THIGH, "thigh")]:
             ctx, page, errs = fresh(url=url); page.wait_for_selector("#screen h2")
             S = page.evaluate("k => MuscleSets[k]", key)
             figs = {g["fig"] for g in S["GUIDED"]} | ({S["SET"]["find"]["fig"]} if S["SET"].get("find") else set())
@@ -1295,6 +1449,15 @@ with sync_playwright() as p:
         check("Forearm questions on fig. 1105 are NOT new pictures after the shoulder and arm lesson used the same drawings",
               pt["independent"] and pt["objectiveId"] == "bio131.ch9.forearm-id" and pt["response"]["picture"] == "seen" and ed["response"]["picture"] == "seen" and "picture you have seen before" in f,
               (pt["objectiveId"], pt["response"].get("picture"), ed["response"].get("picture")))
+        th = ctx.new_page(); th.goto(THIGH); th.wait_for_selector("#screen h2"); thigh_guided(th)
+        th.click("[data-step='independent']"); th.wait_for_selector("#q")
+        f = ap_type(th, "rectus femoris"); ap_type(th, "vastus medialis"); f3 = ap_type(th, "adductor longus")
+        l = {x["itemId"]: x for x in evs(th, {"course": "BIO131"})}
+        rf, al = l["ap-ch9-thigh-front-name-rectus-femoris"], l["ap-ch9-thigh-deep-name-adductor-longus"]
+        check("Thigh questions on fig. 1105 are pictures seen before after the arm lessons, but the deep adductor drawing is still a new picture",
+              rf["objectiveId"] == "bio131.ch9.thigh-id" and rf["response"]["picture"] == "seen" and "picture you have seen before" in f
+              and al["objectiveId"] == "bio131.ch9.thigh-id-new-picture" and al["response"]["picture"] == "new" and "never seen" in f3,
+              (rf["objectiveId"], rf["response"].get("picture"), al["objectiveId"], al["response"].get("picture")))
         check("No page errors", not errs, errs[:1]); ctx.close()
         # Data: every new-picture item's figure names its source drawing.
         ctx, page, errs = fresh(url=TRUNK); page.wait_for_selector("#screen h2")

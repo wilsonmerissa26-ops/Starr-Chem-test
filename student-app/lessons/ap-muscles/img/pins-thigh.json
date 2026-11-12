@@ -1,0 +1,132 @@
+{
+ "thigh-hip": {
+  "iliacus": [
+   29.69,
+   29.15
+  ],
+  "psoas-major": [
+   41.56,
+   30.21
+  ],
+  "tensor-fasciae-latae": [
+   15.0,
+   61.7
+  ],
+  "pectineus": [
+   45.31,
+   58.09
+  ],
+  "adductor-longus": [
+   53.75,
+   59.57
+  ],
+  "gracilis": [
+   60.94,
+   69.79
+  ],
+  "adductor-magnus": [
+   57.81,
+   79.57
+  ],
+  "sartorius": [
+   50.62,
+   82.98
+  ]
+ },
+ "thigh-knee": {
+  "rectus-femoris": [
+   33.75,
+   36.88
+  ],
+  "vastus-lateralis": [
+   27.19,
+   73.44
+  ],
+  "vastus-medialis": [
+   54.69,
+   69.38
+  ]
+ },
+ "thigh-glutes": {
+  "gluteus-medius": [
+   66.25,
+   19.69
+  ],
+  "gluteus-maximus": [
+   31.88,
+   83.44
+  ]
+ },
+ "thigh-hamstrings": {
+  "biceps-femoris": [
+   51.67,
+   32.0
+  ],
+  "semitendinosus": [
+   35.67,
+   50.33
+  ],
+  "semimembranosus": [
+   27.67,
+   49.33
+  ]
+ },
+ "thigh-deep": {
+  "pectineus": [
+   54.4,
+   14.47
+  ],
+  "adductor-longus": [
+   49.69,
+   65.53
+  ],
+  "adductor-magnus": [
+   58.49,
+   79.15
+  ]
+ },
+ "thigh-body-front": {
+  "sartorius": [
+   24.58,
+   32.67
+  ],
+  "gracilis": [
+   33.96,
+   37.67
+  ],
+  "rectus-femoris": [
+   23.96,
+   59.33
+  ],
+  "vastus-lateralis": [
+   18.12,
+   82.67
+  ],
+  "vastus-medialis": [
+   42.08,
+   86.67
+  ],
+  "tensor-fasciae-latae": [
+   60.0,
+   15.0
+  ]
+ },
+ "thigh-body-back": {
+  "gluteus-medius": [
+   20.83,
+   12.07
+  ],
+  "gluteus-maximus": [
+   27.08,
+   27.59
+  ],
+  "semimembranosus": [
+   29.58,
+   77.59
+  ],
+  "biceps-femoris": [
+   49.38,
+   69.66
+  ]
+ }
+}

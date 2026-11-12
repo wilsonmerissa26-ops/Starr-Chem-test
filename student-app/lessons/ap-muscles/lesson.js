@@ -354,7 +354,8 @@
     markViewed(SET.learnItem, "teach");
     var html = '<div class="card"><h2>' + esc(SET.learnTitle) + "</h2><p>" + esc(SET.learnIntro) + "</p>" + sayAloudBox() + songsHtml();
     SET.learn.forEach(function (sec, i) {
-      html += "<h3" + (i ? ' style="margin-top:18px"' : "") + ">" + esc(sec.h) + "</h3>" + figure(sec.fig, { labeled: true }) + '<div class="musclecards">' + sec.muscles.map(card).join("") + "</div>";
+      // A section without its own figure uses the labeled figure shown above it (hip and thigh: one front figure, three groups).
+      html += "<h3" + (i ? ' style="margin-top:18px"' : "") + ">" + esc(sec.h) + "</h3>" + (sec.fig ? figure(sec.fig, { labeled: true }) : "") + '<div class="musclecards">' + sec.muscles.map(card).join("") + "</div>";
     });
     var nx = nextAfter("learn");
     screen.innerHTML = html + "</div>" + (nx ? nextBtn(nx, nx === "names" ? "Learn to decode muscle names" : nx === "feel" ? "Feel each muscle work" : "Next") : "");

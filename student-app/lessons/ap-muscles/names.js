@@ -34,6 +34,10 @@
     "carpi": { m: "of the wrist", cat: "place", ex: "extensor carpi radialis brevis" },
     "digitorum": { m: "of the fingers (digits)", cat: "place", ex: "flexor digitorum profundus" },
     "palmaris": { m: "palm of the hand", cat: "place", ex: "palmaris brevis" },
+    "gluteus": { m: "buttock", cat: "place", ex: "gluteus minimus" },
+    "femoris": { m: "of the femur (thigh bone)", cat: "place", ex: "rectus femoris" },
+    "psoas": { m: "loin (the lower back, beside the lumbar spine)", cat: "place", ex: "psoas minor" },
+    "fasciae": { m: "of the fascia (a sheet of connective tissue)", cat: "place", ex: "" },
     "oculi": { m: "of the eye", cat: "place", ex: "orbicularis oculi" },
     "oris": { m: "of the mouth", cat: "place", ex: "orbicularis oris" },
     "labii": { m: "of the lip", cat: "place", ex: "" },
@@ -50,6 +54,8 @@
     "infra": { m: "below", cat: "position", ex: "infrahyoid muscles" },
     "sub": { m: "under, beneath", cat: "position", ex: "subclavius" },
     "superficialis": { m: "near the surface (shallower than a deeper partner muscle)", cat: "position", ex: "" },
+    "lateralis": { m: "to the side, away from the midline", cat: "position", ex: "rectus lateralis (an eye muscle)" },
+    "medialis": { m: "toward the midline", cat: "position", ex: "" },
     // Shape
     "orbicularis": { m: "circular, a ring", cat: "shape", ex: "orbicularis oculi" },
     "serratus": { m: "saw-toothed", cat: "shape", ex: "serratus posterior" },
@@ -57,12 +63,18 @@
     "splenius": { m: "bandage-like", cat: "shape", ex: "splenius cervicis" },
     "deltoid": { m: "triangular", cat: "shape", ex: "deltoid" },
     "teres": { m: "round, cylindrical", cat: "shape", ex: "" },
+    "tendinosus": { m: "tendon-like (with a long tendon)", cat: "shape", ex: "" },
+    "membranosus": { m: "membrane-like (flat and thin)", cat: "shape", ex: "" },
     // Size
     "major": { m: "larger", cat: "size", ex: "pectoralis major" },
     "minor": { m: "smaller", cat: "size", ex: "zygomaticus minor" },
     "maximus": { m: "largest", cat: "size", ex: "gluteus maximus" },
     "latissimus": { m: "widest", cat: "size", ex: "" },
-    "longus": { m: "long", cat: "size", ex: "adductor longus" },
+    "longus": { m: "long", cat: "size", ex: "longus colli" },
+    "medius": { m: "middle-sized", cat: "size", ex: "scalenus medius" },
+    "magnus": { m: "large", cat: "size", ex: "" },
+    "vastus": { m: "huge, vast", cat: "size", ex: "vastus intermedius" },
+    "latae": { m: "wide, broad", cat: "size", ex: "" },
     // Fiber direction
     "rectus": { m: "straight (describes the straight course of the fibers relative to the structure)", cat: "fibers", ex: "rectus femoris" },
     "transversus": { m: "across (fibers run transversely, at right angles to the structure's long axis)", cat: "fibers", ex: "" },
@@ -72,6 +84,7 @@
     "gastric": { m: "belly (here, a fleshy muscle belly)", cat: "number", ex: "gastrocnemius" },
     "biceps": { m: "two heads (two separate proximal attachments joining one muscle)", cat: "number", ex: "biceps femoris" },
     "triceps": { m: "three heads (three separate proximal attachments joining one muscle)", cat: "number", ex: "" },
+    "semi": { m: "half", cat: "number", ex: "semispinalis" },
     // Action
     "levator": { m: "raises", cat: "action", ex: "levator palpebrae superioris" },
     "depressor": { m: "lowers", cat: "action", ex: "" },
@@ -80,7 +93,9 @@
     "flexor": { m: "bends (decreases the angle at a joint)", cat: "action", ex: "flexor hallucis longus" },
     "extensor": { m: "straightens (increases the angle at a joint)", cat: "action", ex: "extensor hallucis longus" },
     "pronator": { m: "turns the palm down (pronates)", cat: "action", ex: "pronator quadratus" },
-    "supinator": { m: "turns the palm up (supinates)", cat: "action", ex: "" }
+    "supinator": { m: "turns the palm up (supinates)", cat: "action", ex: "" },
+    "adductor": { m: "pulls a limb toward the midline (adducts)", cat: "action", ex: "adductor brevis" },
+    "tensor": { m: "tightens, makes tense", cat: "action", ex: "tensor tympani" }
   };
   var CATS = [
     { id: "place", title: "Where it is or what it attaches to" }, { id: "position", title: "Position" },
@@ -99,6 +114,7 @@
   var TRUNK_TAUGHT = "ap-ch9-teach-trunk-learn";
   var UPPER_TAUGHT = "ap-ch9-teach-upper-learn";
   var FOREARM_TAUGHT = "ap-ch9-teach-forearm-learn";
+  var THIGH_TAUGHT = "ap-ch9-teach-thigh-learn";
   var BOTH_FOREARM = [UPPER_TAUGHT, FOREARM_TAUGHT]; // the shoulder and arm lesson's labeled palm-side figure already shows these names
   var HEAD_ITEMS = [
     { id: "ap-ch9-names-levator-labii-superioris", name: "Levator labii superioris", parts: ["levator", "labii", "superioris"], tells: "It raises the upper lip." },
@@ -146,6 +162,19 @@
     { id: "ap-ch9-names-palmaris-longus", name: "Palmaris longus", parts: ["palmaris", "longus"], tells: "A long, thin muscle whose tendon ends in the palm.", taughtBy: BOTH_FOREARM },
     { id: "ap-ch9-names-pronator-teres", name: "Pronator teres", parts: ["pronator", "teres"], tells: "A round muscle that turns the palm down.", taughtBy: BOTH_FOREARM }
   ];  // Supinator is left out: its name is a single root shown in the table, so it would not test decoding.
+  var THIGH_GUIDED = { id: "ap-ch9-names-guided-vastus-lateralis", name: "Vastus lateralis", parts: ["vastus", "lateralis"],
+    tells: "The huge muscle on the outer side of the thigh." };
+  // Gracilis, pectineus, sartorius and iliacus are left out: each name is a single word, so it would not test decoding.
+  var THIGH_ITEMS = [
+    { id: "ap-ch9-names-gluteus-medius", name: "Gluteus medius", parts: ["gluteus", "medius"], tells: "The middle-sized buttock muscle.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-psoas-major", name: "Psoas major", parts: ["psoas", "major"], tells: "The larger muscle of the loin, beside the lumbar spine.", taughtBy: [TRUNK_TAUGHT, THIGH_TAUGHT] }, // the trunk lesson's labeled posterior abdominal wall already shows it
+    { id: "ap-ch9-names-vastus-medialis", name: "Vastus medialis", parts: ["vastus", "medialis"], tells: "The huge muscle on the inner side of the thigh, toward the midline.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-adductor-magnus", name: "Adductor magnus", parts: ["adductor", "magnus"], tells: "The large muscle that pulls the thigh toward the midline.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-semitendinosus", name: "Semitendinosus", parts: ["semi", "tendinosus"], tells: "A muscle that is half tendon: its lower half is a long tendon.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-semimembranosus", name: "Semimembranosus", parts: ["semi", "membranosus"], tells: "A muscle that is half membrane-like: flat and thin at its upper end.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-tensor-fasciae-latae", name: "Tensor fasciae latae", parts: ["tensor", "fasciae", "latae"], tells: "It tightens the wide fascia of the thigh (the iliotibial tract).", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-adductor-longus", name: "Adductor longus", parts: ["adductor", "longus"], tells: "The long muscle that pulls the thigh toward the midline.", taughtBy: THIGH_TAUGHT }
+  ];
   var SETS = {
     head: { worked: WORKED, guided: GUIDED, items: HEAD_ITEMS, after: "feel", afterLabel: "Next: feel each muscle work" },
     trunk: { worked: [WORKED[1], { name: "Pectoralis major", parts: ["pectoralis", "major"], tells: "The larger chest muscle. The name gives the place and the size, not the action (it moves the arm)." }],
@@ -153,11 +182,15 @@
     upper: { worked: [WORKED[1], { name: "Pectoralis major", parts: ["pectoralis", "major"], tells: "The larger chest muscle. The name gives the place and the size, not the action." }],
       guided: UPPER_GUIDED, items: UPPER_ITEMS, after: "learn", afterLabel: "Next: see the shoulder and arm muscles you just decoded" },
     forearm: { worked: [WORKED[1], { name: "Pronator quadratus", parts: ["pronator", "quadratus"], tells: "A four-sided muscle deep in the forearm near the wrist that turns the palm down. Here the name gives the action and the shape." }],
-      guided: FOREARM_GUIDED, items: FOREARM_ITEMS, after: "learn", afterLabel: "Next: see the forearm muscles you just decoded" }
+      guided: FOREARM_GUIDED, items: FOREARM_ITEMS, after: "learn", afterLabel: "Next: see the forearm muscles you just decoded" },
+    thigh: { worked: [WORKED[1], { name: "Gluteus maximus", parts: ["gluteus", "maximus"], tells: "The largest buttock muscle. The name gives the place and the size, not the action (it extends the thigh)." }],
+      guided: THIGH_GUIDED, items: THIGH_ITEMS, after: "learn", afterLabel: "Next: see the hip and thigh muscles you just decoded" }
   };
-  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS, UPPER_ITEMS, FOREARM_ITEMS);
+  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS, UPPER_ITEMS, FOREARM_ITEMS, THIGH_ITEMS);
   // Pairs whose meanings overlap enough that either could look right; one is never offered as a wrong choice for the other.
-  var CLOSE = [["extensor", "erector"], ["levator", "erector"], ["superficialis", "external"], ["teres", "orbicularis"]];
+  var CLOSE = [["extensor", "erector"], ["levator", "erector"], ["superficialis", "external"], ["teres", "orbicularis"],
+    ["vastus", "maximus"], ["vastus", "major"], ["vastus", "magnus"], ["magnus", "major"], ["magnus", "maximus"], ["latae", "latissimus"],
+    ["lateralis", "external"], ["medialis", "internal"]];
   function close(a, b) { return CLOSE.some(function (p) { return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a); }); }
   // Four choices per part: the right meaning plus three from the same clue category (then others), in a fixed order per item.
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -172,5 +205,5 @@
     var d = pick(best).concat(pick(same), pick(other)).slice(0, 3);
     return [root].concat(d).sort(function (a, b) { return hash(seed + "o" + a) - hash(seed + "o" + b); });
   }
-  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED, UPPER_GUIDED, FOREARM_GUIDED], choices: choices, CLOSE: CLOSE, OBJ: "bio131.ch9.muscle-name-roots" };
+  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED, UPPER_GUIDED, FOREARM_GUIDED, THIGH_GUIDED], choices: choices, CLOSE: CLOSE, OBJ: "bio131.ch9.muscle-name-roots" };
 })(window);
