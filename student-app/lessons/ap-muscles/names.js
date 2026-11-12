@@ -32,7 +32,10 @@
     "radialis": { m: "radius (the thumb-side forearm bone)", cat: "place", ex: "extensor carpi radialis brevis" },
     "ulnaris": { m: "ulna (the little-finger-side forearm bone)", cat: "place", ex: "" },
     "carpi": { m: "of the wrist", cat: "place", ex: "extensor carpi radialis brevis" },
-    "digitorum": { m: "of the fingers (digits)", cat: "place", ex: "flexor digitorum profundus" },
+    "digitorum": { m: "of the digits (fingers or toes)", cat: "place", ex: "flexor digitorum profundus" },
+    "hallucis": { m: "of the big toe (hallux)", cat: "place", ex: "abductor hallucis" },
+    "tibialis": { m: "tibia (the shin bone)", cat: "place", ex: "" },
+    "fibularis": { m: "fibula (the thin bone on the outer side of the leg)", cat: "place", ex: "fibularis tertius" },
     "palmaris": { m: "palm of the hand", cat: "place", ex: "palmaris brevis" },
     "gluteus": { m: "buttock", cat: "place", ex: "gluteus minimus" },
     "femoris": { m: "of the femur (thigh bone)", cat: "place", ex: "rectus femoris" },
@@ -46,7 +49,8 @@
     // Position
     "superioris": { m: "upper", cat: "position", ex: "levator palpebrae superioris" },
     "inferioris": { m: "lower", cat: "position", ex: "" },
-    "anterior": { m: "front", cat: "position", ex: "tibialis anterior" },
+    "anterior": { m: "front", cat: "position", ex: "scalenus anterior" },
+    "posterior": { m: "back, behind", cat: "position", ex: "serratus posterior" },
     "external": { m: "outer (toward the outside)", cat: "position", ex: "" },
     "internal": { m: "inner (toward the inside)", cat: "position", ex: "" },
     "inter": { m: "between", cat: "position", ex: "interossei" },
@@ -71,6 +75,7 @@
     "maximus": { m: "largest", cat: "size", ex: "gluteus maximus" },
     "latissimus": { m: "widest", cat: "size", ex: "" },
     "longus": { m: "long", cat: "size", ex: "longus colli" },
+    "brevis": { m: "short", cat: "size", ex: "adductor brevis" },
     "medius": { m: "middle-sized", cat: "size", ex: "scalenus medius" },
     "magnus": { m: "large", cat: "size", ex: "" },
     "vastus": { m: "huge, vast", cat: "size", ex: "vastus intermedius" },
@@ -90,8 +95,8 @@
     "depressor": { m: "lowers", cat: "action", ex: "" },
     "corrugator": { m: "wrinkles", cat: "action", ex: "" },
     "erector": { m: "raises, straightens", cat: "action", ex: "" },
-    "flexor": { m: "bends (decreases the angle at a joint)", cat: "action", ex: "flexor hallucis longus" },
-    "extensor": { m: "straightens (increases the angle at a joint)", cat: "action", ex: "extensor hallucis longus" },
+    "flexor": { m: "bends (decreases the angle at a joint)", cat: "action", ex: "flexor pollicis longus" },
+    "extensor": { m: "straightens (increases the angle at a joint)", cat: "action", ex: "extensor pollicis longus" },
     "pronator": { m: "turns the palm down (pronates)", cat: "action", ex: "pronator quadratus" },
     "supinator": { m: "turns the palm up (supinates)", cat: "action", ex: "" },
     "adductor": { m: "pulls a limb toward the midline (adducts)", cat: "action", ex: "adductor brevis" },
@@ -115,6 +120,7 @@
   var UPPER_TAUGHT = "ap-ch9-teach-upper-learn";
   var FOREARM_TAUGHT = "ap-ch9-teach-forearm-learn";
   var THIGH_TAUGHT = "ap-ch9-teach-thigh-learn";
+  var LEG_TAUGHT = "ap-ch9-teach-leg-learn";
   var BOTH_FOREARM = [UPPER_TAUGHT, FOREARM_TAUGHT]; // the shoulder and arm lesson's labeled palm-side figure already shows these names
   var HEAD_ITEMS = [
     { id: "ap-ch9-names-levator-labii-superioris", name: "Levator labii superioris", parts: ["levator", "labii", "superioris"], tells: "It raises the upper lip." },
@@ -175,6 +181,18 @@
     { id: "ap-ch9-names-tensor-fasciae-latae", name: "Tensor fasciae latae", parts: ["tensor", "fasciae", "latae"], tells: "It tightens the wide fascia of the thigh (the iliotibial tract).", taughtBy: THIGH_TAUGHT },
     { id: "ap-ch9-names-adductor-longus", name: "Adductor longus", parts: ["adductor", "longus"], tells: "The long muscle that pulls the thigh toward the midline.", taughtBy: THIGH_TAUGHT }
   ];
+  var LEG_GUIDED = { id: "ap-ch9-names-guided-tibialis-anterior", name: "Tibialis anterior", parts: ["tibialis", "anterior"],
+    tells: "The muscle on the front of the tibia (shin bone)." };
+  // Gastrocnemius and soleus are left out: their roots (belly + leg; a flatfish) are not decoding clues taught here.
+  var LEG_ITEMS = [
+    { id: "ap-ch9-names-tibialis-posterior", name: "Tibialis posterior", parts: ["tibialis", "posterior"], tells: "The muscle on the back of the tibia.", taughtBy: LEG_TAUGHT },
+    { id: "ap-ch9-names-fibularis-longus", name: "Fibularis longus", parts: ["fibularis", "longus"], tells: "The long muscle on the fibula.", taughtBy: LEG_TAUGHT },
+    { id: "ap-ch9-names-extensor-hallucis-longus", name: "Extensor hallucis longus", parts: ["extensor", "hallucis", "longus"], tells: "The long muscle that straightens (lifts) the big toe.", taughtBy: LEG_TAUGHT },
+    { id: "ap-ch9-names-fibularis-brevis", name: "Fibularis brevis", parts: ["fibularis", "brevis"], tells: "The short muscle on the fibula.", taughtBy: LEG_TAUGHT },
+    { id: "ap-ch9-names-flexor-digitorum-longus", name: "Flexor digitorum longus", parts: ["flexor", "digitorum", "longus"], tells: "The long muscle that bends (curls) the toes.", taughtBy: LEG_TAUGHT },
+    { id: "ap-ch9-names-extensor-digitorum-longus", name: "Extensor digitorum longus", parts: ["extensor", "digitorum", "longus"], tells: "The long muscle that straightens (lifts) the toes.", taughtBy: LEG_TAUGHT },
+    { id: "ap-ch9-names-flexor-hallucis-longus", name: "Flexor hallucis longus", parts: ["flexor", "hallucis", "longus"], tells: "The long muscle that bends (curls) the big toe.", taughtBy: LEG_TAUGHT }
+  ];
   var SETS = {
     head: { worked: WORKED, guided: GUIDED, items: HEAD_ITEMS, after: "feel", afterLabel: "Next: feel each muscle work" },
     trunk: { worked: [WORKED[1], { name: "Pectoralis major", parts: ["pectoralis", "major"], tells: "The larger chest muscle. The name gives the place and the size, not the action (it moves the arm)." }],
@@ -184,13 +202,15 @@
     forearm: { worked: [WORKED[1], { name: "Pronator quadratus", parts: ["pronator", "quadratus"], tells: "A four-sided muscle deep in the forearm near the wrist that turns the palm down. Here the name gives the action and the shape." }],
       guided: FOREARM_GUIDED, items: FOREARM_ITEMS, after: "learn", afterLabel: "Next: see the forearm muscles you just decoded" },
     thigh: { worked: [WORKED[1], { name: "Gluteus maximus", parts: ["gluteus", "maximus"], tells: "The largest buttock muscle. The name gives the place and the size, not the action (it extends the thigh)." }],
-      guided: THIGH_GUIDED, items: THIGH_ITEMS, after: "learn", afterLabel: "Next: see the hip and thigh muscles you just decoded" }
+      guided: THIGH_GUIDED, items: THIGH_ITEMS, after: "learn", afterLabel: "Next: see the hip and thigh muscles you just decoded" },
+    leg: { worked: [WORKED[1], { name: "Biceps femoris", parts: ["biceps", "femoris"], tells: "The two-headed muscle of the femur (thigh): a hamstring. The name gives the number of heads and the place, not the action." }],
+      guided: LEG_GUIDED, items: LEG_ITEMS, after: "learn", afterLabel: "Next: see the lower leg muscles you just decoded" }
   };
-  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS, UPPER_ITEMS, FOREARM_ITEMS, THIGH_ITEMS);
+  var ITEMS = HEAD_ITEMS.concat(TRUNK_ITEMS, UPPER_ITEMS, FOREARM_ITEMS, THIGH_ITEMS, LEG_ITEMS);
   // Pairs whose meanings overlap enough that either could look right; one is never offered as a wrong choice for the other.
   var CLOSE = [["extensor", "erector"], ["levator", "erector"], ["superficialis", "external"], ["teres", "orbicularis"],
     ["vastus", "maximus"], ["vastus", "major"], ["vastus", "magnus"], ["magnus", "major"], ["magnus", "maximus"], ["latae", "latissimus"],
-    ["lateralis", "external"], ["medialis", "internal"]];
+    ["lateralis", "external"], ["medialis", "internal"], ["posterior", "dorsi"]];
   function close(a, b) { return CLOSE.some(function (p) { return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a); }); }
   // Four choices per part: the right meaning plus three from the same clue category (then others), in a fixed order per item.
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -205,5 +225,5 @@
     var d = pick(best).concat(pick(same), pick(other)).slice(0, 3);
     return [root].concat(d).sort(function (a, b) { return hash(seed + "o" + a) - hash(seed + "o" + b); });
   }
-  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED, UPPER_GUIDED, FOREARM_GUIDED, THIGH_GUIDED], choices: choices, CLOSE: CLOSE, OBJ: "bio131.ch9.muscle-name-roots" };
+  global.MuscleNames = { ROOTS: ROOTS, CATS: CATS, WORKED: WORKED, GUIDED: GUIDED, ITEMS: ITEMS, SETS: SETS, ALL_GUIDED: [GUIDED, TRUNK_GUIDED, UPPER_GUIDED, FOREARM_GUIDED, THIGH_GUIDED, LEG_GUIDED], choices: choices, CLOSE: CLOSE, OBJ: "bio131.ch9.muscle-name-roots" };
 })(window);
