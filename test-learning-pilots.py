@@ -1450,6 +1450,12 @@ with sync_playwright() as p:
         "dorsiflexion": "dor-suh-FLEK-shuhn", "plantar": "PLANT-er", "flexion": "FLEK-shuhn", "eversion": "ih-VUR-zhuhn", "protraction": "proh-TRAK-shuhn",
         "glenoid": "GLEN-oyd", "labrum": "LAY-bruhm", "radioulnar": "rayd-ee-oh-UHL-ner"}
     NOT_CH = ["troponin", "synaptic", "cartilaginous", "acetabulum", "amphiarthrosis", "fibrocartilage", "humeroulnar"]
+    # Hip, thigh and lower leg words (Merriam-Webster, read Nov 12).
+    EXPECT_LL = {"psoas": "SOH-uhs", "iliacus": "ih-LYE-uh-kuhs", "tensor": "TEN-ser", "fasciae": "FASH-ee-ee", "latae": "LAY-tee", "sartorius": "sar-TOR-ee-uhs",
+        "femoris": "FEM-uh-ruhs", "pectineus": "pek-TIN-ee-uhs", "adductor": "uh-DUHK-ter", "gracilis": "GRAS-uh-luhs", "gluteus": "GLOOT-ee-uhs", "maximus": "MAK-suh-muhs",
+        "semitendinosus": "sem-ee-ten-duh-NOH-suhs", "semimembranosus": "sem-ee-mem-bruh-NOH-suhs", "tibialis": "tib-ee-AY-luhs", "gastrocnemius": "gas-trahk-NEE-mee-uhs",
+        "soleus": "SOH-lee-uhs", "hallucis": "HAL-oo-suhs"}
+    NOT_LL = ["vastus", "lateralis", "medialis", "magnus", "medius", "fibularis", "brevis"]
     def t_pronunciation():
         src = open(os.path.join(ROOT, "student-app/lessons/pronunciation.js"), encoding="utf-8").read()
         check("Pronunciations are plain data in the app: no network calls and no audio files, so the written forms work offline",
@@ -1459,7 +1465,7 @@ with sync_playwright() as p:
         ctx, page, errs = fresh(url=UPPER); page.wait_for_selector("#screen h2")
         P = page.evaluate("Pronunciations")
         got = page.evaluate("() => Object.fromEntries(Object.entries(Pronunciations.WORDS).map(([w, v]) => [w, Pronunciations.respell(v[0])]))")
-        want_all = dict(EXPECT_SAY, **EXPECT_CH)
+        want_all = dict(EXPECT_SAY, **EXPECT_CH, **EXPECT_LL)
         check("Every simple spelling is computed from MW's notation by one fixed key (%d words checked)" % len(want_all), got == want_all, {k: got.get(k) for k in set(want_all) | set(got) if got.get(k) != want_all.get(k)})
         caps = [w for w, sp in got.items() for part in [sp.split("-")] if sum(1 for x in part if x.isupper()) != sum(1 for x in re.split(r"[,;]", P["WORDS"][w][0])[0].split("-") if "\u02c8" in x)]
         check("Exactly one syllable per word is in capitals, the one MW marks with the main stress mark", not caps, caps)
@@ -1477,7 +1483,7 @@ with sync_playwright() as p:
               .filter(([k, full, ws]) => ws.some(x => x[1] !== full)); }""")
         part = [k for k, full, ws in splits if not ("-" + full + "-").startswith("-" + "-".join(x[1] for x in ws) + "-")]
         check("Words cut from one longer notation (latissimus + dorsi, carpi + radialis, transversus + abdominis, digitorum) are consecutive whole syllables from its start, in order, with nothing skipped",
-              not part and {k for k, _, _ in splits} == {"latissimusDorsi", "flexorCarpiRadialis", "transversusAbdominis", "extensorDigitorumBrevis"}, (part, [k for k, _, _ in splits]))
+              not part and {k for k, _, _ in splits} == {"latissimusDorsi", "flexorCarpiRadialis", "transversusAbdominis", "extensorDigitorumBrevis", "tensorFasciaeLatae", "flexorHallucisBrevis"}, (part, [k for k, _, _ in splits]))
         # Regression: the eight long-i spellings corrected on Nov 7 (KAR-py could be read KAR-pee, MW's second pronunciation).
         OLD = {"carpi": "KAR-py", "dorsi": "DOR-sy", "oculi": "AH-kyuh-ly", "diaphragm": "DY-uh-fram", "biceps": "BY-seps", "triceps": "TRY-seps",
                "infraspinatus": "in-fruh-spy-NAYT-uhs", "sternocleidomastoid": "stur-noh-klyd-uh-MAS-toyd"}
@@ -1489,15 +1495,19 @@ with sync_playwright() as p:
             return [before, word.ok, word.held, other, term.ok, minor, Object.keys(P.UNDER_REVIEW).length]; }""")
         check("A word or name held for review shows no pronunciation anywhere it appears, and nothing else is affected",
               held == [True, False, ["carpi"], True, False, True, 0], held)
-        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"] or v.get("checked", P["CHECKED"]) not in ("2026-11-06", "2026-11-10")]
-        check("Every source names its Merriam-Webster dictionary, page URL, exact notation and the day it was read (Nov 6 for muscles, Nov 10 for Chapters 10 and 8)", not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
-        check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == sorted(["orbicularis", "supraspinatus"] + NOT_CH), sorted(P["NOT_VERIFIED"]))
-        gen = [k for k, v in P["SOURCES"].items() if v.get("checked") == "2026-11-10" and ("general" in v["dict"]) != bool(v.get("why"))]
+        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"] or v.get("checked", P["CHECKED"]) not in ("2026-11-06", "2026-11-10", "2026-11-12")]
+        check("Every source names its Merriam-Webster dictionary, page URL, exact notation and the day it was read (Nov 6 for muscles, Nov 10 for Chapters 10 and 8, Nov 12 for hip, thigh and leg)", not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
+        check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == sorted(["orbicularis", "supraspinatus"] + NOT_CH + NOT_LL), sorted(P["NOT_VERIFIED"]))
+        gen = [k for k, v in P["SOURCES"].items() if v.get("checked") in ("2026-11-10", "2026-11-12") and ("general" in v["dict"]) != bool(v.get("why"))]
         med = [k for k, v in P["SOURCES"].items() if v.get("checked") == "2026-11-10" and "Medical" in v["dict"] and v["notation"].startswith("-")]
         check("Chapter 10 and 8: the general dictionary is used only where the medical entry is shortened or missing, with the reason kept; no shortened form is used", not gen and not med, (gen, med))
         r = page.evaluate("['Supraspinatus','Orbicularis oculi','Orbicularis oris','Pectoralis major','External intercostals','Occipitofrontalis (frontal belly)'].map(n => Pronunciations.forTerm(n))")
         check("A name with any unverified word shows nothing; everyday words are shown as written",
               not r[0]["ok"] and not r[1]["ok"] and not r[2]["ok"] and r[3]["text"] == "pek-tuh-RAY-luhs major" and r[4]["singular"] == ["intercostal"] and r[5]["text"] == "ahk-sip-uht-oh-fruhn-TAY-luhs", [x.get("text") for x in r])
+        ll = page.evaluate("['Biceps femoris','Rectus femoris','Gluteus medius','Vastus lateralis','Adductor magnus','Fibularis longus','Tibialis posterior','Tensor fasciae latae'].map(n => Pronunciations.forTerm(n))")
+        check("Hip, thigh and leg: each femoris follows its own muscle's entry; names with an unverified word show nothing; posterior is an everyday word",
+              [x.get("text") for x in ll] == ["BYE-seps FEE-muh-ruhs", "REK-tuhs FEM-uh-ruhs", None, None, None, None, "tib-ee-AY-luhs posterior", "TEN-ser FASH-ee-ee LAY-tee"]
+              and ll[2]["missing"] == ["medius"] and ll[5]["missing"] == ["fibularis"], [x.get("text") or x.get("missing") for x in ll])
         check("Each muscle's own entry wins: teres and brachii follow the entry for that muscle",
               page.evaluate("['Teres major','Pronator teres','Biceps brachii','Triceps brachii'].map(n => Pronunciations.forTerm(n).text)") == ["TERR-eez major", "PROH-nayt-er TEER-eez", "BYE-seps BRAY-kee-ee", "TRYE-seps BRAY-kee-eye"])
         check("docs/PRONUNCIATION_REPORT.md matches the data (regenerated by tools/pronunciation-report.js)",

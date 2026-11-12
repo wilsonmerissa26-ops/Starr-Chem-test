@@ -107,7 +107,29 @@
     protraction: { entry: "protraction", dict: GEN, url: MW + "dictionary/protraction", notation: "prō-ˈtrak-shən, prə-", checked: "2026-11-10", why: "The medical entry gives only a shortened form, -ˈtrak-shən." },
     glenoid: { entry: "glenoid", dict: MED, url: MW + "medical/glenoid", notation: "ˈglen-ˌȯid, ˈglēn-", checked: "2026-11-10" },
     labrum: { entry: "labrum", dict: MED, url: MW + "dictionary/labrum", notation: "ˈlā-brəm", checked: "2026-11-10" },
-    radioulnar: { entry: "radioulnar", dict: MED, url: MW + "medical/radioulnar", notation: "ˌrād-ē-ō-ˈəl-nər", checked: "2026-11-10" }
+    radioulnar: { entry: "radioulnar", dict: MED, url: MW + "medical/radioulnar", notation: "ˌrād-ē-ō-ˈəl-nər", checked: "2026-11-10" },
+    // Hip, thigh and lower leg muscle names, read 2026-11-12, twice each with differently worded requests; the first
+    // pronunciation agreed in both reads for every entry used.
+    psoas: { entry: "psoas", dict: MED, url: MW + "medical/psoas", notation: "ˈsō-əs", checked: "2026-11-12" },
+    iliacus: { entry: "iliacus", dict: MED, url: MW + "medical/iliaci", notation: "i-ˈlī-ə-kəs", checked: "2026-11-12" },
+    tensor: { entry: "tensor", dict: MED, url: MW + "dictionary/tensor", notation: "ˈten(t)-sər, ˈten-ˌsȯ(ə)r", checked: "2026-11-12" },
+    // The second alternative is for the variant spelling "tensor fascia lata".
+    tensorFasciaeLatae: { entry: "tensor fasciae latae", dict: MED, url: MW + "medical/tensor%20fasciae%20latae", notation: "-ˈfash-ē-ē-ˈlā-tē, -ˈfash-ē-ə-ˈlā-tə", checked: "2026-11-12" },
+    sartorius: { entry: "sartorius", dict: MED, url: MW + "dictionary/sartorius", notation: "sär-ˈtōr-ē-əs", checked: "2026-11-12" },
+    rectusFemoris: { entry: "rectus femoris", dict: MED, url: MW + "medical/rectus%20femoris", notation: "-ˈfem-ə-rəs", checked: "2026-11-12" },
+    bicepsFemoris: { entry: "biceps femoris", dict: MED, url: MW + "dictionary/biceps%20femoris", notation: "-ˈfē-mə-rəs, -ˈfem-ə-", checked: "2026-11-12" },
+    pectineus: { entry: "pectineus", dict: MED, url: MW + "medical/pectineus", notation: "pek-ˈtin-ē-əs", checked: "2026-11-12" },
+    adductor: { entry: "adductor", dict: GEN, url: MW + "dictionary/adductor", notation: "ə-ˈdək-tər", checked: "2026-11-12", why: "The medical entry gives only a shortened form, -ˈdək-tər." },
+    gracilis: { entry: "gracilis", dict: MED, url: MW + "medical/gracilis", notation: "ˈgras-ə-ləs", checked: "2026-11-12" },
+    gluteus: { entry: "gluteus", dict: MED, url: MW + "dictionary/gluteus", notation: "ˈglüt-ē-əs, glü-ˈtē-", checked: "2026-11-12" },
+    gluteusMaximus: { entry: "gluteus maximus", dict: MED, url: MW + "dictionary/gluteus%20maximus", notation: "-ˈmak-sə-məs", checked: "2026-11-12" },
+    semitendinosus: { entry: "semitendinosus", dict: MED, url: MW + "medical/semitendinosus", notation: "ˌsem-ē-ˌten-də-ˈnō-səs", checked: "2026-11-12" },
+    semimembranosus: { entry: "semimembranosus", dict: MED, url: MW + "medical/semimembranosus", notation: "ˌsem-ē-ˌmem-brə-ˈnō-səs", checked: "2026-11-12" },
+    tibialis: { entry: "tibialis", dict: MED, url: MW + "medical/tibialis", notation: "ˌtib-ē-ˈā-ləs", checked: "2026-11-12" },
+    gastrocnemius: { entry: "gastrocnemius", dict: MED, url: MW + "dictionary/gastrocnemius", notation: "ˌgas-(ˌ)träk-ˈnē-mē-əs, -trək-", checked: "2026-11-12" },
+    soleus: { entry: "soleus", dict: MED, url: MW + "dictionary/soleus", notation: "ˈsō-lē-əs", checked: "2026-11-12" },
+    flexorHallucisBrevis: { entry: "flexor hallucis brevis", dict: MED, url: MW + "medical/flexor%20hallucis%20brevis", notation: "-ˈhal-(y)ü-səs-ˈbrev-əs, -ˈhal-ə-kəs-", checked: "2026-11-12" },
+    extensorHallucisLongus: { entry: "extensor hallucis longus", dict: MED, url: MW + "medical/extensor%20hallucis%20longus", notation: "-ˈlȯŋ-gəs", checked: "2026-11-12" }
   };
   // word: [the part of the source notation for this word (first listed pronunciation), source key]
   var WORDS = {
@@ -134,16 +156,24 @@
     "supination", "dorsiflexion", "plantar", "flexion", "eversion", "protraction", "glenoid", "labrum", "radioulnar"].forEach(function (w) {
     WORDS[w] = [SOURCES[w].notation.split(/[,;]/)[0].trim(), w];
   });
+  // Hip, thigh and lower leg words.
+  ["psoas", "iliacus", "tensor", "sartorius", "pectineus", "adductor", "gracilis", "gluteus", "semitendinosus", "semimembranosus", "tibialis",
+    "gastrocnemius", "soleus"].forEach(function (w) { WORDS[w] = [SOURCES[w].notation.split(/[,;]/)[0].trim(), w]; });
+  WORDS.fasciae = ["ˈfash-ē-ē", "tensorFasciaeLatae"]; WORDS.latae = ["ˈlā-tē", "tensorFasciaeLatae"];
+  WORDS.femoris = ["ˈfem-ə-rəs", "rectusFemoris"]; WORDS.maximus = ["ˈmak-sə-məs", "gluteusMaximus"];
+  WORDS.hallucis = ["ˈhal-(y)ü-səs", "flexorHallucisBrevis"];
   // A term's own entry beats the default source for a word.
   var IN_TERM = {
     "transversus abdominis": { abdominis: ["əb-ˈdäm-ə-nəs", "transversusAbdominis"] },
     "triceps brachii": { brachii: ["ˈbrā-kē-ˌī", "tricepsBrachii"] },
     "pronator teres": { teres: ["ˈtir-ˌēz", "pronatorTeres"] },
     "extensor carpi radialis longus": { longus: ["ˈlȯŋ-gəs", "extensorCarpiRadialisLongus"] },
-    "extensor carpi ulnaris": { ulnaris: ["ˌəl-ˈnar-əs", "extensorCarpiUlnaris"] }
+    "extensor carpi ulnaris": { ulnaris: ["ˌəl-ˈnar-əs", "extensorCarpiUlnaris"] },
+    "biceps femoris": { femoris: ["ˈfē-mə-rəs", "bicepsFemoris"] },
+    "extensor hallucis longus": { longus: ["ˈlȯŋ-gəs", "extensorHallucisLongus"] }
   };
   // Everyday English words: shown as written, never looked up.
-  var EVERYDAY = ["external", "internal", "major", "minor", "anterior", "frontal", "belly", "terminal", "cleft", "respiration"];
+  var EVERYDAY = ["external", "internal", "major", "minor", "anterior", "frontal", "belly", "terminal", "cleft", "respiration", "posterior"];
   // MW gives the singular only; the term shows it with a note rather than adding a sound.
   var SINGULAR = { intercostals: "intercostal" };
   // Checked and not shown, with the reason (also listed in docs/PRONUNCIATION_REPORT.md).
@@ -160,7 +190,14 @@
     acetabulum: "The medical entry gives only a shortened form, -ˈtab-yə-ləm. The general entry, ˌa-sə-ˈta-byə-ləm, ends syllables with the a in cat (a, ta), which this spelling key cannot write without them reading as ah.",
     amphiarthrosis: "Merriam-Webster gives only a shortened form, -ˈthrō-səs, and has no general dictionary entry for it.",
     fibrocartilage: "No Merriam-Webster entry for fibrocartilage turned up when searched on Nov 10.",
-    humeroulnar: "No Merriam-Webster entry for humeroulnar turned up when searched on Nov 10."
+    humeroulnar: "No Merriam-Webster entry for humeroulnar turned up when searched on Nov 10.",
+    vastus: "Merriam-Webster's vastus entry prints no pronunciation, and its vastus lateralis, medialis and intermedius entries give only the second word, so there is no full pronunciation of vastus to show.",
+    lateralis: "Not used: vastus lateralis cannot show a pronunciation, because vastus has none.",
+    medialis: "Not used: vastus medialis cannot show a pronunciation, because vastus has none.",
+    magnus: "Merriam-Webster's adductor magnus entry prints no pronunciation, and no other entry checked gives one for magnus.",
+    medius: "Merriam-Webster's gluteus medius entry prints -ˈmē-dē-us, with the letters \"us\" where its pronunciation key uses ə. That is not a symbol in its key, so it is not used.",
+    fibularis: "Merriam-Webster has no entry for fibularis; it lists these muscles under the older name, peroneus.",
+    brevis: "Not used: fibularis brevis cannot show a pronunciation, because fibularis has no entry."
   };
 
   // ---- MW notation -> simple spelling (one fixed key; see KEY) ----
