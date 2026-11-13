@@ -55,6 +55,14 @@
   "gluteus-maximus": [
    31.88,
    83.44
+  ],
+  "gluteus-minimus": [
+   74.69,
+   37.81
+  ],
+  "piriformis": [
+   55.94,
+   57.5
   ]
  },
  "thigh-hamstrings": {
@@ -127,6 +135,10 @@
   "biceps-femoris": [
    49.38,
    69.66
+  ],
+  "gluteus-minimus": [
+   54.79,
+   21.72
   ]
  }
 }

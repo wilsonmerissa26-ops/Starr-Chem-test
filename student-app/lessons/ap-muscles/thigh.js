@@ -2,8 +2,11 @@
  * Locations, origins and actions follow OpenStax Anatomy and Physiology 2e, section 11.6, "Appendicular Muscles of the
  * Pelvic Girdle and Lower Limbs" (body text and origins), in standard terms; insertions not given there are standard anatomy.
  * Two OpenStax figure-caption errors are NOT copied: the caption says the pectineus "opens the thigh" (its own body text
- * says it "adducts and flexes the femur"), and that the gluteus minimus "brings the thighs back together" (it abducts;
- * gluteus minimus is not taught here).
+ * says it "adducts and flexes the femur"), and OpenStax's statement that the gluteus minimus "brings the thighs back
+ * together" (adduction). Gluteus minimus abducts and medially rotates the thigh (Kenhub, checked Nov 13).
+ * Vastus intermedius, gluteus minimus and piriformis added Nov 13 (Merissa's decision after the outside audit): facts from
+ * OpenStax 11.6 and Kenhub. Vastus intermedius does not show on any OpenStax figure used here, so it is a study card with a
+ * function question and no pin.
  * Figures show the RIGHT leg: in front views the lateral side is on the left of the picture, in back views on the right.
  * Teaching figures split OpenStax fig. 1122's front and back drawings into two crops each so pins never overlap.
  * Pin positions come from OpenStax leader lines (tools/build-ap-thigh-images.py, img/pins-thigh.json).
@@ -63,6 +66,13 @@
       cue: "Vastus (huge) + medialis (toward the midline): the teardrop above the inside of the knee.",
       feel: { do: "Sit with your leg out straight and tighten your thigh hard, pressing the back of your knee down.", notice: "The teardrop bulge above the inside of the knee firms up." },
       lookalike: "vastus-lateralis" },
+    "vastus-intermedius": { name: "Vastus intermedius", region: "front of the thigh, deep, under the rectus femoris",
+      accept: ["vastus intermedius"],
+      location: "Deep in the middle of the front of the thigh, directly under the rectus femoris and between the vastus lateralis and vastus medialis: from the front and side of the upper two-thirds of the femur's shaft, to the patella through the quadriceps tendon. The fourth quadriceps muscle. It does not show on these figures because the rectus femoris covers it.",
+      action: "Extends the leg at the knee.",
+      cue: "Vastus (huge) + intermedius (in between): the quadriceps muscle hidden between the other two vasti, under the rectus femoris.",
+      feel: { do: "Sit with your hand on the middle of the front of your thigh, then straighten your knee.", notice: "The whole front of the thigh tightens. The vastus intermedius is under the rectus femoris, so you cannot feel it by itself." },
+      lookalike: "rectus-femoris" },
     "pectineus": { name: "Pectineus", region: "top of the inner thigh, at the groin",
       accept: ["pectineus"],
       location: "A short, flat muscle at the very top of the medial thigh, from the pectineal line of the pubis to the back of the femur just below the lesser trochanter. It sits beside the adductor longus.",
@@ -105,6 +115,20 @@
       cue: "Gluteus (buttock) + medius (middle): the middle one of the three gluteal muscles in size and depth, higher and to the side of the maximus.",
       feel: { do: "Stand, put your hand on the side of your hip just below the iliac crest, and lift your other foot off the floor.", notice: "The muscle under your hand tightens to keep your pelvis level." },
       lookalike: "gluteus-maximus" },
+    "gluteus-minimus": { name: "Gluteus minimus", region: "side of the hip, deepest, under the gluteus medius",
+      accept: ["gluteus minimus"],
+      location: "The smallest and deepest of the three gluteal muscles, completely under the gluteus medius: from the outer (gluteal) surface of the ilium to the front of the greater trochanter of the femur. On the teaching figure it shows because the gluteus maximus and medius are cut.",
+      action: "Abducts the thigh and medially rotates it, and works with the gluteus medius to keep the pelvis level when you stand on one leg.",
+      cue: "Gluteus (buttock) + minimus (smallest): the smallest and deepest gluteal muscle, under the medius.",
+      feel: { do: "Stand and put your hand on the side of your hip, then lift your other foot off the floor, as for the gluteus medius.", notice: "It works with the gluteus medius but lies under it, so you cannot feel it by itself." },
+      lookalike: "gluteus-medius" },
+    "piriformis": { name: "Piriformis", region: "deep in the buttock, below the gluteus medius",
+      accept: ["piriformis", "pyriformis"],
+      location: "A deep, pear-shaped muscle under the gluteus maximus, just below the gluteus medius and minimus: from the front of the sacrum, out of the pelvis through the greater sciatic foramen, to the top of the greater trochanter.",
+      action: "Laterally rotates the thigh, and steadies the head of the femur in the hip socket. It also helps abduct the thigh when the hip is bent.",
+      cue: "Piri (pear) + formis (shaped): a pear-shaped muscle running sideways from the sacrum to the greater trochanter.",
+      feel: { do: "Stand and turn your whole leg so that your toes point outward.", notice: "It is deep under the gluteus maximus, so you feel the leg turn, not the muscle itself." },
+      lookalike: "gluteus-medius" },
     "biceps-femoris": { name: "Biceps femoris", region: "back of the thigh, outer side",
       accept: ["biceps femoris"],
       location: "The lateral hamstring, with two heads: the long head from the ischial tuberosity and the short head from the linea aspera of the femur. They join and end on the head of the fibula.",
@@ -133,6 +157,9 @@
     "gluteus-maximus|gluteus-medius": "Maximus is the largest, the bulk of the buttock, and extends the thigh. Medius is middle-sized, higher and to the side, mostly under the maximus, and abducts the thigh.",
     "gracilis|sartorius": "Both are long straps that end on the medial side of the upper tibia. Sartorius crosses the FRONT of the thigh diagonally from the outside of the hip; gracilis runs straight down the INNER edge of the thigh from the pubis.",
     "rectus-femoris|vastus-lateralis": "Both are quadriceps on the front of the thigh. Rectus femoris runs straight down the middle and crosses the hip, so it also flexes the thigh; vastus lateralis is on the outer side and acts only at the knee.",
+    "rectus-femoris|vastus-intermedius": "Both sit in the middle of the front of the thigh and extend the knee. Rectus femoris is at the surface and crosses the hip, so it also flexes the thigh; vastus intermedius lies directly under it, on the femur, and acts only at the knee.",
+    "gluteus-medius|gluteus-minimus": "Both run from the outer surface of the ilium to the greater trochanter and abduct and medially rotate the thigh. Medius is middle-sized and partly at the surface below the iliac crest; minimus is the smallest and lies completely under the medius.",
+    "gluteus-medius|piriformis": "Both lie under the gluteus maximus and end on the greater trochanter. Gluteus medius is above, fan-shaped from the ilium, and abducts the thigh; piriformis is just below it, runs sideways from the sacrum, and rotates the thigh laterally.",
     "vastus-lateralis|vastus-medialis": "Both are large quadriceps that extend the knee. Lateralis is on the outer side of the thigh; medialis is on the inner side, with the teardrop bulge above the knee.",
     "adductor-longus|pectineus": "Both are at the top of the inner thigh and adduct and flex the thigh. Pectineus is short and highest, at the groin; adductor longus is just below and medial to it and runs farther down the femur.",
     "adductor-longus|adductor-magnus": "Both adduct the thigh. Adductor longus is in front and higher and also flexes the thigh; adductor magnus is the largest, behind it, reaches down to just above the knee, and its back part extends the thigh.",
@@ -152,12 +179,13 @@
     "thigh-hip": { "iliacus": [29.69, 29.15], "psoas-major": [41.56, 30.21], "tensor-fasciae-latae": [15.0, 61.7], "pectineus": [45.31, 58.09],
       "adductor-longus": [53.75, 59.57], "gracilis": [60.94, 69.79], "adductor-magnus": [57.81, 79.57], "sartorius": [50.62, 82.98] },
     "thigh-knee": { "rectus-femoris": [33.75, 36.88], "vastus-lateralis": [27.19, 73.44], "vastus-medialis": [54.69, 69.38] },
-    "thigh-glutes": { "gluteus-medius": [66.25, 19.69], "gluteus-maximus": [31.88, 83.44] },
+    "thigh-glutes": { "gluteus-medius": [66.25, 19.69], "gluteus-maximus": [31.88, 83.44], "gluteus-minimus": [74.69, 37.81], "piriformis": [55.94, 57.5] },
     "thigh-hamstrings": { "biceps-femoris": [51.67, 32.0], "semitendinosus": [35.67, 50.33], "semimembranosus": [27.67, 49.33] },
     "thigh-deep": { "pectineus": [54.4, 14.47], "adductor-longus": [49.69, 65.53], "adductor-magnus": [58.49, 79.15] },
     "thigh-body-front": { "sartorius": [24.58, 32.67], "gracilis": [33.96, 37.67], "rectus-femoris": [23.96, 59.33], "vastus-lateralis": [18.12, 82.67],
       "vastus-medialis": [42.08, 86.67], "tensor-fasciae-latae": [60.0, 15.0] },
-    "thigh-body-back": { "gluteus-medius": [20.83, 12.07], "gluteus-maximus": [27.08, 27.59], "semimembranosus": [29.58, 77.59], "biceps-femoris": [49.38, 69.66] }
+    "thigh-body-back": { "gluteus-medius": [20.83, 12.07], "gluteus-maximus": [27.08, 27.59], "semimembranosus": [29.58, 77.59], "biceps-femoris": [49.38, 69.66],
+      "gluteus-minimus": [54.79, 21.72] }
   };
   var OBJ = {
     id: "bio131.ch9.thigh-id",                        // identify hip and thigh muscles
@@ -172,12 +200,13 @@
     { fig: "thigh-hip", muscle: "pectineus", objective: "id" }, { fig: "thigh-hip", muscle: "adductor-longus", objective: "id" },
     { fig: "thigh-hip", muscle: "adductor-magnus", objective: "id" }, { fig: "thigh-hip", muscle: "gracilis", objective: "id" },
     { fig: "thigh-glutes", muscle: "gluteus-maximus", objective: "id" }, { fig: "thigh-glutes", muscle: "gluteus-medius", objective: "id" },
+    { fig: "thigh-glutes", muscle: "gluteus-minimus", objective: "id" }, { fig: "thigh-glutes", muscle: "piriformis", objective: "id" },
     { fig: "thigh-hamstrings", muscle: "biceps-femoris", objective: "id" }, { fig: "thigh-hamstrings", muscle: "semitendinosus", objective: "id" },
     { fig: "thigh-hamstrings", muscle: "semimembranosus", objective: "id" }
   ];
   // New pictures: fig. 1105 front and back (whole body) and fig. 1122's deep front drawing, each muscle at most once per
-  // drawing, only where OpenStax labels it. Iliacus, psoas major and semitendinosus have no such view, so naming them on a
-  // pin is practice; their actions are tested independently.
+  // drawing, only where OpenStax labels it. Iliacus, psoas major, semitendinosus and piriformis have no such view, so naming
+  // them on a pin is practice; vastus intermedius has no pin at all. Their actions are tested independently.
   function fn(id, muscle, prompt) { return { id: "ap-ch9-thigh-act-" + id, objective: "actions", kind: "name-fn", muscle: muscle, unfamiliar: true, prompt: prompt }; }
   function pin(id, fig, muscle, unfamiliar) { return { id: "ap-ch9-thigh-" + id, objective: "id", kind: "name-pin", fig: fig, muscle: muscle, unfamiliar: unfamiliar }; }
   var ITEMS = [
@@ -186,7 +215,7 @@
     pin("deep-name-adductor-longus", "thigh-deep", "adductor-longus", true),
     fn("cord-tendon", "semitendinosus", "Name the medial hamstring at the surface whose lower half is a long, cord-like tendon."),
     pin("back-name-biceps-femoris", "thigh-body-back", "biceps-femoris", true),
-    fn("level-pelvis", "gluteus-medius", "Name the muscle that runs from the outer surface of the ilium to the greater trochanter, mostly under the largest buttock muscle; it abducts the thigh and keeps the pelvis level when you stand on one leg."),
+    fn("level-pelvis", "gluteus-medius", "Name the muscle that runs from the outer surface of the ilium to the greater trochanter and lies between the largest and the smallest of the three main buttock muscles (under one, over the other); it abducts the thigh and keeps the pelvis level when you stand on one leg."),
     fn("lumbar-flexor", "psoas-major", "Name the long hip flexor that runs from the lumbar vertebrae down across the front of the hip to the lesser trochanter."),
     pin("front-name-sartorius", "thigh-body-front", "sartorius", true),
     fn("largest-adductor", "adductor-magnus", "Name the largest muscle of the inner thigh: it pulls the thigh toward the midline, reaches down to just above the knee, and its back part also extends the thigh."),
@@ -194,8 +223,10 @@
     fn("it-tract", "tensor-fasciae-latae", "Name the small muscle toward the front of the side of the hip that flexes and abducts the thigh and tightens the iliotibial tract."),
     pin("deep-name-pectineus", "thigh-deep", "pectineus", true),
     fn("crosses-hip", "rectus-femoris", "Name the only quadriceps muscle that crosses the hip, so it both extends the knee and flexes the thigh."),
+    fn("deep-quad", "vastus-intermedius", "Name the quadriceps muscle you cannot see on the surface: it lies directly under the rectus femoris, between the outer and inner quadriceps, and only extends the knee."),
     fn("lateral-hamstring", "biceps-femoris", "Name the lateral hamstring, which has two heads and ends on the head of the fibula."),
     pin("front-name-vastus-lateralis", "thigh-body-front", "vastus-lateralis", true),
+    pin("back-name-gluteus-minimus", "thigh-body-back", "gluteus-minimus", true),
     fn("thin-strap", "gracilis", "Name the long, thin strap along the inner edge of the thigh that adducts the thigh and flexes the knee."),
     fn("ilium-bowl", "iliacus", "Name the hip flexor that fills the inner bowl of the ilium and joins a muscle from the lumbar spine to reach the lesser trochanter."),
     pin("back-name-semimembranosus", "thigh-body-back", "semimembranosus", true),
@@ -203,9 +234,11 @@
     fn("cross-legged", "sartorius", "Name the longest muscle in the body, a strap that crosses the front of the thigh diagonally and puts you in a cross-legged sitting position."),
     pin("front-name-gracilis", "thigh-body-front", "gracilis", true),
     fn("front-adductor", "adductor-longus", "Name the inner-thigh muscle from the pubis near the pubic symphysis that pulls the thigh toward the midline and also helps flex it. It lies in front of the largest inner-thigh muscle."),
+    fn("deepest-glute", "gluteus-minimus", "Name the smallest and deepest of the three main buttock muscles, completely under the middle-sized one; it abducts the thigh and rotates it medially."),
     fn("membrane-top", "semimembranosus", "Name the medial hamstring that lies under the other medial hamstring and is flat and membrane-like at its upper end."),
     pin("deep-name-adductor-magnus", "thigh-deep", "adductor-magnus", true),
     fn("stairs", "gluteus-maximus", "Name the largest buttock muscle, which extends the thigh when you climb stairs or rise from a chair."),
+    fn("pear-shaped", "piriformis", "Name the muscle that runs sideways from the front of the sacrum, out through the greater sciatic foramen, to the top of the greater trochanter; it rotates the thigh laterally."),
     fn("groin", "pectineus", "Name the short, flat muscle at the very top of the inner thigh, next to the groin, that adducts and flexes the thigh."),
     pin("front-name-vastus-medialis", "thigh-body-front", "vastus-medialis", true),
     pin("back-name-gluteus-medius", "thigh-body-back", "gluteus-medius", true),
@@ -213,34 +246,35 @@
     pin("sup-name-iliacus", "thigh-hip", "iliacus", false),
     pin("sup-name-psoas-major", "thigh-hip", "psoas-major", false),
     pin("sup-name-semitendinosus", "thigh-hamstrings", "semitendinosus", false),
-    pin("sup-name-gracilis", "thigh-hip", "gracilis", false)
+    pin("sup-name-gracilis", "thigh-hip", "gracilis", false),
+    pin("sup-name-piriformis", "thigh-glutes", "piriformis", false)
   ];
   var SET = {
     key: "thigh", title: "Hip and thigh muscles", learnItem: "thigh-learn",
     steps: [{ id: "names", label: "1 · Decode the names first" }, { id: "learn", label: "2 · Learn the muscles" }, { id: "feel", label: "3 · Feel it" },
       { id: "find", label: "4 · How to find them" }, { id: "guided", label: "5 · Guided pins" }, { id: "lookalikes", label: "6 · Look-alikes" }, { id: "independent", label: "On your own" }],
     status: [{ key: "id", label: "Hip and thigh ID" }, { key: "newpic", label: "ID on new pictures" }, { key: "actions", label: "Function" }],
-    learnTitle: "Sixteen hip and thigh muscles",
-    learnIntro: "Sort the hip and thigh into four groups. Front of the hip: the hip flexors (psoas major and iliacus, together the iliopsoas), plus the tensor fasciae latae and sartorius, which start at the front of the iliac crest. Front of the thigh: the quadriceps, which extend the knee. A fourth quadriceps, the vastus intermedius, lies deep under the rectus femoris and does not show on these figures. Inner (medial) thigh: the adductors, which pull the thigh toward the midline. Back: the gluteal muscles of the buttock and the three hamstrings, which flex the knee and extend the thigh. The figures show the right leg: seen from the front, its outer (lateral) side is on the left of the picture; seen from behind, on the right.",
+    learnTitle: "Nineteen hip and thigh muscles",
+    learnIntro: "Sort the hip and thigh into four groups. Front of the hip: the hip flexors (psoas major and iliacus, together the iliopsoas), plus the tensor fasciae latae and sartorius, which start at the front of the iliac crest. Front of the thigh: the four quadriceps, which extend the knee. The fourth, the vastus intermedius, lies under the rectus femoris and does not show on these figures, so learn it from its card. Inner (medial) thigh: the adductors, which pull the thigh toward the midline. Back: the three gluteal muscles (maximus, medius, minimus, from biggest to smallest and surface to deep), the piriformis under them, and the three hamstrings, which flex the knee and extend the thigh. The figures show the right leg: seen from the front, its outer (lateral) side is on the left of the picture; seen from behind, on the right.",
     learn: [{ h: "Front of the hip: hip flexors, tensor fasciae latae and sartorius", fig: "thigh-hip", muscles: ["psoas-major", "iliacus", "tensor-fasciae-latae", "sartorius"] },
-      { h: "Front of the thigh: the quadriceps (labeled in the figure above)", muscles: ["rectus-femoris", "vastus-lateralis", "vastus-medialis"] },
+      { h: "Front of the thigh: the four quadriceps (three labeled in the figure above; the vastus intermedius is hidden under the rectus femoris)", muscles: ["rectus-femoris", "vastus-lateralis", "vastus-medialis", "vastus-intermedius"] },
       { h: "Inner thigh: the adductors (labeled in the figure above)", muscles: ["pectineus", "adductor-longus", "adductor-magnus", "gracilis"] },
-      { h: "Back: gluteal muscles and hamstrings", fig: "thigh-glutes", muscles: ["gluteus-maximus", "gluteus-medius", "biceps-femoris", "semitendinosus", "semimembranosus"] }],
+      { h: "Back: gluteal muscles, piriformis and hamstrings", fig: "thigh-glutes", muscles: ["gluteus-maximus", "gluteus-medius", "gluteus-minimus", "piriformis", "biceps-femoris", "semitendinosus", "semimembranosus"] }],
     find: { fig: "thigh-hamstrings", pins: ["biceps-femoris", "semitendinosus", "semimembranosus"], current: "biceps-femoris",
       title: "Worked example: the highlighted pin on the back of the thigh",
       landmarks: "the buttock, the back of the knee, the inner (medial) or outer (lateral) side of the thigh, the front of the hip bone",
       fibers: "long muscles from the ischial tuberosity to below the knee (hamstrings), a cord-like tendon (semitendinosus), a strap crossing the thigh diagonally (sartorius), a teardrop above the knee (vastus medialis)",
       think: "Step 1: this is the back of the thigh, below the buttock, so it is a hamstring. Step 2: the figure is a right leg seen from behind, so the outer (lateral) side is on the right of the picture, and the highlighted pin is the one farthest to that side. Step 3: the lateral hamstring is the one that ends on the fibula. So: <b>biceps femoris</b>." },
-    pairs: [["psoas-major", "iliacus"], ["vastus-lateralis", "vastus-medialis"], ["adductor-longus", "adductor-magnus"], ["semitendinosus", "semimembranosus"],
-      ["gluteus-maximus", "gluteus-medius"], ["sartorius", "gracilis"]],
+    pairs: [["psoas-major", "iliacus"], ["vastus-lateralis", "vastus-medialis"], ["rectus-femoris", "vastus-intermedius"], ["adductor-longus", "adductor-magnus"],
+      ["semitendinosus", "semimembranosus"], ["gluteus-maximus", "gluteus-medius"], ["gluteus-medius", "gluteus-minimus"], ["sartorius", "gracilis"]],
     incompleteNames: {
       "iliopsoas": "Iliopsoas is the pair. Which one: psoas major (from the lumbar spine) or iliacus (from the bowl of the ilium)?",
       "psoas": "Add the size: psoas MAJOR.",
-      "gluteus": "Gluteus maximus (the bulk of the buttock) or gluteus medius (higher, on the side of the hip)?",
-      "vastus": "Vastus lateralis (outer side) or vastus medialis (inner side)?",
+      "gluteus": "Gluteus maximus (the bulk of the buttock), gluteus medius (higher, on the side of the hip) or gluteus minimus (smallest, under the medius)?",
+      "vastus": "Vastus lateralis (outer side), vastus medialis (inner side) or vastus intermedius (deep, under the rectus femoris)?",
       "adductor": "Adductor longus (in front, higher) or adductor magnus (the largest, reaching toward the knee)?",
-      "quadriceps": "Quadriceps is the group of four. Which one: rectus femoris, vastus lateralis or vastus medialis?",
-      "quadriceps femoris": "Quadriceps femoris is the group of four. Which one: rectus femoris, vastus lateralis or vastus medialis?",
+      "quadriceps": "Quadriceps is the group of four. Which one: rectus femoris, vastus lateralis, vastus medialis or vastus intermedius?",
+      "quadriceps femoris": "Quadriceps femoris is the group of four. Which one: rectus femoris, vastus lateralis, vastus medialis or vastus intermedius?",
       "hamstring": "Hamstrings is the group of three. Which one: biceps femoris, semitendinosus or semimembranosus?",
       "hamstrings": "Hamstrings is the group of three. Which one: biceps femoris, semitendinosus or semimembranosus?",
       "biceps": "Biceps femoris or biceps brachii? In the thigh it is the biceps femoris.",

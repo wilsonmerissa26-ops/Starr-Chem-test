@@ -33,7 +33,7 @@ VIEWS = {
     "thigh-knee": {"fig": HIP, "crop": (210, 470, 530, 790), "upscale": True, "pins": {
         "rectus-femoris": (318, 588), "vastus-lateralis": (297, 705), "vastus-medialis": (385, 692)}},
     "thigh-glutes": {"fig": HIP, "crop": (1130, 1180, 1450, 1500), "upscale": True, "pins": {
-        "gluteus-medius": (1342, 1243), "gluteus-maximus": (1232, 1447)}},
+        "gluteus-medius": (1342, 1243), "gluteus-maximus": (1232, 1447), "gluteus-minimus": (1369, 1301), "piriformis": (1309, 1364)}},
     "thigh-hamstrings": {"fig": HIP, "crop": (1150, 1570, 1450, 1870), "upscale": True, "pins": {
         "biceps-femoris": (1305, 1666), "semitendinosus": (1257, 1721), "semimembranosus": (1233, 1718)}},
     "thigh-deep": {"fig": HIP, "crop": (262, 1330, 580, 1800), "upscale": True, "pins": {
@@ -42,7 +42,8 @@ VIEWS = {
         "sartorius": (538, 678), "gracilis": (583, 693), "rectus-femoris": (535, 758), "vastus-lateralis": (507, 828),
         "vastus-medialis": (622, 840), "tensor-fasciae-latae": (708, 625)}},
     "thigh-body-back": {"fig": BODY, "crop": (420, 1990, 900, 2280), "upscale": True, "pins": {
-        "gluteus-medius": (520, 2025), "gluteus-maximus": (550, 2070), "semimembranosus": (562, 2215), "biceps-femoris": (657, 2192)}},
+        "gluteus-medius": (520, 2025), "gluteus-maximus": (550, 2070), "semimembranosus": (562, 2215), "biceps-femoris": (657, 2192),
+        "gluteus-minimus": (683, 2053)}},
 }
 # Labeled teaching images: the front drawing and the back drawing with OpenStax's labels. The deep front drawing is left out.
 LABELED = {"thigh-front-labeled": (HIP, (0, 0, 1000, 960), []),

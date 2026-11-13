@@ -134,6 +134,7 @@ function renderToday(){const tasks=allTasks().filter(function(t){return t.date==
 function renderCalendar(){const y=month.getFullYear(),m=month.getMonth();$("#month-name").textContent=month.toLocaleDateString(undefined,{month:"long",year:"numeric"});let html=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>'<div class="weekday">'+x+'</div>').join("");const first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++)html+='<div class="day blank"></div>';for(let d=1;d<=last;d++){const date=iso(new Date(y,m,d)),events=allTasks().filter(t=>t.date===date);html+='<button type="button" class="day '+(date===today?"today ":"")+(date===selected?"selected":"")+'" data-date="'+date+'" aria-label="'+esc(fmt(date,true))+'"><span class="num">'+d+'</span>'+events.slice(0,3).map(function(t){return '<span class="mini '+(markDone(t.id)?"done":t.subject==="ap"?"ap":t.subject==="other"?"other":"")+'">'+esc(t.title)+'</span>';}).join("")+(events.length>3?'<span class="small">+'+(events.length-3)+' more</span>':"")+'</button>';}$("#calendar-grid").innerHTML=html;$("#chosen-date-label").textContent=fmt(selected,true);renderTaskList("#selected-tasks",allTasks().filter(t=>t.date===selected),"No tasks on this date. Add a study block or deadline.");}
 function renderSubjects(){const filters=[["all","All subjects"],["chem","Organic Chemistry"],["ap","A&P I"],["other","Other"]]; const courseNames=[...new Set(state.custom.filter(t=>t.subject==="other"&&t.courseName).map(t=>t.courseName))].sort();courseNames.forEach(name=>filters.push(["custom:"+encodeURIComponent(name),name]));$("#custom-subject-list").innerHTML=courseNames.map(name=>'<div class="card subject other"><span class="pill">My class</span><h3>'+esc(name)+'</h3><p class="muted small">Custom deadlines and study sessions.</p><button type="button" class="btn secondary compact" data-filter="custom:'+encodeURIComponent(name)+'">Show class tasks</button></div>').join("");$("#subject-filters").innerHTML=filters.map(f=>'<button type="button" class="chip '+(subjectFilter===f[0]?"on":"")+'" data-filter="'+f[0]+'">'+f[1]+'</button>').join("");const x=allTasks().filter(t=>t.date>=today && !markDone(t.id) && (subjectFilter==="all"||t.subject===subjectFilter||(subjectFilter.startsWith("custom:")&&t.subject==="other"&&t.courseName===decodeURIComponent(subjectFilter.slice(7)))));renderTaskList("#subject-tasks",x,"No upcoming open tasks for this subject.");}
 // ---------- "Next up" from the shared learning record (both courses) ----------
+const LOWER_LIMB_LAB=["ap-1118-lab","ap-1202-labexam"];
 const PILOT_OBJECTIVES=[
  {id:"chm221.ch8.hx-addition",course:"CHM221",subject:"chem",title:"Chemistry: adding HBr and HCl to alkenes",resource:"chem-ch8"},
  {id:"bio131.ch9.facial-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify facial muscles",resource:"ap-muscles"},
@@ -151,12 +152,12 @@ const PILOT_OBJECTIVES=[
  {id:"bio131.ch9.forearm-id",course:"BIO131",subject:"ap",title:"A&P: identify forearm muscles",resource:"ap-forearm"},
  {id:"bio131.ch9.forearm-actions",course:"BIO131",subject:"ap",title:"A&P: forearm muscle actions",resource:"ap-forearm"},
  {id:"bio131.ch9.forearm-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify forearm muscles on new pictures",resource:"ap-forearm"},
- {id:"bio131.ch9.thigh-id",course:"BIO131",subject:"ap",title:"A&P: identify hip and thigh muscles",resource:"ap-thigh"},
- {id:"bio131.ch9.thigh-actions",course:"BIO131",subject:"ap",title:"A&P: hip and thigh muscle actions",resource:"ap-thigh"},
- {id:"bio131.ch9.thigh-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify hip and thigh muscles on new pictures",resource:"ap-thigh"},
- {id:"bio131.ch9.leg-id",course:"BIO131",subject:"ap",title:"A&P: identify lower leg muscles",resource:"ap-leg"},
- {id:"bio131.ch9.leg-actions",course:"BIO131",subject:"ap",title:"A&P: lower leg muscle actions",resource:"ap-leg"},
- {id:"bio131.ch9.leg-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify lower leg muscles on new pictures",resource:"ap-leg"},
+ {id:"bio131.ch9.thigh-id",course:"BIO131",subject:"ap",title:"A&P: identify hip and thigh muscles",resource:"ap-thigh",prep:LOWER_LIMB_LAB},
+ {id:"bio131.ch9.thigh-actions",course:"BIO131",subject:"ap",title:"A&P: hip and thigh muscle actions",resource:"ap-thigh",prep:LOWER_LIMB_LAB},
+ {id:"bio131.ch9.thigh-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify hip and thigh muscles on new pictures",resource:"ap-thigh",prep:LOWER_LIMB_LAB},
+ {id:"bio131.ch9.leg-id",course:"BIO131",subject:"ap",title:"A&P: identify lower leg muscles",resource:"ap-leg",prep:LOWER_LIMB_LAB},
+ {id:"bio131.ch9.leg-actions",course:"BIO131",subject:"ap",title:"A&P: lower leg muscle actions",resource:"ap-leg",prep:LOWER_LIMB_LAB},
+ {id:"bio131.ch9.leg-id-new-picture",course:"BIO131",subject:"ap",title:"A&P: identify lower leg muscles on new pictures",resource:"ap-leg",prep:LOWER_LIMB_LAB},
  {id:"bio131.ch10.nmj",course:"BIO131",subject:"ap",title:"A&P: the neuromuscular junction",resource:"ap-ch10"},
  {id:"bio131.ch10.ec-coupling",course:"BIO131",subject:"ap",title:"A&P: excitation-contraction coupling",resource:"ap-ch10"},
  {id:"bio131.ch10.crossbridge-atp",course:"BIO131",subject:"ap",title:"A&P: the cross-bridge cycle and ATP",resource:"ap-ch10"},
@@ -168,17 +169,22 @@ const PILOT_OBJECTIVES=[
  {id:"bio131.ch8.movements",course:"BIO131",subject:"ap",title:"A&P: naming body movements",resource:"ap-ch8"},
  {id:"bio131.ch8.selected-joints",course:"BIO131",subject:"ap",title:"A&P: shoulder, elbow, hip and knee",resource:"ap-ch8"}
 ];
+// Lower limb lessons prepare for the Lower Limb lab and Lab Practical 2. They are not tied to Exam 3: whether that exam
+// asks about lower limb muscles is not known, so Next up names the lab date instead of the next exam.
 function daysToNextExam(subject){const e=SEED.filter(t=>t.subject===subject&&t.kind==="exam"&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];if(!e)return 999;return Math.round((parse(e.date)-parse(today))/86400000);}
+function nextTarget(o){if(!o.prep)return{days:daysToNextExam(o.subject),label:null};
+ const e=SEED.filter(t=>o.prep.includes(t.id)&&t.date>=today).sort((a,b)=>a.date.localeCompare(b.date))[0];
+ return e?{days:Math.round((parse(e.date)-parse(today))/86400000),label:e.title}:{days:999,label:null};}
 function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)return;
  window.LearningRecord.events().then(function(list){
-  const rows=PILOT_OBJECTIVES.map(function(o){const st=window.LearningRecord.statusFromEvents(list,o.id,today);return Object.assign({},o,{st:st,exam:daysToNextExam(o.subject)});});
+  const rows=PILOT_OBJECTIVES.map(function(o){const st=window.LearningRecord.statusFromEvents(list,o.id,today);const t=nextTarget(o);return Object.assign({},o,{st:st,exam:t.days,prepFor:t.label});});
   // 0 review due, 1 missed last time, 2 started but unfinished, 3 not started; shown-on-own and not due are left alone.
   const rank=function(r){const s=r.st.status;if(s!=="not-started"&&r.st.due)return 0;if(s==="needs-review")return 1;if(s==="learning"||s==="practicing")return 2;if(s==="not-started")return 3;return 9;};
   const pick=rows.filter(r=>rank(r)<9).sort((a,b)=>rank(a)-rank(b)||a.exam-b.exam)[0];
   if(!pick){box.hidden=true;return;}
   const r0=rank(pick),why=r0===0?"Review due today":r0===1?"Needs review: you missed this last time":r0===2?"Continue where you left off":"Not started yet";
   box.hidden=false;
-  box.innerHTML='<div><div class="eyebrow">Next up for you</div><div class="home-milestone">'+esc(pick.title)+'</div><div class="small muted">'+esc(why)+(pick.exam<999?" · next "+(pick.subject==="chem"?"CHM 221":"BIO 131")+" exam in "+pick.exam+" day"+(pick.exam===1?"":"s"):"")+'</div></div><button type="button" class="btn" data-resource="'+pick.resource+'">Start →</button>';
+  box.innerHTML='<div><div class="eyebrow">Next up for you</div><div class="home-milestone">'+esc(pick.title)+'</div><div class="small muted">'+esc(why)+(pick.exam<999?(pick.prepFor?" · prepares for "+pick.prepFor+" in ":" · next "+(pick.subject==="chem"?"CHM 221":"BIO 131")+" exam in ")+pick.exam+" day"+(pick.exam===1?"":"s"):"")+'</div></div><button type="button" class="btn" data-resource="'+pick.resource+'">Start →</button>';
  }).catch(function(){box.hidden=true;});}
 if(window.LearningRecord)window.LearningRecord.onChange(function(){if(today)renderNextUp();});
 function render(){renderNextUp();renderToday();renderCalendar();renderSubjects();renderCoach();}
@@ -192,8 +198,8 @@ const RESOURCE_LIBRARY=Object.freeze({
   "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"},
   "ap-upper":{title:"A&P · Chapter 9: Shoulder and arm muscles",src:"./lessons/ap-muscles/upper.html"},
   "ap-forearm":{title:"A&P · Chapter 9: Forearm muscles",src:"./lessons/ap-muscles/forearm.html"},
-  "ap-thigh":{title:"A&P · Chapter 9: Hip and thigh muscles",src:"./lessons/ap-muscles/thigh.html"},
-  "ap-leg":{title:"A&P · Chapter 9: Lower leg muscles",src:"./lessons/ap-muscles/leg.html"},
+  "ap-thigh":{title:"A&P · Lower Limb lab prep: Hip and thigh muscles",src:"./lessons/ap-muscles/thigh.html"},
+  "ap-leg":{title:"A&P · Lower Limb lab prep: Lower leg muscles",src:"./lessons/ap-muscles/leg.html"},
   "ap-ch10":{title:"A&P · Chapter 10: How a muscle fiber contracts",src:"./lessons/ap-ch10/index.html"},
   "ap-ch8":{title:"A&P · Chapter 8: Joints and movements",src:"./lessons/ap-ch8/index.html"}
 });

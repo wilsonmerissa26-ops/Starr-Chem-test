@@ -37,7 +37,7 @@
     "tibialis": { m: "tibia (the shin bone)", cat: "place", ex: "" },
     "fibularis": { m: "fibula (the thin bone on the outer side of the leg)", cat: "place", ex: "fibularis tertius" },
     "palmaris": { m: "palm of the hand", cat: "place", ex: "palmaris brevis" },
-    "gluteus": { m: "buttock", cat: "place", ex: "gluteus minimus" },
+    "gluteus": { m: "buttock", cat: "place", ex: "gluteus maximus" },
     "femoris": { m: "of the femur (thigh bone)", cat: "place", ex: "rectus femoris" },
     "psoas": { m: "loin (the lower back, beside the lumbar spine)", cat: "place", ex: "psoas minor" },
     "fasciae": { m: "of the fascia (a sheet of connective tissue)", cat: "place", ex: "" },
@@ -60,6 +60,7 @@
     "superficialis": { m: "near the surface (shallower than a deeper partner muscle)", cat: "position", ex: "" },
     "lateralis": { m: "to the side, away from the midline", cat: "position", ex: "rectus lateralis (an eye muscle)" },
     "medialis": { m: "toward the midline", cat: "position", ex: "" },
+    "intermedius": { m: "in between (intermediate)", cat: "position", ex: "" },
     // Shape
     "orbicularis": { m: "circular, a ring", cat: "shape", ex: "orbicularis oculi" },
     "serratus": { m: "saw-toothed", cat: "shape", ex: "serratus posterior" },
@@ -73,12 +74,13 @@
     "major": { m: "larger", cat: "size", ex: "pectoralis major" },
     "minor": { m: "smaller", cat: "size", ex: "zygomaticus minor" },
     "maximus": { m: "largest", cat: "size", ex: "gluteus maximus" },
+    "minimus": { m: "smallest", cat: "size", ex: "" },
     "latissimus": { m: "widest", cat: "size", ex: "" },
     "longus": { m: "long", cat: "size", ex: "longus colli" },
     "brevis": { m: "short", cat: "size", ex: "adductor brevis" },
     "medius": { m: "middle", cat: "size", ex: "scalenus medius" },
     "magnus": { m: "large", cat: "size", ex: "" },
-    "vastus": { m: "huge, vast", cat: "size", ex: "vastus intermedius" },
+    "vastus": { m: "huge, vast", cat: "size", ex: "" },
     "latae": { m: "wide, broad", cat: "size", ex: "" },
     // Fiber direction
     "rectus": { m: "straight (describes the straight course of the fibers relative to the structure)", cat: "fibers", ex: "rectus femoris" },
@@ -179,7 +181,9 @@
     { id: "ap-ch9-names-semitendinosus", name: "Semitendinosus", parts: ["semi", "tendinosus"], tells: "A muscle that is half tendon: its lower half is a long tendon.", taughtBy: THIGH_TAUGHT },
     { id: "ap-ch9-names-semimembranosus", name: "Semimembranosus", parts: ["semi", "membranosus"], tells: "A muscle that is half membrane-like: flat and thin at its upper end.", taughtBy: THIGH_TAUGHT },
     { id: "ap-ch9-names-tensor-fasciae-latae", name: "Tensor fasciae latae", parts: ["tensor", "fasciae", "latae"], tells: "It tightens the wide fascia of the thigh (the iliotibial tract).", taughtBy: THIGH_TAUGHT },
-    { id: "ap-ch9-names-adductor-longus", name: "Adductor longus", parts: ["adductor", "longus"], tells: "The long muscle that pulls the thigh toward the midline.", taughtBy: THIGH_TAUGHT }
+    { id: "ap-ch9-names-adductor-longus", name: "Adductor longus", parts: ["adductor", "longus"], tells: "The long muscle that pulls the thigh toward the midline.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-gluteus-minimus", name: "Gluteus minimus", parts: ["gluteus", "minimus"], tells: "The smallest buttock muscle: the smallest and deepest of the three gluteal muscles.", taughtBy: THIGH_TAUGHT },
+    { id: "ap-ch9-names-vastus-intermedius", name: "Vastus intermedius", parts: ["vastus", "intermedius"], tells: "The huge muscle in between: the quadriceps muscle between the vastus lateralis and vastus medialis, under the rectus femoris.", taughtBy: THIGH_TAUGHT }
   ];
   var LEG_GUIDED = { id: "ap-ch9-names-guided-tibialis-anterior", name: "Tibialis anterior", parts: ["tibialis", "anterior"],
     tells: "The muscle on the front of the tibia (shin bone)." };
@@ -210,7 +214,8 @@
   // Pairs whose meanings overlap enough that either could look right; one is never offered as a wrong choice for the other.
   var CLOSE = [["extensor", "erector"], ["levator", "erector"], ["superficialis", "external"], ["teres", "orbicularis"],
     ["vastus", "maximus"], ["vastus", "major"], ["vastus", "magnus"], ["magnus", "major"], ["magnus", "maximus"], ["latae", "latissimus"],
-    ["lateralis", "external"], ["medialis", "internal"], ["posterior", "dorsi"], ["medius", "medialis"]];
+    ["lateralis", "external"], ["medialis", "internal"], ["posterior", "dorsi"], ["medius", "medialis"],
+    ["minimus", "minor"], ["intermedius", "inter"], ["intermedius", "medius"], ["intermedius", "medialis"]];
   function close(a, b) { return CLOSE.some(function (p) { return (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a); }); }
   // Four choices per part: the right meaning plus three from the same clue category (then others), in a fixed order per item.
   function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }

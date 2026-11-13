@@ -1129,19 +1129,29 @@ with sync_playwright() as p:
         T = page.evaluate("MuscleSets.thigh")
         check("Hip and thigh lesson opens on teaching (decode the names first), with no question on screen",
               "Decode the name" in page.inner_text("#screen h2") and not page.query_selector("#ans") and not page.query_selector("#dcheck"))
-        check("It covers 16 hip and thigh muscles: iliopsoas pair, tensor fasciae latae, sartorius, three quadriceps, four adductors, two gluteals, three hamstrings",
-              sorted(T["MUSCLES"]) == sorted(["psoas-major", "iliacus", "tensor-fasciae-latae", "sartorius", "rectus-femoris", "vastus-lateralis", "vastus-medialis", "pectineus",
-                                               "adductor-longus", "adductor-magnus", "gracilis", "gluteus-maximus", "gluteus-medius", "biceps-femoris", "semitendinosus", "semimembranosus"]), sorted(T["MUSCLES"]))
+        check("It covers 19 hip and thigh muscles: iliopsoas pair, tensor fasciae latae, sartorius, four quadriceps, four adductors, three gluteals, piriformis, three hamstrings",
+              sorted(T["MUSCLES"]) == sorted(["psoas-major", "iliacus", "tensor-fasciae-latae", "sartorius", "rectus-femoris", "vastus-lateralis", "vastus-medialis", "vastus-intermedius", "pectineus",
+                                               "adductor-longus", "adductor-magnus", "gracilis", "gluteus-maximus", "gluteus-medius", "gluteus-minimus", "piriformis",
+                                               "biceps-femoris", "semitendinosus", "semimembranosus"]), sorted(T["MUSCLES"]))
+        badge = page.inner_text(".badge")
+        check("The badge says Textbook-Based Preparation for the lab dates, says Exam 3 coverage of these muscles is not known, and never claims an instructor list",
+              "Textbook-Based Preparation" in badge and "Lower Limb lab (Nov 18)" in badge and "Lab Practical 2 (Dec 2)" in badge and "is not known" in badge
+              and "Exam 3 review" in badge and "not a list of what the lab or practical requires" in badge, badge)
         check("'On your own' is locked until guided pins are done", page.is_disabled("[data-step='independent']"))
-        page.click("[data-step='learn']"); page.wait_for_selector("text=Sixteen hip and thigh muscles")
+        page.click("[data-step='learn']"); page.wait_for_selector("text=Nineteen hip and thigh muscles")
         srcs = page.eval_on_selector_all("#screen .fig img", "els => els.map(e => e.getAttribute('src'))")
         sec = [m for x in T["SET"]["learn"] for m in x["muscles"]]
         check("Learn shows the labeled front and back figures once each, and a card for every muscle in exactly one group",
-              srcs == ["img/thigh-front-labeled.jpg", "img/thigh-back-labeled.jpg"] and page.locator("#screen .mcard").count() == 16 and sorted(sec) == sorted(T["MUSCLES"]), (srcs, len(sec)))
+              srcs == ["img/thigh-front-labeled.jpg", "img/thigh-back-labeled.jpg"] and page.locator("#screen .mcard").count() == 19 and sorted(sec) == sorted(T["MUSCLES"]), (srcs, len(sec)))
+        quad = [x for x in T["SET"]["learn"] if "vastus-intermedius" in x["muscles"]][0]
+        check("Vastus intermedius is a study card in the quadriceps group with a function question, and no pin anywhere (no figure shows it)",
+              "fig" not in quad and set(quad["muscles"]) == {"rectus-femoris", "vastus-lateralis", "vastus-medialis", "vastus-intermedius"}
+              and not any("vastus-intermedius" in pins for pins in T["PINS"].values()) and not any(g["muscle"] == "vastus-intermedius" for g in T["GUIDED"])
+              and [i["kind"] for i in T["ITEMS"] if i["muscle"] == "vastus-intermedius"] == ["name-fn"], quad)
         thigh_guided(page)
         check("Guided pins unlock 'On your own'", not page.is_disabled("[data-step='independent']"))
         g = [e for e in evs(page, {"objectiveId": "bio131.ch9.thigh-id"}) if e["activity"] == "guided"]
-        check("Guided hip and thigh pins are assisted practice", len(g) == 16 and all(not e["independent"] for e in g), len(g))
+        check("Guided hip and thigh pins are assisted practice", len(g) == 18 and all(not e["independent"] for e in g), len(g))
         page.click("[data-step='independent']"); page.wait_for_selector("#q")
         img = page.get_attribute("#q img", "src")
         check("Day 1 first question uses the whole-body front view, never shown labeled", "thigh-body-front-unlabeled" in img, img)
@@ -1184,6 +1194,9 @@ with sync_playwright() as p:
                  ("gluteus medius", "gluteus-maximus", False, "lookalike-gluteus-maximus-vs-gluteus-medius"),
                  ("gracilis", "sartorius", False, "lookalike-gracilis-vs-sartorius"),
                  ("adductor magnus", "adductor-longus", False, "lookalike-adductor-longus-vs-adductor-magnus"),
+                 ("gluteus medius", "gluteus-minimus", False, "lookalike-gluteus-medius-vs-gluteus-minimus"), ("piriformis", "gluteus-medius", False, "lookalike-gluteus-medius-vs-piriformis"),
+                 ("rectus femoris", "vastus-intermedius", False, "lookalike-rectus-femoris-vs-vastus-intermedius"), ("vastus intermedius", "vastus-intermedius", True, None),
+                 ("pyriformis", "piriformis", True, None), ("gluteus minimus", "gluteus-minimus", True, None), ("vastus", "vastus-intermedius", False, "incomplete-name"),
                  ("iliopsoas", "psoas-major", False, "incomplete-name"), ("gluteus", "gluteus-medius", False, "incomplete-name"),
                  ("hamstrings", "biceps-femoris", False, "incomplete-name"), ("biceps", "biceps-femoris", False, "incomplete-name"),
                  ("quadriceps", "rectus-femoris", False, "incomplete-name"), ("vastus", "vastus-lateralis", False, "incomplete-name"),
@@ -1202,7 +1215,8 @@ with sync_playwright() as p:
                    "vastus-lateralis": "Extends the leg at the knee", "vastus-medialis": "Extends the leg at the knee", "pectineus": "Adducts and flexes the thigh",
                    "adductor-longus": "Adducts the thigh", "adductor-magnus": "Adducts the thigh", "gracilis": "Adducts the thigh and flexes the leg at the knee",
                    "gluteus-maximus": "Extends the thigh at the hip", "gluteus-medius": "Abducts the thigh", "biceps-femoris": "Flexes the leg at the knee (both heads). The long head also extends the thigh at the hip",
-                   "semitendinosus": "Flexes the leg at the knee and extends the thigh at the hip", "semimembranosus": "Flexes the leg at the knee and extends the thigh at the hip"}
+                   "semitendinosus": "Flexes the leg at the knee and extends the thigh at the hip", "semimembranosus": "Flexes the leg at the knee and extends the thigh at the hip",
+                   "vastus-intermedius": "Extends the leg at the knee.", "gluteus-minimus": "Abducts the thigh and medially rotates it", "piriformis": "Laterally rotates the thigh"}
         off = [k for k, v in anchors.items() if not T["MUSCLES"][k]["action"].startswith(v)]
         check("Every action matches OpenStax 11.6's text in standard terms; the pectineus adducts (the caption's 'opens the thigh' is not used)",
               not off and "abduct" not in T["MUSCLES"]["pectineus"]["action"].lower() and "opens the thigh" not in json.dumps(T["MUSCLES"]) and "brings the thighs" not in json.dumps(T["MUSCLES"]), off)
@@ -1211,11 +1225,19 @@ with sync_playwright() as p:
               and "front (adductor) part helps flex it" in T["MUSCLES"]["adductor-magnus"]["action"] and "gluteal tuberosity" in T["MUSCLES"]["adductor-magnus"]["location"])
         check("Only the long head of the biceps femoris extends the thigh; the short head acts only at the knee (Nov 12 audit, Kenhub)", "short head starts on the femur, so it acts only at the knee" in T["MUSCLES"]["biceps-femoris"]["action"])
         gm = [i for i in T["ITEMS"] if i["id"] == "ap-ch9-thigh-act-level-pelvis"][0]["prompt"]
-        check("The gluteus medius question names its insertion (greater trochanter) and depth, so the tensor fasciae latae cannot also fit", "greater trochanter" in gm and "under the largest buttock muscle" in gm, gm)
+        check("The gluteus medius question names its insertion (greater trochanter) and its depth between the largest and smallest buttock muscles, so neither the tensor fasciae latae nor the gluteus minimus can also fit",
+              "greater trochanter" in gm and "between the largest and the smallest of the three main buttock muscles" in gm, gm)
+        p = {i["muscle"]: i["prompt"] for i in T["ITEMS"] if i["kind"] == "name-fn"}
+        check("The three added muscles' questions each name what only that muscle has: smallest and deepest gluteal; under the rectus femoris and knee only; from the sacrum, rotating laterally",
+              "smallest and deepest of the three main buttock muscles" in p["gluteus-minimus"] and "directly under the rectus femoris" in p["vastus-intermedius"] and "only extends the knee" in p["vastus-intermedius"]
+              and "front of the sacrum" in p["piriformis"] and "rotates the thigh laterally" in p["piriformis"], [p[k] for k in ("gluteus-minimus", "vastus-intermedius", "piriformis")])
+        ins = {"vastus-intermedius": "quadriceps tendon", "gluteus-minimus": "front of the greater trochanter", "piriformis": "top of the greater trochanter"}
+        check("Insertions of the three added muscles (Kenhub): quadriceps tendon to the patella; front of the greater trochanter; top of the greater trochanter",
+              all(v in T["MUSCLES"][k]["location"] for k, v in ins.items()) and "brings the thighs" not in json.dumps(T["MUSCLES"]), {k: T["MUSCLES"][k]["location"] for k in ins})
         origins = {"ischial tuberosity": ["biceps-femoris", "semitendinosus", "semimembranosus", "adductor-magnus"], "pubis": ["adductor-longus", "pectineus", "gracilis"],
                    "anterior superior iliac spine": ["sartorius", "tensor-fasciae-latae"], "anterior inferior iliac spine": ["rectus-femoris"], "lumbar vertebrae": ["psoas-major"],
-                   "iliac fossa": ["iliacus"], "greater trochanter": ["vastus-lateralis"], "linea aspera": ["vastus-medialis", "vastus-lateralis"], "surface of the ilium": ["gluteus-medius"],
-                   "sacrum and the coccyx": ["gluteus-maximus"]}
+                   "iliac fossa": ["iliacus"], "greater trochanter": ["vastus-lateralis"], "linea aspera": ["vastus-medialis", "vastus-lateralis"], "surface of the ilium": ["gluteus-medius", "gluteus-minimus"],
+                   "sacrum and the coccyx": ["gluteus-maximus"], "front of the sacrum": ["piriformis"], "upper two-thirds of the femur's shaft": ["vastus-intermedius"]}
         off = [(o, k) for o, ks in origins.items() for k in ks if o not in T["MUSCLES"][k]["location"]]
         check("Origins match OpenStax 11.6 (ischial tuberosity for the hamstrings, pubis for the adductors, iliac spines, lumbar vertebrae, iliac fossa)", not off, off)
         taught = {g["fig"] for g in T["GUIDED"]} | {x["fig"] for x in T["SET"]["learn"] if x.get("fig")}
@@ -1248,7 +1270,7 @@ with sync_playwright() as p:
             check("OCR finds no label text on any unlabeled hip and thigh image", not found, found)
             lab = {f: pytesseract.image_to_string(Image.open(os.path.join(ROOT, "student-app/lessons/ap-muscles/img/%s.jpg" % f))).lower() for f in ["thigh-front-labeled", "thigh-back-labeled"]}
             missing = [(f, n) for f, ns in {"thigh-front-labeled": ["psoas", "liacus", "sartorius", "rectus", "vastus", "gracilis", "pectineus", "adductor"],
-                                            "thigh-back-labeled": ["gluteus", "biceps", "semitendinosus", "semimembranosus", "gracilis"]}.items() for n in ns if n not in lab[f]]
+                                            "thigh-back-labeled": ["gluteus", "minimus", "piriformis", "biceps", "semitendinosus", "semimembranosus", "gracilis"]}.items() for n in ns if n not in lab[f]]
             check("The labeled teaching figures keep every taught label readable (none blanked by the crop clean-up)", not missing, missing)
         except ImportError:
             check("OCR hip and thigh label check (skipped: pytesseract not installed)", True)
@@ -1270,9 +1292,11 @@ with sync_playwright() as p:
         check("Psoas major, already shown labeled in the trunk lesson, is decoded as practice; names first shown in this lesson stay independent",
               [it["name"] for it in names] == ["Gluteus medius", "Psoas major", "Vastus medialis"] and l["ap-ch9-names-psoas-major"]["activity"] == "check" and not l["ap-ch9-names-psoas-major"]["independent"]
               and l["ap-ch9-names-gluteus-medius"]["independent"] and l["ap-ch9-names-vastus-medialis"]["independent"], [(it["name"], l[it["id"]]["activity"]) for it in names])
-        choices = th.evaluate("() => ['magnus','vastus','latae','lateralis','medialis'].map(r => [r, MuscleNames.choices('x-' + r, r)])")
+        choices = th.evaluate("() => ['magnus','vastus','latae','lateralis','medialis','minimus','intermedius','medius'].map(r => [r, MuscleNames.choices('x-' + r, r)])")
         bad = [(r, c) for r, c in choices for o in c if o != r and th.evaluate("([a, b]) => MuscleNames.CLOSE.some(p => (p[0] === a && p[1] === b) || (p[0] === b && p[1] === a))", [r, o])]
-        check("Near-synonym roots are never offered against each other (magnus, vastus, major and maximus; latae and latissimus; lateralis and external)", not bad, bad)
+        check("Near-synonym roots are never offered against each other (magnus, vastus, major and maximus; latae and latissimus; lateralis and external; minimus and minor; intermedius, inter, medius and medialis)", not bad, bad)
+        last = [it["name"] for it in P["items"]][-2:]
+        check("The two added names (gluteus minimus, vastus intermedius) come last, so earlier days' decode questions do not change", last == ["Gluteus minimus", "Vastus intermedius"], last)
         check("No page errors", not errs, errs[:1]); ctx.close()
     guarded("thigh decode", t_thigh_decode)
 
@@ -1460,8 +1484,10 @@ with sync_playwright() as p:
     EXPECT_LL = {"psoas": "SOH-uhs", "iliacus": "ih-LYE-uh-kuhs", "tensor": "TEN-ser", "fasciae": "FASH-ee-ee", "latae": "LAY-tee", "sartorius": "sar-TOR-ee-uhs",
         "femoris": "FEM-uh-ruhs", "pectineus": "pek-TIN-ee-uhs", "adductor": "uh-DUHK-ter", "gracilis": "GRAS-uh-luhs", "gluteus": "GLOOT-ee-uhs", "maximus": "MAK-suh-muhs",
         "semitendinosus": "sem-ee-ten-duh-NOH-suhs", "semimembranosus": "sem-ee-mem-bruh-NOH-suhs", "tibialis": "tib-ee-AY-luhs", "gastrocnemius": "gas-trahk-NEE-mee-uhs",
-        "soleus": "SOH-lee-uhs", "hallucis": "HAL-oo-suhs"}
-    NOT_LL = ["vastus", "lateralis", "medialis", "magnus", "medius", "fibularis", "brevis"]
+        "soleus": "SOH-lee-uhs", "hallucis": "HAL-oo-suhs",
+        # Read Nov 13: gluteus minimus and piriformis (added muscles) and adductor magnus (entry first reachable that day).
+        "minimus": "MIN-uh-muhs", "piriformis": "peer-uh-FOR-muhs", "magnus": "MAG-nuhs"}
+    NOT_LL = ["vastus", "lateralis", "medialis", "intermedius", "medius", "fibularis", "brevis"]
     def t_pronunciation():
         src = open(os.path.join(ROOT, "student-app/lessons/pronunciation.js"), encoding="utf-8").read()
         check("Pronunciations are plain data in the app: no network calls and no audio files, so the written forms work offline",
@@ -1501,19 +1527,22 @@ with sync_playwright() as p:
             return [before, word.ok, word.held, other, term.ok, minor, Object.keys(P.UNDER_REVIEW).length]; }""")
         check("A word or name held for review shows no pronunciation anywhere it appears, and nothing else is affected",
               held == [True, False, ["carpi"], True, False, True, 0], held)
-        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"] or v.get("checked", P["CHECKED"]) not in ("2026-11-06", "2026-11-10", "2026-11-12")]
-        check("Every source names its Merriam-Webster dictionary, page URL, exact notation and the day it was read (Nov 6 for muscles, Nov 10 for Chapters 10 and 8, Nov 12 for hip, thigh and leg)", not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
+        srcbad = [k for k, v in P["SOURCES"].items() if not v["url"].startswith("https://www.merriam-webster.com/") or "Merriam-Webster" not in v["dict"] or not v["notation"] or v.get("checked", P["CHECKED"]) not in ("2026-11-06", "2026-11-10", "2026-11-12", "2026-11-13")]
+        check("Every source names its Merriam-Webster dictionary, page URL, exact notation and the day it was read (Nov 6 for muscles, Nov 10 for Chapters 10 and 8, Nov 12 and 13 for hip, thigh and leg)", not srcbad and P["CHECKED"] == "2026-11-06", srcbad)
         check("Words with no full dictionary pronunciation are never given one", not set(P["NOT_VERIFIED"]) & set(P["WORDS"]) and sorted(P["NOT_VERIFIED"]) == sorted(["orbicularis", "supraspinatus"] + NOT_CH + NOT_LL), sorted(P["NOT_VERIFIED"]))
-        gen = [k for k, v in P["SOURCES"].items() if v.get("checked") in ("2026-11-10", "2026-11-12") and ("general" in v["dict"]) != bool(v.get("why"))]
+        gen = [k for k, v in P["SOURCES"].items() if v.get("checked") in ("2026-11-10", "2026-11-12", "2026-11-13") and ("general" in v["dict"]) != bool(v.get("why"))]
         med = [k for k, v in P["SOURCES"].items() if v.get("checked") == "2026-11-10" and "Medical" in v["dict"] and v["notation"].startswith("-")]
         check("Chapter 10 and 8: the general dictionary is used only where the medical entry is shortened or missing, with the reason kept; no shortened form is used", not gen and not med, (gen, med))
         r = page.evaluate("['Supraspinatus','Orbicularis oculi','Orbicularis oris','Pectoralis major','External intercostals','Occipitofrontalis (frontal belly)'].map(n => Pronunciations.forTerm(n))")
         check("A name with any unverified word shows nothing; everyday words are shown as written",
               not r[0]["ok"] and not r[1]["ok"] and not r[2]["ok"] and r[3]["text"] == "pek-tuh-RAY-luhs major" and r[4]["singular"] == ["intercostal"] and r[5]["text"] == "ahk-sip-uht-oh-fruhn-TAY-luhs", [x.get("text") for x in r])
         ll = page.evaluate("['Biceps femoris','Rectus femoris','Gluteus medius','Vastus lateralis','Adductor magnus','Fibularis longus','Tibialis posterior','Tensor fasciae latae'].map(n => Pronunciations.forTerm(n))")
-        check("Hip, thigh and leg: each femoris follows its own muscle's entry; names with an unverified word show nothing; posterior is an everyday word",
-              [x.get("text") for x in ll] == ["BYE-seps FEE-muh-ruhs", "REK-tuhs FEM-uh-ruhs", None, None, None, None, "tib-ee-AY-luhs posterior", "TEN-ser FASH-ee-ee LAY-tee"]
+        check("Hip, thigh and leg: each femoris follows its own muscle's entry; names with an unverified word show nothing; posterior is an everyday word; adductor magnus follows its own entry (read twice Nov 13)",
+              [x.get("text") for x in ll] == ["BYE-seps FEE-muh-ruhs", "REK-tuhs FEM-uh-ruhs", None, None, "uh-DUHK-ter MAG-nuhs", None, "tib-ee-AY-luhs posterior", "TEN-ser FASH-ee-ee LAY-tee"]
               and ll[2]["missing"] == ["medius"] and ll[5]["missing"] == ["fibularis"], [x.get("text") or x.get("missing") for x in ll])
+        added = page.evaluate("['Gluteus minimus','Piriformis','Vastus intermedius'].map(n => Pronunciations.forTerm(n))")
+        check("Added muscles: gluteus minimus and piriformis follow their own Medical Dictionary entries; vastus intermedius shows nothing (vastus has no pronunciation)",
+              [x.get("text") for x in added] == ["GLOOT-ee-uhs MIN-uh-muhs", "peer-uh-FOR-muhs", None] and added[2]["missing"] == ["vastus", "intermedius"], [x.get("text") or x.get("missing") for x in added])
         check("Each muscle's own entry wins: teres and brachii follow the entry for that muscle",
               page.evaluate("['Teres major','Pronator teres','Biceps brachii','Triceps brachii'].map(n => Pronunciations.forTerm(n).text)") == ["TERR-eez major", "PROH-nayt-er TEER-eez", "BYE-seps BRAY-kee-ee", "TRYE-seps BRAY-kee-eye"])
         check("docs/PRONUNCIATION_REPORT.md matches the data (regenerated by tools/pronunciation-report.js)",
@@ -1874,6 +1903,18 @@ with sync_playwright() as p:
         nxt = page.inner_text("#next-up")
         check("Home 'Next up' uses that shared record and names the subject's next exam", "next up for you" in nxt.lower() and "exam in" in nxt, nxt)
         ctx.close()
+        # Lower limb lessons prepare for the lab dates. Exam 3 comes first, but that does not make them Exam 3 work.
+        # One guided answer on the hip and thigh objective, so it is the only lesson in progress.
+        ctx, page, errs = fresh(url=BASE); page.wait_for_selector("#next-up", state="attached")
+        rec(page, dict(BASEEV, course="BIO131", objectiveId="bio131.ch9.thigh-id", itemId="ap-ch9-thigh-guided-rectus-femoris", activity="guided", correct=True))
+        page.reload(); page.wait_for_selector("#next-up:not([hidden])", timeout=8000)
+        n1 = page.inner_text("#next-up")
+        check("After hip and thigh work, 'Next up' names the Lower Limb lab date (Oct 29 to Nov 18: 20 days), not the next exam",
+              "hip and thigh" in n1 and "prepares for Lab: Muscles of Lower Limb in 20 days" in n1 and "exam in" not in n1, n1)
+        p2, e2 = page_at(ctx, datetime.datetime(2026, 11, 20, 9, 0, 0), BASE); p2.wait_for_selector("#next-up:not([hidden])", timeout=8000)
+        n2 = p2.inner_text("#next-up")
+        check("After the lab date passes, it names Lab Practical 2 (Nov 20 to Dec 2: 12 days)", "prepares for Lab Practical 2" in n2 and "in 12 days" in n2 and "exam in" not in n2, n2)
+        check("No page errors", not errs and not e2, (errs + e2)[:1]); ctx.close()
     guarded("shared", t_shared)
 
     browser.close()

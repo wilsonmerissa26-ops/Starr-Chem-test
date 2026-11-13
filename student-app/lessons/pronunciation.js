@@ -129,7 +129,13 @@
     gastrocnemius: { entry: "gastrocnemius", dict: MED, url: MW + "dictionary/gastrocnemius", notation: "ˌgas-(ˌ)träk-ˈnē-mē-əs, -trək-", checked: "2026-11-12" },
     soleus: { entry: "soleus", dict: MED, url: MW + "dictionary/soleus", notation: "ˈsō-lē-əs", checked: "2026-11-12" },
     flexorHallucisBrevis: { entry: "flexor hallucis brevis", dict: MED, url: MW + "medical/flexor%20hallucis%20brevis", notation: "-ˈhal-(y)ü-səs-ˈbrev-əs, -ˈhal-ə-kəs-", checked: "2026-11-12" },
-    extensorHallucisLongus: { entry: "extensor hallucis longus", dict: MED, url: MW + "medical/extensor%20hallucis%20longus", notation: "-ˈlȯŋ-gəs", checked: "2026-11-12" }
+    extensorHallucisLongus: { entry: "extensor hallucis longus", dict: MED, url: MW + "medical/extensor%20hallucis%20longus", notation: "-ˈlȯŋ-gəs", checked: "2026-11-12" },
+    // Gluteus minimus and piriformis, added to the thigh lesson Nov 13; read 2026-11-13, twice each, same first pronunciation.
+    gluteusMinimus: { entry: "gluteus minimus", dict: MED, url: MW + "medical/gluteus%20minimus", notation: "-ˈmin-ə-məs", checked: "2026-11-13" },
+    piriformis: { entry: "piriformis", dict: MED, url: MW + "medical/piriformis", notation: "ˌpir-ə-ˈfȯr-məs", checked: "2026-11-13" },
+    // Adductor magnus: the dedicated entry first opened on 2026-11-13 and was read twice, worded differently; both reads
+    // gave -ˈmag-nəs (the same notation an outside review reported on Nov 12).
+    adductorMagnus: { entry: "adductor magnus", dict: MED, url: MW + "dictionary/adductor%20magnus", notation: "-ˈmag-nəs", checked: "2026-11-13" }
   };
   // word: [the part of the source notation for this word (first listed pronunciation), source key]
   var WORDS = {
@@ -162,6 +168,8 @@
   WORDS.fasciae = ["ˈfash-ē-ē", "tensorFasciaeLatae"]; WORDS.latae = ["ˈlā-tē", "tensorFasciaeLatae"];
   WORDS.femoris = ["ˈfem-ə-rəs", "rectusFemoris"]; WORDS.maximus = ["ˈmak-sə-məs", "gluteusMaximus"];
   WORDS.hallucis = ["ˈhal-(y)ü-səs", "flexorHallucisBrevis"];
+  WORDS.minimus = ["ˈmin-ə-məs", "gluteusMinimus"]; WORDS.piriformis = ["ˌpir-ə-ˈfȯr-məs", "piriformis"];
+  WORDS.magnus = ["ˈmag-nəs", "adductorMagnus"];
   // A term's own entry beats the default source for a word.
   var IN_TERM = {
     "transversus abdominis": { abdominis: ["əb-ˈdäm-ə-nəs", "transversusAbdominis"] },
@@ -194,7 +202,7 @@
     vastus: "Merriam-Webster's vastus entry prints no pronunciation, and its vastus lateralis, medialis and intermedius entries give only the second word, so there is no full pronunciation of vastus to show.",
     lateralis: "Not used: vastus lateralis cannot show a pronunciation, because vastus has none.",
     medialis: "Not used: vastus medialis cannot show a pronunciation, because vastus has none.",
-    magnus: "Not verified yet. Merriam-Webster's adductor page lists adductor magnus with no pronunciation, its magnus page prints none, and its dedicated adductor magnus entry could not be opened from here to read twice. An outside review (Nov 12) reports that entry prints -ˈmag-nəs; it will be shown once read twice.",
+    intermedius: "Not used: vastus intermedius cannot show a pronunciation, because vastus has none.",
     medius: "Merriam-Webster's gluteus medius entry prints -ˈmē-dē-us, with the letters \"us\" where its pronunciation key uses ə. That is not a symbol in its key, so it is not used.",
     fibularis: "No Merriam-Webster entry for fibularis turned up when searched on Nov 12; its entries use the older name, peroneus.",
     brevis: "Not used: fibularis brevis cannot show a pronunciation, because fibularis has no entry."
