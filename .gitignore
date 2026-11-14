@@ -1,0 +1,2 @@
+# Python bytecode caches from build and test scripts
+__pycache__/
