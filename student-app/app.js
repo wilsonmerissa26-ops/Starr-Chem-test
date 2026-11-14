@@ -194,6 +194,7 @@ const RESOURCE_LIBRARY=Object.freeze({
   unit1:{title:"Chemistry · Unit 1 lessons",src:"../course-units/unit1/"},
   physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"},
   "chem-ch8":{title:"Chemistry · Chapter 8: Adding HBr and HCl to alkenes",src:"./lessons/chem-ch8/"},
+  "chem-test4-studio":{title:"Chemistry · Test 4 Problem-Solving Studio",src:"./lessons/chem-test4-studio/"},
   "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"},
   "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"},
   "ap-upper":{title:"A&P · Chapter 9: Shoulder and arm muscles",src:"./lessons/ap-muscles/upper.html"},
