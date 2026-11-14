@@ -12,8 +12,6 @@
       bonds: [[1, 2, 2], [2, 3, 1], [2, 4, 1]], alkene: [1, 2] },
     methylbutene2: { name: "2-methyl-2-butene", atoms: [{ id: 1, x: 0, y: .5, h: 3 }, { id: 2, x: .866, y: 0, h: 0 }, { id: 5, branch: true, x: .866, y: -1, h: 3 }, { id: 3, x: 1.732, y: .5, h: 1 }, { id: 4, x: 2.598, y: 0, h: 3 }],
       bonds: [[1, 2, 1], [2, 5, 1], [2, 3, 2], [3, 4, 1]], alkene: [2, 3] },
-    dimethylbutene33: { name: "3,3-dimethyl-1-butene", atoms: [{ id: 1, x: 0, y: .5, h: 2 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 3, x: 1.732, y: .5, h: 0 }, { id: 4, x: 2.598, y: 0, h: 3 }, { id: 5, branch: true, x: 1.232, y: 1.366, h: 3 }, { id: 6, branch: true, x: 2.232, y: 1.366, h: 3 }],
-      bonds: [[1, 2, 2], [2, 3, 1], [3, 4, 1], [3, 5, 1], [3, 6, 1]], alkene: [1, 2] },
     hexene1: { name: "1-hexene", atoms: [{ id: 1, x: 0, y: .5, h: 2 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 3, x: 1.732, y: .5, h: 2 }, { id: 4, x: 2.598, y: 0, h: 2 }, { id: 5, x: 3.464, y: .5, h: 2 }, { id: 6, x: 4.33, y: 0, h: 3 }],
       bonds: [[1, 2, 2], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1]], alkene: [1, 2] },
     butene1: { name: "1-butene", atoms: [{ id: 1, x: 0, y: .5, h: 2 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 3, x: 1.732, y: .5, h: 2 }, { id: 4, x: 2.598, y: 0, h: 3 }],
@@ -24,9 +22,13 @@
       bonds: [[1, 2, 1], [2, 6, 1], [2, 3, 2], [3, 4, 1], [4, 5, 1]], alkene: [2, 3] },
     pentene1: { name: "1-pentene", atoms: [{ id: 1, x: 0, y: .5, h: 2 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 3, x: 1.732, y: .5, h: 2 }, { id: 4, x: 2.598, y: 0, h: 2 }, { id: 5, x: 3.464, y: .5, h: 3 }],
       bonds: [[1, 2, 2], [2, 3, 1], [3, 4, 1], [4, 5, 1]], alkene: [1, 2] },
-    // Rearranged cation skeleton for the 3,3-dimethyl-1-butene + HCl teaching example (after the methyl shift).
-    dimethylbutyl23: { name: "2,3-dimethylbutane skeleton", atoms: [{ id: 1, x: 0, y: .5, h: 3 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 5, branch: true, x: .866, y: -1, h: 3 }, { id: 3, x: 1.732, y: .5, h: 0 }, { id: 4, x: 2.598, y: 0, h: 3 }, { id: 6, branch: true, x: 1.732, y: 1.5, h: 3 }],
-      bonds: [[1, 2, 1], [2, 5, 1], [2, 3, 1], [3, 4, 1], [3, 6, 1]], alkene: null },
+    // Teaching example for 1,2-shifts. (3,3-dimethyl-1-butene + HCl was replaced: it is a question on Dr. Meadows' Fall 2025 Test 4,
+    // which is kept unseen as timed practice.) 3-methyl-1-heptene + HCl: H on C1, 2° cation on C2, hydride shift from C3, Cl on C3.
+    methylheptene3: { name: "3-methyl-1-heptene", atoms: [{ id: 1, x: 0, y: .5, h: 2 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 3, x: 1.732, y: .5, h: 1 }, { id: 4, x: 2.598, y: 0, h: 2 }, { id: 5, x: 3.464, y: .5, h: 2 }, { id: 6, x: 4.33, y: 0, h: 2 }, { id: 7, x: 5.196, y: .5, h: 3 }, { id: 8, branch: true, x: 1.732, y: 1.5, h: 3 }],
+      bonds: [[1, 2, 2], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [3, 8, 1]], alkene: [1, 2] },
+    // The same skeleton after the hydride shift: C2 is now CH2 and the + charge is on C3.
+    methylheptyl3: { name: "3-methylheptane skeleton", atoms: [{ id: 1, x: 0, y: .5, h: 3 }, { id: 2, x: .866, y: 0, h: 2 }, { id: 3, x: 1.732, y: .5, h: 0 }, { id: 4, x: 2.598, y: 0, h: 2 }, { id: 5, x: 3.464, y: .5, h: 2 }, { id: 6, x: 4.33, y: 0, h: 2 }, { id: 7, x: 5.196, y: .5, h: 3 }, { id: 8, branch: true, x: 1.732, y: 1.5, h: 3 }],
+      bonds: [[1, 2, 1], [2, 3, 1], [3, 4, 1], [4, 5, 1], [5, 6, 1], [6, 7, 1], [3, 8, 1]], alkene: null },
     methylbutene3: { name: "3-methyl-1-butene", atoms: [{ id: 1, x: 0, y: .5, h: 2 }, { id: 2, x: .866, y: 0, h: 1 }, { id: 3, x: 1.732, y: .5, h: 1 }, { id: 4, x: 2.598, y: 0, h: 3 }, { id: 5, branch: true, x: 1.732, y: 1.5, h: 3 }],
       bonds: [[1, 2, 2], [2, 3, 1], [3, 4, 1], [3, 5, 1]], alkene: [1, 2] }
   };

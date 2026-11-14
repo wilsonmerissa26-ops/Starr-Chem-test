@@ -367,7 +367,7 @@ with sync_playwright() as p:
         bad = [k for k, m in mols.items() if not valence_ok(m)]
         check("Every structure has correct valence (4 bonds per carbon; 3 for the drawn carbocation)", not bad, bad)
         carbons = {"butene1": 4, "methylcyclohexene1": 7, "methylpentene2": 6, "methylbutene3": 5, "pentene1": 5, "propene": 3, "methylpropene": 4,
-                   "methylbutene2": 5, "dimethylbutene33": 6, "hexene1": 6, "dimethylbutyl23": 6}
+                   "methylbutene2": 5, "methylheptene3": 8, "hexene1": 6, "methylheptyl3": 8}
         check("Every structure has the carbon count its name requires", all(len(mols[k]["atoms"]) == n for k, n in carbons.items()))
         for it in pool:
             v = py_verify(mols[it["mol"]], it)
@@ -377,8 +377,9 @@ with sync_playwright() as p:
         check("The app's reteach engine agrees with every stored key", all(r[1] == r[3] and r[2] == r[4] for r in js), js)
         guided = py_verify(mols["methylbutene2"], {})
         check("Guided problem key verified (H on C3, Br on C2, no stereocenter)", guided["hCarbon"] == 3 and guided["xCarbon"] == 2 and guided["stereo"] == "none", guided)
-        teach_shift = py_verify(mols["dimethylbutene33"], {})
-        check("Teaching example verified: 3,3-dimethyl-1-butene + HCl rearranges by a methyl shift to C3", teach_shift["shift"] == "methyl" and teach_shift["xCarbon"] == 3, teach_shift)
+        teach_shift = py_verify(mols["methylheptene3"], {})
+        check("Teaching example verified: 3-methyl-1-heptene + HCl rearranges by a hydride shift to C3 (racemic)", teach_shift["shift"] == "hydride" and teach_shift["xCarbon"] == 3 and teach_shift["stereo"] == "racemic", teach_shift)
+        check("No Fall 2025 Test 4 molecule is used to teach shifts", "dimethylbutene33" not in mols)
         check("Teaching example verified: 1-hexene + HBr gives a new stereocenter at C2 (racemic)", py_verify(mols["hexene1"], {})["stereo"] == "racemic")
         check("Worked example verified: 2-methylpropene + HBr puts Br on C2, no stereocenter",
               py_verify(mols["methylpropene"], {})["xCarbon"] == 2 and py_verify(mols["methylpropene"], {})["stereo"] == "none")

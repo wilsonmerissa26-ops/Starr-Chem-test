@@ -101,14 +101,14 @@
     markViewed("learn3", "teach");
     screen.innerHTML = '<div class="card"><h2>Check for a better carbocation: 1,2-shifts</h2>' +
       "<p>Once the carbocation forms, pause before adding the halide. If a hydrogen (hydride shift) or a methyl group (methyl shift) on the <b>neighboring</b> carbon can move over and leave a <b>more stable</b> carbocation, it does. The halide then bonds to the <b>new</b> + carbon. This is the same rearrangement you learned in Unit 3 for SN1 and E1.</p>" +
-      '<h3>Example: 3,3-dimethyl-1-butene + HCl</h3><div class="pair"><div><div id="r1"></div><b>H adds to C1: secondary (2°) + on C2</b></div><div><div id="r2"></div><b>A methyl moves from C3 to C2: tertiary (3°) +</b></div></div>' +
-      '<div class="pair" style="margin-top:12px"><div><div id="r3"></div><b>Cl⁻ bonds to the new + carbon</b></div><div class="win"><p><b>Major product:</b> 2-chloro-2,3-dimethylbutane, not the unrearranged 3-chloro-2,2-dimethylbutane.</p><p class="small">Check: a shift only happens when it makes the cation more stable (2° → 3° here).</p></div></div></div>' +
+      '<h3>Example: 3-methyl-1-heptene + HCl</h3><div class="pair"><div><div id="r1"></div><b>H adds to C1: secondary (2°) + on C2</b></div><div><div id="r2"></div><b>The H on C3 moves to C2 with its two electrons: tertiary (3°) + on C3</b></div></div>' +
+      '<div class="pair" style="margin-top:12px"><div><div id="r3"></div><b>Cl⁻ bonds to the new + carbon</b></div><div class="win"><p><b>Major product:</b> 3-chloro-3-methylheptane (both enantiomers), not the unrearranged 2-chloro-3-methylheptane.</p><p class="small">Check: a shift only happens when it makes the cation more stable (2° → 3° here). A CH₃ can shift the same way when the neighbor has no H.</p></div></div></div>' +
       nextBtn("learn4", "Stereochemistry");
     var a = svg(), b = svg(), c = svg();
     document.getElementById("r1").appendChild(a); document.getElementById("r2").appendChild(b); document.getElementById("r3").appendChild(c);
-    C.draw(a, { mol: "dimethylbutene33", showH: true, saturate: true, cation: 2, hAdded: 1, arrows: [{ from: [1.482, .933], to: "C2", bend: -.6 }] });
-    C.draw(b, { mol: "dimethylbutyl23", showH: true, cation: 3 });
-    C.draw(c, { mol: "dimethylbutyl23", showH: true, product: { hOn: -1, xOn: 3, x: "Cl" } });
+    C.draw(a, { mol: "methylheptene3", showH: true, saturate: true, cation: 2, hAdded: 1, arrows: [{ from: [1.95, .45], to: "C2", bend: .7 }] });
+    C.draw(b, { mol: "methylheptyl3", showH: true, cation: 3 });
+    C.draw(c, { mol: "methylheptyl3", showH: true, product: { hOn: -1, xOn: 3, x: "Cl" } });
   }
 
   // ---------- 4. Stereochemistry ----------
