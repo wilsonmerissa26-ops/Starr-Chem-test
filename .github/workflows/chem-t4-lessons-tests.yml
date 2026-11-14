@@ -1,0 +1,32 @@
+name: CHM 221 Test 4 Practice Lessons Tests
+
+on:
+  push:
+    branches: [ "main", "chem-t4-lessons" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  chem-t4-lessons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Syntax-check the lesson engine and its data
+        run: for f in student-app/app.js student-app/lessons/chem-t4/*.js; do node --check "$f"; done
+      - name: Rebuild the lesson data and run its chemistry checks (formulas, exclusions, stereo labels)
+        run: |
+          python tools/chem_t4/build_items.py
+          git diff --exit-code student-app/lessons/chem-t4/ || (echo "items-*.js is out of date: run tools/chem_t4/build_items.py and commit" && exit 1)
+      - name: Install headless Chromium
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Lessons in a real browser with synthetic records
+        run: python test-chem-t4-lessons.py
