@@ -48,14 +48,23 @@ def canon(smi, stereo=False):
     """A Weisfeiler-Lehman style key: equal for the same graph (and the same wedge/dash marks when stereo=True)."""
     atoms, bonds = parse(smi)
     n = len(atoms)
+    # Without stereo, an H drawn as its own atom ("CC(=O)[H]") counts the same as an implicit one ("CC=O"),
+    # so the same molecule always gets the same key however its hydrogens were written.
+    deg = {i: [] for i in range(n)}
+    for a, b, o, st in bonds:
+        deg[a].append(b); deg[b].append(a)
+    folded = set() if stereo else {i for i, a in enumerate(atoms) if a.el == "H" and a.charge == 0 and len(deg[i]) == 1 and atoms[deg[i][0]].el != "H"}
     styles = {i: [] for i in range(n)}
     if stereo:
         for a, b, o, st in bonds:
             if st != "plain":
                 styles[a].append("s>" + st); styles[b].append("s<" + st)
-    lab = ["%s%d%s%s" % (a.el, a.charge, hcount(atoms, bonds, i) if a.el != "H" else 0, ",".join(sorted(styles[i]))) for i, a in enumerate(atoms)]
+    def hc(i):
+        return hcount(atoms, bonds, i) + sum(1 for j in deg[i] if j in folded)
+    lab = ["%s%d%s%s" % (a.el, a.charge, hc(i) if a.el != "H" else 0, ",".join(sorted(styles[i]))) for i, a in enumerate(atoms)]
     adj = {i: [] for i in range(n)}
     for a, b, o, st in bonds:
+        if a in folded or b in folded: continue
         adj[a].append((b, o)); adj[b].append((a, o))
     for _ in range(6):
         lab = [lab[i] + "(" + ",".join(sorted("%d:%s" % (o, lab[j]) for j, o in adj[i])) + ")" for i in range(n)]
@@ -63,7 +72,7 @@ def canon(smi, stereo=False):
     # split by fragment
     comp, cid = [-1] * n, 0
     for s in range(n):
-        if comp[s] >= 0: continue
+        if comp[s] >= 0 or s in folded: continue
         st = [s]; comp[s] = cid
         while st:
             u = st.pop()
