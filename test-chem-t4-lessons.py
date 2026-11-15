@@ -268,6 +268,33 @@ with sync_playwright() as pw:
         ctx.close()
     guarded("synthesis formulas", t_synthesis_formulas)
 
+    # ---------------------------------------------------------------- replaced problems: earlier answers stay where they were
+    def t_old_ids_kept():
+        OLD = {"chem-t4-aky-ind-x2": "chm221.ch9.alkyne-reagents", "chem-t4-aky-ind-double-elim": "chm221.ch9.alkyne-reagents",
+               "chem-t4-alk-ind-ozonolysis": "chm221.ch8.alkene-reagents", "chem-t4-str-ind-error-charge": "chm221.t4.structures"}
+        NEW = ["chem-t4-aky-ind-x2-dimethylhexyne", "chem-t4-aky-ind-double-elim-ethyl", "chem-t4-alk-ind-ozonolysis-cyclopentylidene", "chem-t4-str-ind-error-charge-pentanol"]
+        ids = {i["id"] for k in DATA for role in ("guided", "independent", "targeted") for i in DATA[k][role]}
+        check("replaced problems: old ids are gone from the lessons, so nothing new is recorded under them", not (set(OLD) & ids), set(OLD) & ids)
+        check("replaced problems: new ids are present", set(NEW) <= ids, set(NEW) - ids)
+        ctx, page, errs = fresh(T4 + "alkynes.html")
+        # synthetic answers to the old versions, as if she had done them before this change
+        page.evaluate("""old => Promise.all(Object.keys(old).map(id => LearningRecord.record({course:'CHM221', objectiveId:old[id], itemId:id, itemVersion:1,
+                         activity:'independent', correct:true, unfamiliar:true, source:'test', assistance:{hints:0}})))""", OLD)
+        def old_answers(pg): return sorted(json.dumps(e, sort_keys=True) for e in evs(pg) if e["itemId"] in OLD)
+        before = old_answers(page)
+        check("synthetic old answers saved", len(before) == 4, len(before))
+        objs = sorted(set(OLD.values()))
+        st_before = page.evaluate("objs => Promise.all(objs.map(o => LearningRecord.status(o)))", objs)
+        for lesson in ("alkynes", "alkenes", "structures", "arrows"):
+            ctx, page, errs = reopen(ctx, T4 + lesson + ".html", DAY1)
+            check("old answers kept unchanged after opening %s" % lesson, old_answers(page) == before)
+            check("%s: no script errors with old-id answers on record" % lesson, not errs, errs[:2])
+        st_after = page.evaluate("objs => Promise.all(objs.map(o => LearningRecord.status(o)))", objs)
+        check("objective status unchanged (no answer reassigned)", json.dumps(st_before, sort_keys=True) == json.dumps(st_after, sort_keys=True))
+        check("new problems have no answers on record", not [e for e in evs(page) if e["itemId"] in NEW])
+        ctx.close()
+    guarded("replaced problem ids", t_old_ids_kept)
+
     # ---------------------------------------------------------------- mechanisms: tap the arrows
     def tgt(x):
         if x.endswith(".lp"): return x + "1"
