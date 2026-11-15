@@ -113,8 +113,15 @@
   }
 
   // ---------- 2. DRAW WITH HELP ----------
+  // For a beginner, Draw with help walks through every reagent (or move) once: the core guided problems first,
+  // then one practice problem per reagent, grouped by family. Draw alone unlocks after the core ones.
+  function helpQueue() {
+    var fams = D.families ? Object.keys(D.families) : [];
+    var extra = D.targeted.slice().sort(function (a, b) { return fams.indexOf(a.family) - fams.indexOf(b.family); });
+    return D.guided.concat(extra);
+  }
   function help() {
-    var g = D.guided.filter(function (x) { return !itemDone(x, lastList); })[0] || D.guided[0];
+    var q = helpQueue(), g = q.filter(function (x) { return !itemDone(x, lastList); })[0] || D.guided[0];
     go("practice", { item: g, mode: "guided" });
   }
   function practice(arg) {
@@ -122,10 +129,17 @@
     if (MECH) runMechanism(arg.item, arg.mode, arg); else if (arg.item.kind === "parts") runParts(arg.item, arg.mode); else runProduct(arg.item, arg.mode, arg);
   }
   function afterGuided(item, box) {
-    var idx = D.guided.indexOf(item), nextG = D.guided[idx + 1];
+    var nextG = null;
     return refreshStatus().then(function () {
-      var h = nextG ? '<div class="row" style="margin-top:12px"><button class="btn" type="button" id="gnext">Next: draw another with help →</button></div>'
-        : '<div class="feedback info"><strong>Draw with help ' + (unlocked ? "complete." : "finished for now.") + "</strong>" +
+      var q = helpQueue(), left = q.filter(function (x) { return x !== item && !itemDone(x, lastList); });
+      var coreLeft = left.filter(function (x) { return D.guided.indexOf(x) >= 0; });
+      nextG = coreLeft[0] || left[0];
+      var done = q.length - left.length;
+      var h;
+      if (!unlocked && coreLeft.length) h = '<div class="row" style="margin-top:12px"><button class="btn" type="button" id="gnext">Next: draw another with help →</button></div>';
+      else if (unlocked && nextG) h = '<div class="feedback info"><strong>Draw alone is open.</strong>You have practiced ' + done + " of " + q.length + " with help. If any of this still feels new, keep going with help first: one problem per " + (MECH ? "move" : KEY === "structures" ? "skill" : "reagent") + ".</div>" +
+        '<div class="row" style="margin-top:12px"><button class="btn" type="button" id="gnext">Next with help (' + left.length + ' left) →</button><button class="btn secondary" type="button" data-go="alone">Draw alone</button></div>';
+      else h = '<div class="feedback info"><strong>Draw with help ' + (unlocked ? "complete." : "finished for now.") + "</strong>" +
           (unlocked ? "Next, Draw alone: a new problem, no hints. Draw it on paper before the app shows anything else." : "Get every part right once (retries are fine) to unlock Draw alone.") + "</div>" + (unlocked ? nextBtn("alone", "Draw alone") : "");
       (box || el("after")).insertAdjacentHTML("beforeend", h);
       var b = el("gnext"); if (b) b.onclick = function () { go("practice", { item: nextG, mode: "guided" }); };

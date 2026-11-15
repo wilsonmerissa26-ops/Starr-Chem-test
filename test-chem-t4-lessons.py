@@ -100,6 +100,11 @@ with sync_playwright() as pw:
         check("guided answers are saved", len(ev) >= 4, len(ev))
         check("no guided answer counts as independent", all(not e["independent"] for e in ev))
         check("guided completion unlocks Draw alone", page.get_attribute("[data-step=alone]", "disabled") is None)
+        nxt = page.inner_text("#gnext") if page.query_selector("#gnext") else ""
+        check("a beginner can keep drawing with help, one problem per reagent", "left" in nxt, nxt)
+        page.click("#gnext"); page.wait_for_timeout(300)
+        t0 = sorted(DATA["alkenes"]["targeted"], key=lambda t: list(DATA["alkenes"]["families"]).index(t["family"]))[0]
+        check("the extra help problems start with the first reagent family", t0["smName"] in page.inner_text("#screen h2") and "Draw with help" in page.text_content("#screen .card .eyebrow"), page.inner_text("#screen h2"))
         sc = [e for e in evs(page) if e["itemId"].endswith("-selfcheck")]
         check("paper self-checks are saved as practice with the answer shown", sc and all(e["activity"] == "check" and not e["independent"] and e["assistance"]["answerShown"] for e in sc), len(sc))
         # a wrong guided choice gets the specific feedback and can be retried
