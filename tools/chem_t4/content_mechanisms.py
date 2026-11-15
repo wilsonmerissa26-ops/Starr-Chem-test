@@ -137,7 +137,7 @@ TARGETED = [
      "steps": [
          S("CC[C+]{c3}C{c2}([H]{h})(C)C.[Br-]{br}", {"br": 4}, [["c2-h", "c3"]], RE,
            "The H on C2 moves to C3 with its pair; the + charge moves to C2, which is tertiary."),
-         S("CCCC[C+]{c2}C.[Br-]{br}", {"br": 4}, [["br.lp", "c2"]], NA, "Br⁻ bonds to the new tertiary C⁺."),
+         S("CCC[C+]{c2}(C)C.[Br-]{br}", {"br": 4}, [["br.lp", "c2"]], NA, "Br⁻ bonds to the new tertiary C⁺."),
      ],
      "hints": ["Which neighbor of the C⁺ holds an H and would become tertiary?", "Where is the + charge now?"]},
     {"id": "chem-t4-arw-tgt-taut", "title": "Acid turns an enol into a ketone", "reaction": "cyclohex-1-en-1-ol with H₃O⁺ → cyclohexanone",
@@ -177,10 +177,10 @@ CHARGE_NOTE = {
 WHY = {
     "chem-t4-arw-example": {"prompt": "Why does the H go on C1 and not on C2?", "key": "H on C1 leaves the + charge on C2, right next to the O, which shares a lone pair and stabilizes it."},
     "chem-t4-arw-guided-sn1": {"prompt": "Why does the OH have to be protonated before anything leaves?", "key": "OH\u207b is a poor leaving group. Protonation turns it into water, a stable neutral molecule that leaves easily."},
-    "chem-t4-arw-guided-br2": {"prompt": "Why do the two Br atoms end up on opposite faces?", "key": "The bridging Br blocks one face, so Br\u207b can only attack from the other face (anti)."},
+    "chem-t4-arw-guided-br2": {"prompt": "Why does Br\u207b attack from the face opposite the bridging Br?", "key": "The bridging Br blocks one face, so Br\u207b can only attack from the other face (anti). Here each of those carbons holds two CH\u2083 groups, so the product has no stereocenters and the anti addition can't be seen in it; with a ring alkene, it makes the two Br trans."},
     "chem-t4-arw-ind-sn1": {"prompt": "Why does this go through a carbocation instead of a backside attack?", "key": "The carbon is tertiary: too crowded for backside attack, and its carbocation is stable."},
     "chem-t4-arw-ind-base-taut": {"prompt": "Why doesn't the enol stay an enol?", "key": "The C=O form is more stable. Base removes the O\u2013H proton, and the enolate takes an H on carbon as the C=O forms."},
-    "chem-t4-arw-ind-epoxide": {"prompt": "Why are the two OH groups on opposite sides in the product?", "key": "Water attacks the protonated epoxide from the back face, away from the O, so the new OH and the old O end up anti."},
+    "chem-t4-arw-ind-epoxide": {"prompt": "Why does the ring open once the O has an H on it?", "key": "The three-membered ring is strained, and the O\u207a is now a good leaving group. Water attacks a ring carbon from the back, and that carbon's bond to the O breaks. Here each of those carbons holds two CH\u2083 groups, so the product has no stereocenters and the back-side attack can't be seen in it; in a ring epoxide, the same attack makes the two OH groups trans."},
     "chem-t4-arw-ind-shift": {"prompt": "Why does the H move from C3 to C2?", "key": "It turns a secondary carbocation into a more stable tertiary carbocation."},
     "chem-t4-arw-ind-acid-taut": {"prompt": "Why does the H go on the end carbon?", "key": "That leaves the + charge on the carbon next to the O, which shares a lone pair (resonance) and stabilizes it."},
     "chem-t4-arw-tgt-alcohol": {"prompt": "Why can Cl\u207b only attack after water leaves?", "key": "Until water leaves, the carbon has a full octet; the carbocation's empty orbital is what Cl\u207b's lone pair bonds to."},
