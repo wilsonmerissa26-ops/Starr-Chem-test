@@ -469,7 +469,12 @@ with sync_playwright() as pw:
         page.wait_for_function("!/Loading the Test 4/.test(document.getElementById('t4-classroom').textContent)")
         room = page.inner_text("#t4-classroom").lower()
         check("chemistry screen shows the Test 4 classroom", "test 4 classroom" in room and "alkene reagents" in room and "alkyne reagents" in room and "curved arrows" in room, room[:300])
-        check("classroom lists the five lessons with a status each", page.locator("#t4-classroom .t4-row").count() == 5)
+        check("classroom lists the plan first, then the five lessons with a status each", page.locator("#t4-classroom .t4-row").count() == 6
+              and "your test 4 plan" in page.locator("#t4-classroom .t4-row").first.inner_text().lower())
+        page.locator('#t4-classroom [data-resource="chem-t4-plan"]').click(); page.wait_for_timeout(600)
+        check("the plan row opens the plan page inside the app", (page.get_attribute("#resource-frame", "src") or "").endswith("lessons/chem-t4/plan.html"))
+        fr = page.frame_locator("#resource-frame")
+        check("plan page loads inside the app", "your test 4 plan" in fr.locator("h1").inner_text(timeout=5000).lower())
         seed = re.findall(r'\["(chem-11(?:1[4-9])-[^"]+)","(2026-11-1[4-9])"', app)
         ids = [s[0] for s in seed]
         check("calendar ids are unique", len(ids) == len(set(ids)), ids)
@@ -478,6 +483,38 @@ with sync_playwright() as pw:
         check("app shell: no script errors", not errs, errs[:2])
         ctx.close()
     guarded("app shell", t_app_shell)
+
+    # ---------------------------------------------------------------- the Test 4 plan page
+    def t_plan_page():
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("content_plan", os.path.join(ROOT, "tools/chem_t4/content_plan.py"))
+        CP = importlib.util.module_from_spec(spec); spec.loader.exec_module(CP)
+        ctx = browser.new_context(viewport={"width": 820, "height": 1180}); page = ctx.new_page(); page.clock.install(time=DAY1); errs = []
+        page.on("pageerror", lambda e: errs.append(str(e)))
+        page.on("console", lambda m: errs.append(m.text) if m.type == "error" else None)
+        page.goto(T4 + "plan.html"); page.wait_for_selector("section.day")
+        check("plan: five days", page.locator("section.day").count() == 5)
+        check("plan: today (Nov 15) is marked", "today" in (page.get_attribute("#d-sun", "class") or ""))
+        check("plan: every hint and answer starts closed", page.locator("details[open]").count() == 0)
+        n_steps = sum(len(qas) for w in CP.WALKS.values() for _, qas in w["steps"])
+        n_hints = sum(1 for w in CP.WALKS.values() for _, qas in w["steps"] for q, a, h in qas if h)
+        n_prac = sum(len(w["with_help"]) + len(w["on_own"]) for w in CP.WALKS.values())
+        n_ans = n_steps + n_prac + len(CP.CARDS) + len(CP.CARD_PRACTICE) + len(CP.TOPICS)
+        check("plan: one answer behind a button for every step, practice problem, card and checklist row", page.locator("details.ans").count() == n_ans, (page.locator("details.ans").count(), n_ans))
+        check("plan: one hint button per written hint", page.locator("details.hint").count() == n_hints, (page.locator("details.hint").count(), n_hints))
+        for d in CP.DAYS:
+            for wid in d["walks"]:
+                check("plan: %s walkthrough is on %s" % (wid, d["key"]), page.locator("#d-%s #w-%s" % (d["key"], wid)).count() == 1)
+        page.evaluate("() => document.querySelectorAll('details').forEach(d => d.open = true)"); page.wait_for_timeout(500)
+        imgs = page.evaluate("() => [...document.images].map(i => [i.getAttribute('src'), i.naturalWidth])")
+        check("plan: all %d figures load" % len(imgs), len(imgs) == 8 and all(w > 0 for _, w in imgs), imgs)
+        check("plan: the new drawings are present", page.locator("figure svg").count() >= 15, page.locator("figure svg").count())
+        for href in ("arrows.html", "alkenes.html"):
+            check("plan: link to %s works" % href, page.locator('a[href="%s"]' % href).count() >= 1 and os.path.exists(os.path.join(ROOT, "student-app/lessons/chem-t4", href)))
+        check("plan: records nothing (no learning record on the page)", page.evaluate("() => typeof window.LearningRecord") == "undefined")
+        check("plan: no script errors", not errs, errs[:2])
+        ctx.close()
+    guarded("plan page", t_plan_page)
     browser.close()
 
 server.shutdown()
