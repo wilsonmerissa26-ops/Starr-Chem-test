@@ -24,11 +24,24 @@ OUT = os.path.join(ROOT, "student-app", "lessons", "chem-t4", "items.js")
 EXCLUDED = {
     "diagnostic": ["CCC(C)(C)O", "CCC(C)(C)Br", "CC=C(C)C", "CC1=CCCCC1", "CC1(Br)CCCCC1", "C1=CCCC1", "BrC1CCCC1Br",
                    "CC1(Cl)CCCCC1", "COC1(C)CCCCC1", "C=C1CCCCC1", "CCC(C)O", "CCC(C)C#N", "C=CC1CCCCC1", "CCC1(Br)CCCCC1",
-                   "CC(Br)C1CCCCC1", "C#CCCC", "CC(=O)CCC", "O=CCCCC", "C#CC", "BrCCC", "CC#CCCC", "CC=CCCC"],
-    "fall2025-test4": ["CC#CCC", "CC=CCC", "CC(Br)C(Br)CC", "CC(Br)(Br)C(Br)(Br)CC", "CCC1CO1", "CCC(O)CO", "C#CCC(C)(C)C",
-                       "O=CCCC(C)(C)C", "C=CC1=CC=CC=C1", "CC(C)O", "C=C1CCCC1", "OC1(CBr)CCCC1", "C=CC(C)(C)C", "CC(C)C(C)(C)Cl",
-                       "C1CCCCC#CCCC1", "C1=CCCCC1", "OC1CCCCC1O", "BrC1CCCCC1", "C=CCC", "CCCCC1CCCCC1", "BrCC(Br)CC",
-                       "C#CCC", "C#C", "CC(=O)CCC1=CC=CC=C1"],
+                   "CC(Br)C1CCCCC1", "C#CCCC", "CC(=O)CCC", "O=CCCCC", "C#CC", "BrCCC", "CC#CCCC", "CC=CCCC",
+                   # intermediates and products from the Readiness Check key (Problems 1, 2, 6 and 7)
+                   "CCC(C)(C)[OH2+]", "CC[C+](C)C", "C[C+]1CCCCC1", "OC1CCCCC1Br", "C=C(O)CCC"],
+    # Checked page by page against the Fall 2025 Test 4 key PDF on Nov 15. Q1 is 2-butyne and its 4-carbon
+    # alkenes and dibromides; Q2 is 2-propyloxirane and pentane-1,2-diol. Intermediates and products from the key are listed too.
+    "fall2025-test4": [
+        "CC#CC", "CC=CC", "CC(Br)C(Br)C", "CC(Br)(Br)C(Br)(Br)C",            # Q1
+        "CCCC1CO1", "CCCC(O)CO",                                              # Q2
+        "C#CCC(C)(C)C", "OC=CCC(C)(C)C", "O=CCCC(C)(C)C",                     # Q4 (alkyne, enol, aldehyde)
+        "C=CC1=CC=CC=C1", "CC(C)O", "CC(OC(C)C)C1=CC=CC=C1",                  # Q5a
+        "C=C1CCCC1", "OC1(CBr)CCCC1",                                         # Q5b
+        "C=CC(C)(C)C", "CC(C)C(C)(C)Cl", "CC(Cl)C(C)(C)C", "C[CH+]C(C)(C)C", "CC(C)[C+](C)C",  # Q5c
+        "C1CCCCC#CCCC1", "OC(=O)CCCCCCCCC(=O)O",                              # Q5d
+        "C1=CCCCC1", "OC1CCCCC1O",                                            # Q5e
+        "C[C+](C)COC", "CC(C)[CH+]OC",                                        # Q6
+        "BrC1CCCCC1", "C=CCC", "CCCCC1CCCCC1", "BrCC(Br)CC", "C#CCC", "CCC#CC1CCCCC1",  # Q7 option 1
+        "CC(Br)C1=CC=CC=C1", "C#C", "CC(=O)CCC1=CC=CC=C1", "BrCCC1=CC=CC=C1", "C#CCCC1=CC=CC=C1",  # Q7 option 2
+    ],
 }
 
 def canon(smi, stereo=False):
@@ -153,9 +166,16 @@ def build_product_item(item, J, TAGS, CARD_KEYS, role):
         if re.search(r"\bcis-", name) and len(st) == 2: check(st[0] == st[1], item["id"] + ": named cis but drawn trans")
         if "meso" in name: check(corr[0].get("label") == "meso", item["id"] + ": meso name but label differs")
     out["products"] = [{"svg": render(p["smi"], p.get("label")), "tag": p["tag"], "label": p.get("label")} for p in item["products"]]
+    def facts_of(smi):
+        c = counts(smi)
+        return {"carbons": c.get("C", 0), "formula": "".join(el + (str(c[el]) if c[el] > 1 else "") for el in ["C", "H"] + sorted(k for k in c if k not in ("C", "H")) if c.get(el))}
     if corr:
-        c = counts(corr[0]["smi"])
-        out["facts"] = {"carbons": c.get("C", 0), "formula": "".join(el + (str(c[el]) if c[el] > 1 else "") for el in ["C", "H"] + sorted(k for k in c if k not in ("C", "H")) if c.get(el))}
+        # For a synthesis, the product options are the step-2 intermediate; the final target gets its own facts,
+        # so a formula is never shown next to the wrong compound's name.
+        out["facts"] = facts_of(corr[0]["smi"])
+        if kind == "synthesis":
+            check(bool(item.get("midName")) and bool(item.get("targetName")), item["id"] + ": synthesis needs midName and targetName")
+            out["targetFacts"] = facts_of(item["target"])
     for s_ in all_smiles(item):
         k = canon(s_)
         for frag in s_.split("."):
@@ -198,7 +218,52 @@ def build_lesson(mod, key, meta):
         check(f in mod.FAMILIES, "%s: family %s has no title" % (key, f))
     return lesson
 
+def carbon_skeletons(smi, cut_multiple=False):
+    """The carbon frameworks in a SMILES string: carbon atoms and C-C bonds only, bond orders ignored, one key per
+    carbon-containing fragment (sorted). cut_multiple=True removes C=C and C#C bonds first (what ozonolysis cuts)."""
+    atoms, bonds = parse(re.sub(r"\{[A-Za-z0-9_]+\}|\^", "", smi))
+    cs = [i for i, a in enumerate(atoms) if a.el == "C"]
+    adj = {i: set() for i in cs}
+    for a, b, o, st in bonds:
+        if a in adj and b in adj and not (cut_multiple and o > 1):
+            adj[a].add(b); adj[b].add(a)
+    seen, keys = set(), []
+    for s in cs:
+        if s in seen: continue
+        comp, stack = [], [s]; seen.add(s)
+        while stack:
+            x = stack.pop(); comp.append(x)
+            for y in adj[x]:
+                if y not in seen: seen.add(y); stack.append(y)
+        lab = {i: "C" for i in comp}
+        for _ in range(8):
+            lab = {i: str(hash(lab[i] + "(" + ",".join(sorted(lab[j] for j in adj[i])) + ")") & 0xffffffff) for i in comp}
+        keys.append("%d:%s" % (len(comp), ",".join(sorted(lab.values()))))
+    return sorted(keys)
+
+def check_skeletons():
+    """A drawing can have the right formula and still be the wrong compound. Additions, reductions, hydrations,
+    eliminations, hydride shifts and proton transfers never change the carbon framework, so every mechanism step and
+    every correct product must keep the starting carbon framework (ozonolysis: the framework with the C=C or C#C cut)."""
+    for it in [MECH.EXAMPLE] + MECH.GUIDED + MECH.INDEPENDENT + MECH.TARGETED:
+        want = carbon_skeletons(it["steps"][0]["smi"])
+        for k, st in enumerate(it["steps"][1:], start=2):
+            check(carbon_skeletons(st["smi"]) == want, "%s: step %d drawing has a different carbon framework from step 1" % (it["id"], k))
+        check(carbon_skeletons(it["product"]) == want, "%s: product has a different carbon framework from step 1" % it["id"])
+    fixed = {"cleavage", "make-or-cut", "cc-bond"}
+    for mod in (ALK, AKY):
+        fam = {c["key"]: c["family"] for c in mod.CARDS}
+        for it in mod.GUIDED + mod.INDEPENDENT + mod.TARGETED:
+            if it.get("kind") in ("job", "synthesis"): continue
+            corr = [p["smi"] for p in it["products"] if p["tag"] == "correct"][0]
+            f = it.get("family") or fam.get(it["reagentKey"])
+            if it["reagentKey"] in ("ozonolysis", "o3-alkyne"):
+                check(carbon_skeletons(corr) == carbon_skeletons(it["sm"], cut_multiple=True), it["id"] + ": cleavage products don't match the cut starting material")
+            elif f not in fixed or it["reagentKey"] == "double-elim":
+                check(carbon_skeletons(corr) == carbon_skeletons(it["sm"]), it["id"] + ": correct product has a different carbon framework from the starting material")
+
 def main():
+    check_skeletons()
     data = {
         "alkenes": build_lesson(ALK, "alkenes", {"key": "alkenes", "objectiveId": "chm221.ch8.alkene-reagents", "prefix": "chem-t4-alk",
                                                  "source": "lesson-chem-t4-alkenes", "title": "Alkene reagents: what each one does and what it makes",

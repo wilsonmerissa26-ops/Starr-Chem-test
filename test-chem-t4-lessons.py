@@ -244,6 +244,30 @@ with sync_playwright() as pw:
         ctx.close()
     guarded("two-day mastery", t_mastery_two_days)
 
+    # ---------------------------------------------------------------- synthesis: each formula sits next to its own compound
+    def t_synthesis_formulas():
+        syn = [i for i in DATA["alkynes"]["independent"] if i["kind"] == "synthesis"][0]
+        check("synthesis data: intermediate and target facts are separate",
+              syn["facts"]["formula"] == "C10H16" and syn.get("targetFacts", {}).get("formula") == "C10H18", (syn.get("facts"), syn.get("targetFacts")))
+        ctx, page, errs = fresh(T4 + "alkynes.html")
+        before = [i["id"] for i in DATA["alkynes"]["independent"]]
+        before = before[:before.index(syn["id"])]
+        # synthetic guided-practice records for the problems ahead of it, so Draw alone opens the synthesis next
+        page.evaluate("""ids => Promise.all(ids.map(id => LearningRecord.record({course:'CHM221', objectiveId:'chm221.ch9.alkyne-reagents', itemId:id, itemVersion:1,
+                         activity:'guided', correct:true, unfamiliar:false, source:'test'})))""", before)
+        ctx, page, errs = reopen(ctx, T4 + "alkynes.html", DAY1)
+        finish_guided_products(page, "alkynes")
+        page.click('[data-go="alone"]'); page.wait_for_selector("#check")
+        check("synthesis opens in Draw alone", syn["question"] in page.inner_text("#screen h2") or syn["smName"] in page.inner_text("#screen"), page.inner_text("#screen h2"))
+        page.click('[data-p1="s%d"]' % [i for i, s in enumerate(syn["seqs"]) if s["tag"] == "correct"][0])
+        page.click("#gate-done"); page.click('[data-p2="%s"]' % correct_p2(syn)); page.click("#check"); page.wait_for_timeout(400)
+        txt = page.inner_text("#after")
+        check("checked solution: intermediate with C10H16", "After step 2: 1-cyclohexyl-2-butyne · 10 carbons · C10H16" in txt, txt[:300])
+        check("checked solution: final alkene with C10H18", "After step 3: (E)-1-cyclohexyl-2-butene · 10 carbons · C10H18" in txt, txt[:300])
+        check("synthesis: no script errors", not errs, errs[:2])
+        ctx.close()
+    guarded("synthesis formulas", t_synthesis_formulas)
+
     # ---------------------------------------------------------------- mechanisms: tap the arrows
     def tgt(x):
         if x.endswith(".lp"): return x + "1"

@@ -337,7 +337,11 @@
       var after = el("after");
       if (after.getAttribute("data-shown")) return; after.setAttribute("data-shown", "1");
       var r = rightProduct();
-      var sol = isJob ? "<p>" + esc(item.explain) + "</p>" : '<div class="fig">' + r.svg + '</div><p><b>' + esc(item.productName) + "</b>" + (item.facts ? " · " + item.facts.carbons + " carbons · " + esc(item.facts.formula) : "") + "</p><p>" + esc(item.explain) + "</p>";
+      function factLine(f) { return f ? " · " + f.carbons + " carbons · " + esc(f.formula) : ""; }
+      var sol = isJob ? "<p>" + esc(item.explain) + "</p>" :
+        isSyn && item.targetFacts ? '<div class="fig">' + r.svg + '</div><p><b>After step 2: ' + esc(item.midName) + "</b>" + factLine(item.facts) + "</p>" +
+          '<div class="fig">' + item.targetSvg + '</div><p><b>After step 3: ' + esc(item.targetName) + "</b>" + factLine(item.targetFacts) + "</p><p>" + esc(item.explain) + "</p>" :
+        '<div class="fig">' + r.svg + '</div><p><b>' + esc(item.productName) + "</b>" + factLine(item.facts) + "</p><p>" + esc(item.explain) + "</p>";
       var checks = isJob ? ["Say why each wrong base fails, using its conjugate acid's pKa."] : [
         "Carbon count: the answer has " + (item.facts ? item.facts.carbons : "?") + " carbons. Count yours one by one.",
         "Each new group is on the same carbon as in the checked drawing (number both drawings the same way).",
