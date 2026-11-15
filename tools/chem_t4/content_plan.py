@@ -31,41 +31,53 @@ HONEST = [
 ]
 
 # ---------------------------------------------------------------- the days (match her calendar entries)
+DAY_RULE = "Do the list in order. The minutes are estimates: if time runs out, stop, and what's left joins the \"if time\" list. The \"if time\" items are for review when a miss points to them, not requirements."
 DAYS = [
-    {"key": "sun", "date": "2026-11-15", "cal": "chem-1115-session1", "title": "Sunday, Nov 15 · Session 1: mechanisms", "minutes": 75,
-     "tasks": [("Readiness Check follow-up questions, cold, 15 min. Your tutor has these; they are not in the app.", None),
-               ("Curved arrows lesson in the Chemistry classroom.", "arrows.html"),
-               ("Walkthroughs below: Problems 1, 2 and 6. The epoxide walkthrough if time is left.", None)],
+    {"key": "sun", "date": "2026-11-15", "cal": "chem-1115-session1", "title": "Sunday, Nov 15 · Session 1: curved arrows, carbocations and shifts", "minutes": 75,
+     "tasks": [("Readiness Check follow-up questions, cold. Your tutor has these; they are not in the app.", None, 15),
+               ("Curved arrows lesson in the Chemistry classroom.", "arrows.html", 15),
+               ("Walkthroughs below: Problems 1, 2 and 6 (carbocations, then the hydride and methyl shifts).", None, 45)],
+     "extra": [("The epoxide walkthrough below.", None)],
      "walks": ["p1", "p2", "p6", "epoxide"],
      "bio": "Biology: Exam 3 study block."},
-    {"key": "mon", "date": "2026-11-16", "cal": "chem-1116-review", "title": "Monday, Nov 16 · Session 2: reagents and products", "minutes": 75,
-     "tasks": [("Sunday's 'tomorrow, on your own' problems and redraws, cold, 15 min.", None),
-               ("Alkene reagents and Alkyne reagents lessons in the Chemistry classroom.", "alkenes.html"),
-               ("Walkthroughs below: the reagent cards, Problems 4, 5 and 7, then the two new short ones (ethers from alkenes; which carbocation is more stable).", None),
-               ("Build a one-page reagent chart from Klein Chapters 8 and 9, using the Test 4 checklist at the end of today's section.", None)],
-     "walks": ["cards", "p4", "p5", "p7", "ether", "stability", "topics"],
+    {"key": "mon", "date": "2026-11-16", "cal": "chem-1116-review", "title": "Monday, Nov 16 · Session 2: reagents, substitution and elimination, keto-enol", "minutes": 75,
+     "tasks": [("Cold, no notes: the first \"tomorrow, on your own\" problem under Problems 1, 2 and 6. Then redraw Problem 6 from blank paper.", None, 15),
+               ("The reagent cards below: say each job out loud, then open the card. Study only the ones you miss.", None, 10),
+               ("The Test 4 checklist below (Chapters 8 and 9): say what each row does, then open it. Mark the rows you miss.", None, 10),
+               ("Problems 4 and 5: substitution and elimination.", None, 15),
+               ("Problem 7: the keto-enol arrows, with acid and with base.", None, 15),
+               ("Which carbocation is more stable: an O right next to the C⁺.", None, 10)],
+     "extra": [("Alkene reagents and Alkyne reagents lessons in the Chemistry classroom, for the checklist rows you missed.", "alkenes.html"),
+               ("The ether walkthrough below.", None),
+               ("A one-page reagent chart from the checklist rows you missed.", None)],
+     "walks": ["cards", "topics", "p4", "p5", "p7", "stability", "ether"],
      "bio": "Biology: Exam 3 repair on your weakest topics, 40 min. Exam 3 is tomorrow: stop on time and sleep early."},
-    {"key": "tue", "date": "2026-11-17", "cal": "chem-1117-session3", "title": "Tuesday, Nov 17 · Session 3 (evening, after Exam 3)", "minutes": 55,
-     "tasks": [("Monday's 'tomorrow, on your own' problems and redraws first.", None),
-               ("Walkthroughs below: Problem 3 with a model kit, the Part 4 synthesis, and ¹H-NMR basics (15 min).", None),
-               ("If a review is due in a Chemistry lesson, do it.", None)],
+    {"key": "tue", "date": "2026-11-17", "cal": "chem-1117-session3", "title": "Tuesday, Nov 17 · Session 3 (evening, after Biology Exam 3): stereochemistry, synthesis, NMR", "minutes": 55,
+     "tasks": [("Cold, no notes: the first \"tomorrow, on your own\" problem under Problems 4, 5 and 7.", None, 10),
+               ("Problem 3 with a model kit: Br₂ adds anti, racemic or meso.", None, 10),
+               ("Part 4 synthesis: the walkthrough, the scoring checklist, and the exam-format practice.", None, 20),
+               ("¹H-NMR: read a spectrum, then choose the one that matches.", None, 15)],
+     "extra": [("If a review is due in a Chemistry lesson, do it.", None),
+               ("Monday's other \"on your own\" problems, including the reagent card practice.", None)],
      "walks": ["p3", "part4", "nmr"],
      "bio": "Biology: Exam 3 today. Chemistry class: Chapter 9 practice lecture."},
-    {"key": "wed", "date": "2026-11-18", "cal": "chem-1118-mock", "title": "Wednesday, Nov 18 · Timed practice test", "minutes": 85,
-     "tasks": [("Tuesday's 'tomorrow, on your own' problems and redraws, 15 min.", None),
-               ("Last year's Test 4 on paper, timed at 53 minutes (your tutor has the copy). Grade it with its key.", None),
-               ("Then 30 minutes redrawing every missed product and mechanism from blank paper. Reread the walkthrough each miss points to.", None)],
+    {"key": "wed", "date": "2026-11-18", "cal": "chem-1118-mock", "title": "Wednesday, Nov 18 · Timed practice test", "minutes": 98,
+     "tasks": [("Cold, before the test: Tuesday's exam-format synthesis, timed at 12 minutes and scored with the checklist, then the spectrum choice (3 minutes). Take a short break after.", None, 15),
+               ("Last year's Test 4 on paper, timed at 53 minutes without stopping (your tutor has the copy). Grade it with its key.", None, 53),
+               ("Redraw every missed product and mechanism from blank paper. Reread the walkthrough each miss points to.", None, 30)],
+     "extra": [("Problem 3's \"on your own\" problems.", None)],
      "walks": [],
      "bio": "Biology: Lower Limb lab."},
     {"key": "thu", "date": "2026-11-19", "cal": "chem-1119-warmup", "title": "Thursday, Nov 19 · Test 4", "minutes": 15,
-     "tasks": [("15 minute warm-up: redraw three mechanisms from blank paper. No new material today.", None)],
+     "tasks": [("Warm-up from blank paper: redraw the mechanisms you missed on Wednesday. If you missed none, redraw the base tautomerization, a hydride shift and Br₂ adding anti. No new material today.", None, 15)],
+     "extra": [],
      "walks": [], "bio": ""},
 ]
 
 # ---------------------------------------------------------------- walkthroughs
-def W(id, title, rule, problem, steps, fig=None, notes=None, with_help=None, on_own=None, watch=None):
+def W(id, title, rule, problem, steps, fig=None, notes=None, with_help=None, on_own=None, watch=None, checklist=None):
     return {"id": id, "title": title, "rule": rule, "problem": problem, "steps": steps, "fig": fig, "notes": notes or [],
-            "with_help": with_help or [], "on_own": on_own or [], "watch": watch or []}
+            "with_help": with_help or [], "on_own": on_own or [], "watch": watch or [], "checklist": checklist}
 
 WALKS = {}
 
@@ -207,18 +219,24 @@ WALKS["p7"] = W("p7", "Problem 7: alkyne hydration and tautomerization",
     "1-pentyne + H₂SO₄, H₂O, HgSO₄ → 2-pentanone",
     [("Read the structure", [("Which triple-bond carbon has the H, and which is on the inside?", "C1, the end carbon, has the H. C2 is the inside carbon.", None)]),
      ("Name the reagent's job", [("Where does the OH go?", "On C2, the more substituted carbon (Markovnikov). That gives the enol: OH on C2, a C=C between C1 and C2.", None)]),
-     ("Arrows, tautomerization step 1 (acid)", [("The enol's C=C grabs a proton. Which carbon gets the H?", "An arrow from the C=C bond to the H of H₃O⁺, and from that H–O bond onto the O. The H goes on C1, leaving the + on C2, next to the O.", "Which + carbon has an O lone pair right next to it to help hold the charge?")]),
-     ("Arrows, tautomerization step 2", [("The O now holds a + charge and an H. What takes the H?", "A lone pair on water takes the O–H proton, and the O–H bond's pair becomes the C=O π bond. H₃O⁺ is given back.", None)]),
+     ("Arrows, tautomerization step 1 (acid): a proton goes onto carbon", [("The enol's C=C bond takes a proton from H₃O⁺. Which carbon gets the H, and where is the + left?", "Two arrows: one from the C=C bond to the H of H₃O⁺, and one from that H–O bond onto water's O. The H goes on C1, so C2 is left with the +, right next to the O.", "Which + carbon has an O lone pair right next to it to help hold the charge?")]),
+     ("Resonance: the O shares a lone pair", [("Draw the other resonance form of that cation. Which electrons move, and where does the + end up?", "One arrow, from a lone pair on the O into the C–O bond. That pair becomes the C=O π bond. The + moves to the O (C=O⁺–H), and now every atom has an octet. Nothing is added or removed: it is the same ion, drawn with its electrons in a different place.", "Arrows start at electrons. The O has two lone pairs and is bonded to the C⁺.")]),
+     ("Arrows, tautomerization step 2 (acid): the proton comes off the O", [("Start from the C=O⁺–H form. What takes the H, and where do the O–H bond's electrons go?", "A lone pair on water takes the H. The O–H bond's pair goes back onto the O as a lone pair, so the + is gone. The C=O π bond was already made in the resonance step. H₃O⁺ is given back, so the acid is a catalyst.", "Count the O's lone pairs before and after: it ends with two lone pairs and a double bond to C.")]),
      ("Draw the product and say why", [("Ketone or aldehyde, and why?", "A ketone, because the O ended up on C2, an inside carbon. An aldehyde needs the O on C1.", None),
                                        ("How would you make the aldehyde instead?", "9-BBN (or disiamylborane), then H₂O₂ and NaOH: anti-Markovnikov, OH on C1.", None)])],
-    fig="k-p7",
-    notes=[("The same tautomerization with base",
-            "After hydroboration-oxidation, NaOH does the tautomerization, and you need these arrows too. Step 1: a lone pair on OH⁻ takes the H off the enol's O, and the O–H bond's pair stays on the O (now O⁻). "
-            "Step 2: a lone pair on O⁻ swings down to make the C=O π bond, while the C=C bond's pair takes an H from water (an arrow from the H–O bond onto that O). OH⁻ is given back.", None)],
+    fig="taut-acid",
+    notes=[("The same tautomerization with base (last year's test asked for this one)",
+            "After hydroboration-oxidation, NaOH does the tautomerization. It takes three moves, the same pattern as the acid version: a proton transfer, a resonance form, a proton transfer. "
+            "Step 1: a lone pair on OH⁻ takes the H on the enol's O, and the O–H bond's pair stays on the O, which is now O⁻. "
+            "Resonance: a lone pair on the O⁻ moves into the C–O bond (making C=O) while the C=C bond's pair moves onto the other C=C carbon (the one not bonded to the O), which now has a lone pair and the − charge. "
+            "Step 2: that carbon's lone pair takes an H from water, and the H–O bond's pair goes onto water's O. OH⁻ is given back. Show every one of these pairs and both byproducts: Dr. Meadows grades each one.",
+            "taut-base")],
     with_help=[("1-hexyne + H₂SO₄, H₂O, HgSO₄. The enol, the ketone, and the acid tautomerization arrows.", "The enol with OH on C2, then 2-hexanone.")],
-    on_own=[("3-hexyne + H₂SO₄, H₂O, HgSO₄, and why only one product forms.", "3-hexanone. Only one product: the alkyne is symmetric, so the OH on either carbon gives the same ketone."),
-            ("1-hexyne + 9-BBN, then H₂O₂ and NaOH, with the base tautomerization arrows.", "The enol with OH on C1, then hexanal (base tautomerization).")],
-    watch=["Stopping at the enol.", "An aldehyde from the HgSO₄ conditions.", "An alcohol (no C=C left) as the answer.", "The first acid arrow starting at the H₃O⁺ instead of the C=C bond."])
+    on_own=[("1-hexyne + 9-BBN, then H₂O₂ and NaOH: the enol, the product, and the base tautomerization arrows with every electron pair and byproduct.", "The enol with OH on C1, then hexanal. Base tautomerization: OH⁻ takes the O–H proton (water forms); the O⁻ lone pair makes C=O as the C=C pair moves onto C2; C2's lone pair takes an H from water (OH⁻ given back)."),
+            ("3-hexyne + H₂SO₄, H₂O, HgSO₄, and why only one product forms.", "3-hexanone. Only one product: the alkyne is symmetric, so the OH on either carbon gives the same ketone.")],
+    watch=["Stopping at the enol.", "An aldehyde from the HgSO₄ conditions.", "An alcohol (no C=C left) as the answer.", "The first acid arrow starting at the H₃O⁺ instead of the C=C bond.",
+           "In the C=O⁺–H form, an arrow from the O–H bond into the C–O bond. The π bond is already there, so the O–H pair goes back onto the O.",
+           "Leaving out a byproduct (H₃O⁺ with acid, OH⁻ with base)."])
 
 # New: a carbocation next to an O (last year's Test 4 asked this kind of comparison; these are different cations)
 WALKS["stability"] = W("stability", "New: which carbocation is more stable? Look for an O right next to the C⁺",
@@ -295,24 +313,70 @@ WALKS["part4"] = W("part4", "Part 4: working a synthesis backward",
      ("Work back to the starting material", [("How do you make a new C–C bond on the end of propyne?", "NaNH₂ removes the alkyne H, making an acetylide; the acetylide does SN2 on a primary halide, 1-bromopropane.", "Why not 2-bromopropane?")]),
      ("Write it forward", [("Write each reagent over an arrow and draw each molecule you make.", "propyne → (NaNH₂) acetylide → (CH₃CH₂CH₂Br) 2-hexyne → (H₂, Lindlar) cis-2-hexene.", None)])],
     fig="k-syn",
-    notes=[("The three alkyne reductions, side by side", "H₂ with Lindlar's catalyst gives the cis alkene. Na in NH₃ gives the trans alkene. H₂ with Pd goes all the way to the alkane.", None)],
-    with_help=[("Make cis-3-heptene from 1-pentyne and any alkyl halide.", "NaNH₂; then CH₃CH₂Br (gives 3-heptyne); then H₂, Lindlar's catalyst.")],
-    on_own=[("Make trans-4-octene. Every carbon must come from acetylene and alkyl halides with 3 carbons or fewer.", "Acetylene + NaNH₂; CH₃CH₂CH₂Br (1-pentyne); NaNH₂; CH₃CH₂CH₂Br (4-octyne); Na, NH₃. Hint, if you needed it: it takes two alkylations."),
+    checklist=("Score your route the way the test does. Last year's synthesis was worth 35 of the test's 160 points: 2 for choosing a problem, 2 for two written observations, and 31 for the route. "
+               "The test gave 53 minutes for 160 points, so a 35-point synthesis is worth about 12 minutes.",
+               ["Carbons: count the product's carbons and circle which starting material each one came from. Every carbon must come from the starting materials you were given.",
+                "The new C–C bond: point to it, and name the reaction that makes it. In Chapters 8 and 9 that is an acetylide plus an alkyl halide.",
+                "Every intermediate is drawn, in order, not just named.",
+                "Reagents over every arrow, in the right order. Number them when one arrow has two steps (1. 9-BBN  2. H₂O₂, NaOH).",
+                "Stereochemistry: cis or trans, wedge or dash, and \"both enantiomers\" where it applies, from a reagent that really gives it.",
+                "Two observations, written before the route. For example: how many carbons each starting material gives the product; which bond is new; what has to change in a starting material before the C–C bond step; what the product's C=C or C=O needs."]),
+    notes=[("The three alkyne reductions, side by side", "H₂ with Lindlar's catalyst gives the cis alkene. Na in NH₃ gives the trans alkene. H₂ with Pd goes all the way to the alkane.", None),
+           ("Make the pieces first (last year's synthesis needed this)",
+            "Last year's test gave two starting materials, and every carbon in the product had to come from them. That usually means changing one of them before the C–C bond step. Two changes to know. "
+            "An alkene becomes an alkyne: Br₂ in CCl₄, then excess NaNH₂. On a terminal alkyne, the extra NaNH₂ also takes the end H, so the acetylide is ready for the next step. "
+            "A bromide on an inside carbon moves to the end carbon: KOtBu makes the alkene with the C=C at the end, then HBr with ROOR puts the Br on the end carbon.", None)],
+    with_help=[("Exam format. Starting materials: 3-methyl-1-butene and bromoethane. Target: (Z)-2-methyl-3-hexene. Every carbon must come from the two starting materials. Write two observations, then the route forward with every reagent and every intermediate drawn.",
+                "Observations: the product has 7 carbons, 5 from 3-methyl-1-butene and 2 from bromoethane, so one new C–C bond joins them; the product's C=C is cis, so the last step is H₂ with Lindlar's catalyst. "
+                "Route: 3-methyl-1-butene → (Br₂, CCl₄) 1,2-dibromo-3-methylbutane → (excess NaNH₂) the acetylide of 3-methyl-1-butyne → (CH₃CH₂Br) 2-methyl-3-hexyne → (H₂, Lindlar's catalyst) (Z)-2-methyl-3-hexene.")],
+    on_own=[("Wednesday, before the practice test: cold and timed at 12 minutes, then score it with the checklist. Starting materials: 2-bromopentane and 1-pentyne. Target: (E)-4-decene. Every carbon must come from the two starting materials. Write two observations, then the route forward with every reagent and intermediate drawn.",
+             "Observations: the product is one straight chain of 10 carbons, 5 from 1-pentyne and 5 from 2-bromopentane, joined by one new C–C bond; the Br is on C2, but a straight chain needs the new bond at C1, so the Br has to move to the end carbon first; the C=C is trans, so the last step is Na in NH₃. "
+             "Route: 2-bromopentane → (KOtBu) 1-pentene → (HBr, ROOR) 1-bromopentane. 1-pentyne → (NaNH₂) its acetylide → (1-bromopentane) 4-decyne → (Na, NH₃) (E)-4-decene. Joining the acetylide to 2-bromopentane itself would put a branch in the chain."),
+            ("If time: make trans-4-octene. Every carbon must come from acetylene and alkyl halides with 3 carbons or fewer.", "Acetylene + NaNH₂; CH₃CH₂CH₂Br (1-pentyne); NaNH₂; CH₃CH₂CH₂Br (4-octyne); Na, NH₃. Hint, if you needed it: it takes two alkylations."),
             ("Challenge, if time: make 5-decanone from 1-hexyne and any alkyl halide.", "NaNH₂; then CH₃CH₂CH₂CH₂Br (gives 5-decyne); then H₂SO₄, H₂O, HgSO₄. The alkyne is symmetric, so only one ketone forms.")],
     watch=["A secondary halide.", "NaOH as the base (too weak to remove the alkyne H).", "The wrong reduction for cis or trans.", "Skipping the drawn intermediates (Dr. Meadows grades every molecule along the route)."])
 
-WALKS["nmr"] = W("nmr", "¹H-NMR basics (added for safety)",
-    "Each set of matching H atoms gives one signal. The signal's area says how many H are in the set, its position says what is nearby, and its splitting says how many H sit on the neighboring carbons.",
-    "Whether ¹H-NMR is on Test 4 isn't confirmed (it isn't in Chapters 8 and 9). Check Canvas or ask Dr. Meadows. Until then, spend 15 minutes here.",
-    [("Count the signals", [("Which H atoms in this molecule match each other?", "H atoms on the same carbon, or on carbons that match by symmetry, give one signal.", "Circle each set of matching H atoms in a different color.")]),
-     ("Read the integration", [("How many H are in each set?", "Each signal's integration number equals the H count of one set.", None)]),
-     ("Read the chemical shift", [("What is right next to each set of H atoms?", "H on plain alkyl carbons appear at about 0.7 to 1.8 ppm; next to a C=O, 2.0 to 2.7; on an alkyne carbon, 1.8 to 3.1; next to an O (alcohol or ether), 3.3 to 4.5; on a C=C, 4.5 to 6.5; an aldehyde H, 9.5 to 10.5. These ranges come from a standard reference table; real values can land a little outside them.", None)]),
-     ("Read the splitting", [("How many H are on the carbons right next to this set?", "n neighboring H split the signal into n + 1 peaks. A CH₃ next to a CH₂ is a triplet; a CH₂ next to a CH₃ is a quartet; a set with no neighboring H is a singlet.", None)])],
-    notes=[("Worked examples, from measured spectra",
+WALKS["nmr"] = W("nmr", "¹H-NMR: read a spectrum, then choose the one that matches",
+    "Each set of matching H atoms gives one signal. The number printed over a signal (its integration) says how many H are in the set, its position says what is nearby, and its splitting says how many H sit on the neighboring carbons.",
+    "Last year's Test 4 had one ¹H-NMR question, worth 6 of its 160 points: circle the predicted spectrum that belongs to a molecule. Expect one this year too. That isn't confirmed, so ask Dr. Meadows if you want to be sure.",
+    [("Read the axis", [("Which way does the ppm scale run, and what is the number printed over each signal?", "Backward: bigger numbers on the left, 0 on the right. A signal farther left has something electron-pulling, like an O or a C=O, close by. The number over each signal is its integration: how many H it stands for.", "Find 0 on the axis first.")]),
+     ("Count the signals", [("Which H atoms in this molecule match each other?", "H atoms on the same carbon, or on carbons that match by symmetry, give one signal.", "Circle each set of matching H atoms in a different color.")]),
+     ("Read the integration", [("How many H are in each set?", "Each signal's integration number equals the H count of one set. A cluster of peaks close together is one signal, with one integration number.", None)]),
+     ("Read the chemical shift", [("What is right next to each set of H atoms?", "H on plain alkyl carbons appear at about 0.7 to 1.8 ppm; next to a C=O, 2.0 to 2.7; on an alkyne carbon, 1.8 to 3.1; next to an O (alcohol or ether), 3.3 to 4.5; on a C=C, 4.5 to 6.5; an aldehyde H, 9.5 to 10.5. These ranges come from a standard reference table; real values can land a little outside them. "
+                                  "The H on an alcohol's O is the exception: its position moves from sample to sample, and it usually shows as a singlet.", None)]),
+     ("Read the splitting", [("How many H are on the carbons right next to this set?", "n neighboring H split the signal into n + 1 peaks: 1 neighbor, a doublet (2 peaks); 2, a triplet; 3, a quartet; 5, a sextet; 6, a septet (7 peaks). A CH₃ next to a CH₂ is a triplet; a CH₂ next to a CH₃ is a quartet; a set with no neighboring H is a singlet.", "Count the H on each neighboring carbon, add them, then add 1.")]),
+     ("Choose the spectrum", [("Which spectrum, A, B or C, belongs to diethyl ether, CH₃CH₂–O–CH₂CH₃? Rule out each wrong one with the first clue it fails.",
+                              "C. Diethyl ether has two signals: 6H, a triplet (each CH₃ has 2 H next door), and 4H, a quartet (each CH₂ has 3 H next door), with the quartet near 3.5 ppm because those CH₂ groups are bonded to the O. "
+                              "A fails on integration and splitting: two singlets, 9H and 3H, is tert-butyl methyl ether. B fails only on shift: the same 6H triplet and 4H quartet, but the quartet is at 2.44 ppm, where a CH₂ next to a C=O appears. That is 3-pentanone.",
+                              "Check in order: number of signals, integration, splitting, shift. Two of the three pass the first clues; only the shift separates them.", "nmr-choose")])],
+    notes=[("How the test draws spectra",
+            "Last year's spectra were predicted spectra: each signal split only by the H on the neighboring carbons (the n + 1 rule), with its integration printed over it. The spectra on this page are drawn the same way, at shifts measured for the real compounds. "
+            "Sources: diethyl ether, 2-propanol and tert-butyl alcohol, Fulmer and others, Organometallics 2010; tert-butyl methyl ether, Gottlieb and others, Journal of Organic Chemistry 1997; 3-pentanone, ChemicalBook; 1-propanol and 1-pentyne, the SDBS database as quoted by Doc Brown's Chemistry. "
+            "The alcohol O–H positions are from Doc Brown's Chemistry; they move from sample to sample.", None),
+           ("Worked examples, from measured spectra",
             "3-pentanone: two signals. 1.06 ppm, 6H, triplet (the two CH₃ groups); 2.44 ppm, 4H, quartet (the two CH₂ groups next to the C=O). "
-            "tert-butyl methyl ether: two singlets. 1.19 ppm, 9H (the tert-butyl group); 3.21 ppm, 3H (the OCH₃, just below the table's 3.3 to 4.5 range). Source: ChemicalBook spectra.", None)],
-    on_own=[("For 2-butanone, predict how many signals, the integration and splitting of each, and which range of the table each falls in.",
-             "Three signals. The CH₃ at the end of the ethyl group: 3H, triplet, alkyl range (about 0.7 to 1.3 ppm). The CH₃ on the C=O: 3H, singlet, next-to-C=O range (2.0 to 2.7). The CH₂: 2H, quartet, also next-to-C=O range. This applies the rules and the table; it was not read from a measured spectrum.")])
+            "tert-butyl methyl ether: two singlets. 1.19 ppm, 9H (the tert-butyl group); 3.22 ppm, 3H (the OCH₃, just below the table's 3.3 to 4.5 range).", None)],
+    with_help=[("Last year's NMR question was one part of a three-part problem on a single reaction. Try that format: ? + 9-BBN; then H₂O₂ and NaOH → pentanal. (a) Draw the starting material. (b) Predict its ¹H-NMR spectrum: how many signals, and each one's integration, splitting and shift range. (c) Draw the base tautomerization with every electron pair and byproduct.",
+                "(a) 1-pentyne: 9-BBN puts the O on the end carbon, and the enol becomes the aldehyde. (b) Four signals. The CH₃: 3H, triplet, alkyl range. The middle CH₂: 2H, sextet (5 H next door), alkyl range. The CH₂ next to the triple bond: 2H, triplet, alkyne range. The ≡C–H: 1H, singlet, because the carbon next to it has no H. Measured shifts (SDBS): 1.00, 1.55, 2.15 and 1.94 ppm. (c) The three moves in Problem 7's base drawing, with water formed in the first and OH⁻ given back in the last.")],
+    on_own=[("Wednesday, before the practice test, cold (3 minutes): which spectrum, A, B or C, belongs to 2-propanol, (CH₃)₂CH–OH? Say which clue rules out each wrong one.",
+             "A. 2-propanol has three signals: 6H, a doublet (the two CH₃ groups have 1 H next door); 1H, a septet near 4.0 ppm (the CH has 6 H next door and is bonded to the O); and the 1H O–H singlet. "
+             "B has four signals (3:2:2:1), with a 2H triplet near 3.6 ppm: that is 1-propanol, CH₃CH₂CH₂OH. C has two singlets, 9H and 1H: that is tert-butyl alcohol, whose CH₃ groups have no H next door.", "nmr-cold"),
+            ("If time: for 2-butanone, predict how many signals, the integration and splitting of each, and which range of the table each falls in.",
+             "Three signals. The CH₃ at the end of the ethyl group: 3H, triplet, alkyl range (about 0.7 to 1.3 ppm). The CH₃ on the C=O: 3H, singlet, next-to-C=O range (2.0 to 2.7). The CH₂: 2H, quartet, also next-to-C=O range. This applies the rules and the table; it was not read from a measured spectrum.")],
+    watch=["Reading the axis as if it ran from 0 on the left.", "Counting each peak of a multiplet as its own signal.", "Taking the number of peaks as the number of H.", "Choosing on shift alone without checking integration and splitting."])
+
+# Spectra drawn on the page: (label, [(ppm, number of H, number of peaks)]), at measured shifts (sources in the NMR notes)
+SPECTRA = {
+    "nmr-choose": [("A", [(1.19, 9, 1), (3.22, 3, 1)]),                    # tert-butyl methyl ether (Gottlieb 1997)
+                   ("B", [(1.06, 6, 3), (2.44, 4, 4)]),                    # 3-pentanone (ChemicalBook)
+                   ("C", [(1.21, 6, 3), (3.48, 4, 4)])],                   # diethyl ether (Fulmer 2010)
+    "nmr-cold":   [("A", [(1.22, 6, 2), (4.04, 1, 7), (2.16, 1, 1)]),      # 2-propanol (Fulmer 2010; OH Doc Brown)
+                   ("B", [(0.94, 3, 3), (1.57, 2, 6), (3.58, 2, 3), (2.26, 1, 1)]),  # 1-propanol (SDBS via Doc Brown)
+                   ("C", [(1.28, 9, 1), (2.01, 1, 1)])],                   # tert-butyl alcohol (Fulmer 2010; OH Doc Brown)
+}
+# What each spectrum is, for the build's own consistency check (H count and the n + 1 rule)
+SPECTRA_MOLS = {("nmr-choose", "A"): "COC(C)(C)C", ("nmr-choose", "B"): "CCC(=O)CC", ("nmr-choose", "C"): "CCOCC",
+                ("nmr-cold", "A"): "CC(C)O", ("nmr-cold", "B"): "CCCO", ("nmr-cold", "C"): "CC(C)(C)O"}
 
 # ---------------------------------------------------------------- molecules on the page, for the build's checks
 # role: "taught" = in a walkthrough, card or table; "practice" = a practice problem or its answer.
@@ -349,6 +413,13 @@ MOLS = [
     ("part4", "C#CC"), ("part4", "CC#CCCC"), ("part4", "CC=CCCC"), ("part4", "C#CCCC"), ("part4", "CCC#CCCC"), ("part4", "CCC=CCCC"),
     ("part4", "C#C"), ("part4", "CCCC#CCCC"), ("part4", "CCCC=CCCC"), ("part4", "CCCCC#CCCCC"), ("part4", "CCCCC(=O)CCCCC"),
     ("nmr", "CCC(=O)CC"), ("nmr", "COC(C)(C)C"), ("nmr", "CCC(C)=O"),
+    # Problem 7 drawings (acid and base tautomerization)
+    ("p7", "C=C(O)CCC"), ("p7", "C[C+](O)CCC"), ("p7", "CCCC(C)=[OH+]"), ("p7", "OC=CCCC"), ("p7", "[O-]C=CCCC"), ("p7", "O=C[CH-]CCC"), ("p7", "CCCCC=O"), ("p7", "O=CCCCCC"),
+    # Part 4 exam-format practice
+    ("part4", "C=CC(C)C"), ("part4", "BrCC(Br)C(C)C"), ("part4", "C#CC(C)C"), ("part4", "CCBr"), ("part4", "CCC#CC(C)C"), ("part4", "CC/C=C\\C(C)C"),
+    ("part4", "CCCC(C)Br"), ("part4", "C=CCCC"), ("part4", "BrCCCCC"), ("part4", "C#CCCC"), ("part4", "CCCC#CCCCCC"), ("part4", "CCC/C=C/CCCCC"),
+    # NMR practice
+    ("nmr", "CCOCC"), ("nmr", "CC(C)O"), ("nmr", "CCCO"), ("nmr", "CC(C)(C)O"), ("nmr", "C#CCCC"), ("nmr", "CCCCC=O"),
 ]
 
 # Reactions on the page whose answers the build checks by formula (starting material + what is added = product)
@@ -361,7 +432,14 @@ REACTIONS = [
     ("ether on your own (Hg)", "C=CC(C)C", "CCOC(C)C(C)C", "+C2H6O"),
     ("card 5 practice", "CCCCC#C", "CCCCC#CCC", "+C2H4"),
     ("OsO4 row", "CCCC=CCCC", "CCCC(O)C(O)CCC", "+H2O2"),
-    ("part4 with help", "C#CCCC", "CCC=CCCC", "+C2H6"),
+    ("part4 exam format: Br2", "C=CC(C)C", "BrCC(Br)C(C)C", "+Br2"),
+    ("part4 exam format: two eliminations", "BrCC(Br)C(C)C", "C#CC(C)C", "-H2Br2"),
+    ("part4 exam format: whole route", "C=CC(C)C", "CC/C=C\\C(C)C", "+C2H4"),
+    ("part4 cold: KOtBu", "CCCC(C)Br", "C=CCCC", "-HBr"),
+    ("part4 cold: HBr, ROOR", "C=CCCC", "BrCCCCC", "+HBr"),
+    ("part4 cold: whole route", "C#CCCC", "CCC/C=C/CCCCC", "+C5H12"),
+    ("p7 base drawing", "C#CCCC", "CCCCC=O", "+H2O"),
+    ("p7 acid drawing", "C#CCCC", "CCCC(C)=O", "+H2O"),
     ("part4 challenge", "CCCCC#C", "CCCCC(=O)CCCCC", "+C4H10O"),
     ("cyclooctyne ozonolysis", "C1CCCC#CCC1", "OC(=O)CCCCCCC(=O)O", "+H2O4"),
 ]
