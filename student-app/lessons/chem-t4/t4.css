@@ -1,0 +1,37 @@
+/* Test 4 practice lessons: drawings, drawn answer choices and tap targets. Builds on ../lessons.css. */
+.fig{display:flex;justify-content:center;margin:6px 0}
+.fig svg{max-width:100%;height:auto}
+.fig.mech svg{width:100%;height:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+.rxn{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:8px 0}
+.rxn .arrow{text-align:center;font-size:1.6rem;color:var(--purple);font-weight:700;line-height:1.1}
+.rxn .arrow .small{font-size:.85rem;color:var(--ink);font-weight:650}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:8px 0}
+.opt{border:2px solid var(--line);background:#fff;border-radius:14px;padding:8px;min-height:120px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.opt svg{max-width:100%;height:auto}
+.opt[aria-pressed="true"]{border-color:var(--purple);background:var(--lav)}
+.opt.correct{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.rcard{border:1px solid var(--line);border-radius:12px;padding:8px 12px;margin:8px 0;background:#fff}
+.rcard summary{cursor:pointer;min-height:36px;display:flex;align-items:center}
+.nextp{border-left:5px solid var(--purple-2)}
+.mres{border-top:1px solid var(--line);padding-top:6px;margin-top:10px}
+.partlist{margin:6px 0 0;padding-left:20px}.partlist li{margin:6px 0}
+.tap{fill:rgba(108,63,160,.07);stroke:rgba(108,63,160,.4);stroke-width:1.5;stroke-dasharray:3 3;cursor:pointer}
+.tap:hover,.tap:focus{fill:rgba(108,63,160,.18);outline:none}
+.tap.picked{fill:rgba(178,58,122,.25);stroke:#b23a7a;stroke-dasharray:none;stroke-width:2.5}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
+.drawbox{border:2px dashed var(--purple-2);border-radius:14px;padding:12px 14px;margin:12px 0;background:#fdfbff}
+.drawbox.done{border-style:solid;border-color:var(--good);background:var(--good-bg)}
+.opt.none{min-height:64px;font:inherit;color:var(--ink)}
+.compare{border-left:5px solid var(--good)}
+.checks{margin:6px 0 10px;padding-left:20px}.checks li{margin:6px 0}
+.mistakes{display:grid;gap:8px;margin:8px 0}
+.mistake{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 10px;font:inherit;color:var(--ink);cursor:pointer;min-height:48px}
+.mistake[aria-pressed="true"]{border-color:var(--bad);background:var(--bad-bg)}
+.mistake .mfig{flex:0 0 150px;display:flex;justify-content:center}.mistake .mfig svg{max-width:150px;height:auto}
+.mistake .mtext{flex:1}
+textarea.explain{width:100%;font:inherit;border:1px solid var(--line);border-radius:12px;padding:10px;margin:6px 0}
+@media(max-width:560px){.mistake{flex-direction:column;align-items:flex-start}.mistake .mfig{flex:none}}
+.part{border-top:1px solid var(--line);padding-top:6px;margin-top:8px}.part.solved .prompt::after{content:" ✓";color:var(--good)}
+.numin{width:110px;min-height:46px;font:inherit;font-size:1.1rem;border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.btn.compact{min-height:44px;padding:8px 14px}

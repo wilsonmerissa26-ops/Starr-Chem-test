@@ -61,11 +61,14 @@ const SEED=[
 ["chem-1112-ch9","2026-11-12","chem","Chapter 9 lecture + retrieval","class",35,"CHM 221 syllabus","After lecture, solve unfamiliar problems before checking answers."],
 ["ap-1114-mock","2026-11-14","ap","A&P Exam 3 practice quiz","practice",50,"Coach suggestion","Make a closed-note quiz across Chapters 8–10; explain the missed questions."],
 ["ap-1116-final","2026-11-16","ap","A&P Exam 3: targeted repair","practice",40,"Coach suggestion","Redo weak muscle/physiology questions. Avoid reading answers without attempting first."],
-["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",50,"Coach suggestion","Test 4 is cumulative: mix earlier chapters with the newest material and practice writing products and mechanisms from blank paper."],
+["chem-1115-session1","2026-11-15","chem","Test 4 Session 1: mechanisms","practice",75,"Coach suggestion","First, the Readiness Check follow-up questions, cold (15 min). Then the Curved arrows lesson in Chemistry, and on paper with your tutor the walkthroughs for check Problems 1, 2 and 6."],
+["chem-1116-review","2026-11-16","chem","Test 4 preparation: mixed mechanisms","practice",60,"Coach suggestion","Session 2, reagents and products. Redo yesterday's misses from blank paper first (10 min). Then the Alkene reagents (Ch 8) and Alkyne reagents (Ch 9) lessons in Chemistry, and on paper the check's Part 1 cards and Problems 4, 5 and 7. Exam 3 is tomorrow: stop on time."],
 ["ap-1117-exam","2026-11-17","ap","Exam 3 • Chapters 8–10","exam",0,"BIO 131 syllabus","Tuesday lecture Exam 3."],
 ["chem-1117-ch9","2026-11-17","chem","Chapter 9 practice lecture","class",30,"CHM 221 syllabus","Course focus: Chapter 9 + practice. Prepare Test 4 review questions."],
+["chem-1117-session3","2026-11-17","chem","Test 4 Session 3 (evening, after Exam 3)","practice",55,"Coach suggestion","Monday's redos first. Then on paper: check Problem 3 with a model kit, the Part 4 synthesis, and 1H-NMR basics for 15 minutes (not confirmed for Test 4; added for safety). If a review is due in Chemistry, do it."],
 ["ap-1118-lab","2026-11-18","ap","Lab: Muscles of Lower Limb","lab",30,"BIO 131 syllabus","Lab topic; check Canvas quizzes and deadlines."],
-["chem-1118-mock","2026-11-18","chem","Test 4: timed mixed practice","practice",70,"Coach suggestion","Practice under a time limit, then redraw all missed products and arrow mechanisms."],
+["chem-1118-mock","2026-11-18","chem","Test 4: timed mixed practice","practice",85,"Coach suggestion","Tuesday's redos first (15 min). Then last year's Test 4 under a 53-minute limit, graded with its key, then 30 minutes redrawing every missed product and mechanism from blank paper."],
+["chem-1119-warmup","2026-11-19","chem","Test 4 warm-up","practice",15,"Coach suggestion","Redraw three mechanisms from blank paper. No new material today."],
 ["chem-1119-test4","2026-11-19","chem","Test 4 • Cumulative","exam",0,"CHM 221 syllabus","Thursday in-class Test 4. Dr. Meadows' syllabus states that all four written unit tests are cumulative. Confirm any calendar changes in Canvas."],
 ["chem-1123-ch11","2026-11-23","chem","Chapter 11 preview","practice",35,"Coach suggestion","Preview Chapter 11 for Tuesday's lecture; recall earlier mechanisms."],
 ["chem-1124-ch11","2026-11-24","chem","Chapter 11 lecture","class",25,"CHM 221 syllabus","Tuesday lecture; Thanksgiving week."],
@@ -137,6 +140,10 @@ function renderSubjects(){const filters=[["all","All subjects"],["chem","Organic
 const LOWER_LIMB_LAB=["ap-1118-lab","ap-1202-labexam"];
 const PILOT_OBJECTIVES=[
  {id:"chm221.ch8.hx-addition",course:"CHM221",subject:"chem",title:"Chemistry: adding HBr and HCl to alkenes",resource:"chem-ch8"},
+ {id:"chm221.t4.structures",course:"CHM221",subject:"chem",title:"Chemistry: reading and drawing structures",resource:"chem-t4-structures"},
+ {id:"chm221.t4.electron-movement",course:"CHM221",subject:"chem",title:"Chemistry: drawing curved arrows",resource:"chem-t4-arrows"},
+ {id:"chm221.ch8.alkene-reagents",course:"CHM221",subject:"chem",title:"Chemistry: alkene reagents and products",resource:"chem-t4-alkenes"},
+ {id:"chm221.ch9.alkyne-reagents",course:"CHM221",subject:"chem",title:"Chemistry: alkyne reagents and syntheses",resource:"chem-t4-alkynes"},
  {id:"bio131.ch9.facial-muscle-id",course:"BIO131",subject:"ap",title:"A&P: identify facial muscles",resource:"ap-muscles"},
  {id:"bio131.ch9.head-neck-actions",course:"BIO131",subject:"ap",title:"A&P: head and neck muscle actions",resource:"ap-muscles"},
  {id:"bio131.ch9.jaw-neck-id",course:"BIO131",subject:"ap",title:"A&P: identify jaw and neck muscles",resource:"ap-muscles"},
@@ -187,13 +194,36 @@ function renderNextUp(){const box=$("#next-up");if(!box||!window.LearningRecord)
   box.innerHTML='<div><div class="eyebrow">Next up for you</div><div class="home-milestone">'+esc(pick.title)+'</div><div class="small muted">'+esc(why)+(pick.exam<999?(pick.prepFor?" · prepares for "+pick.prepFor+" in ":" · next "+(pick.subject==="chem"?"CHM 221":"BIO 131")+" exam in ")+pick.exam+" day"+(pick.exam===1?"":"s"):"")+'</div></div><button type="button" class="btn" data-resource="'+pick.resource+'">Start →</button>';
  }).catch(function(){box.hidden=true;});}
 if(window.LearningRecord)window.LearningRecord.onChange(function(){if(today)renderNextUp();});
-function render(){renderNextUp();renderToday();renderCalendar();renderSubjects();renderCoach();}
+// ---------- Test 4 classroom: one list of what to study, in order, with progress from the shared learning record ----------
+const T4_LESSONS=[
+ {id:"chm221.t4.structures",resource:"chem-t4-structures",title:"Reading and drawing structures: bond-line, names, wedges and dashes, Newman projections, chairs",when:"Start here, Session 1 (Sun, Nov 15)"},
+ {id:"chm221.t4.electron-movement",resource:"chem-t4-arrows",title:"Curved arrows: name each move, then draw its arrows",when:"Session 1 (Sun, Nov 15)"},
+ {id:"chm221.ch8.hx-addition",resource:"chem-ch8",title:"Chapter 8: adding HBr and HCl to alkenes",when:"Review before Session 2"},
+ {id:"chm221.ch8.alkene-reagents",resource:"chem-t4-alkenes",title:"Chapter 8: alkene reagents, what each does and what it makes",when:"Session 2 (Mon, Nov 16)"},
+ {id:"chm221.ch9.alkyne-reagents",resource:"chem-t4-alkynes",title:"Chapter 9: alkyne reagents and short syntheses",when:"Session 2 (Mon) and Session 3 (Tue)"}
+];
+function renderT4Classroom(){const box=$("#t4-classroom");if(!box||!window.LearningRecord)return;
+ const exam=SEED.filter(t=>t.id==="chem-1119-test4")[0],days=exam?Math.round((parse(exam.date)-parse(today))/86400000):null;
+ window.LearningRecord.events({course:"CHM221"}).then(function(list){
+  const rows=T4_LESSONS.map(function(l){const st=window.LearningRecord.statusFromEvents(list,l.id,today);
+   const action=st.status==="not-started"?"Start":st.due?"Review due today":st.status==="needs-review"?"Practice again":st.status==="shown-2-days"?"Open":"Continue";
+   const note=st.status==="not-started"?"":st.due?"A new problem is ready today.":st.reviewDue?"Next review "+window.LearningRecord.formatDay(st.reviewDue):"";
+   return '<div class="t4-row"><div><div class="small muted">'+esc(l.when)+'</div><b>'+esc(l.title)+'</b><div class="small"><span class="pill'+(st.status==="shown-2-days"?" done":"")+'">'+esc(st.label)+'</span> '+esc(note)+'</div></div><button type="button" class="btn compact'+(st.due||st.status==="not-started"?"":" secondary")+'" data-resource="'+l.resource+'">'+esc(action)+' →</button></div>';}).join("");
+  box.innerHTML='<div class="row spread"><div><div class="eyebrow">Test 4 classroom'+(days!==null&&days>=0?" · "+(days===0?"today":days===1?"tomorrow":"in "+days+" days"):"")+'</div><h2 style="margin:4px 0">What to study for Test 4, in order</h2></div></div>'+
+   '<p class="small muted" style="margin-top:0">Every lesson runs Watch, Draw with help, Draw alone, Explain, Review, and you draw on paper every time the app asks. The app checks your answers; your tutor checks your pen work. A problem counts only when it is new to you and done without help; two different problems right on two different days is the strongest evidence. On paper with your tutor: the Readiness Check walkthroughs, then last year\'s Test 4 timed on Wednesday.</p>'+rows;
+ }).catch(function(){box.innerHTML='<p class="small muted">Progress could not be read on this device. The lessons still open below.</p>';});}
+if(window.LearningRecord)window.LearningRecord.onChange(function(){if(today)renderT4Classroom();});
+function render(){renderNextUp();renderToday();renderCalendar();renderSubjects();renderCoach();renderT4Classroom();}
 const RESOURCE_LIBRARY=Object.freeze({
   day1:{title:"Chemistry · Foundation Day 1",src:"../day1/"},
   foundation:{title:"Chemistry · All nine foundation days",src:"../course-hub/"},
   unit1:{title:"Chemistry · Unit 1 lessons",src:"../course-units/unit1/"},
   physiology:{title:"Anatomy & Physiology · Music Lab",src:"../physiology-song-lab/"},
   "chem-ch8":{title:"Chemistry · Chapter 8: Adding HBr and HCl to alkenes",src:"./lessons/chem-ch8/"},
+  "chem-t4-structures":{title:"Chemistry · Test 4 prep: Reading and drawing structures",src:"./lessons/chem-t4/structures.html"},
+  "chem-t4-arrows":{title:"Chemistry · Test 4 prep: Curved arrows (mechanisms)",src:"./lessons/chem-t4/arrows.html"},
+  "chem-t4-alkenes":{title:"Chemistry · Test 4 prep: Alkene reagents (Chapter 8)",src:"./lessons/chem-t4/alkenes.html"},
+  "chem-t4-alkynes":{title:"Chemistry · Test 4 prep: Alkyne reagents (Chapter 9)",src:"./lessons/chem-t4/alkynes.html"},
   "ap-muscles":{title:"A&P · Chapter 9: Head and neck muscles",src:"./lessons/ap-muscles/"},
   "ap-trunk":{title:"A&P · Chapter 9: Trunk muscles",src:"./lessons/ap-muscles/trunk.html"},
   "ap-upper":{title:"A&P · Chapter 9: Shoulder and arm muscles",src:"./lessons/ap-muscles/upper.html"},
@@ -214,7 +244,7 @@ function openResource(key){
   history.replaceState(null,"","#resource-"+key);
   return true;
 }
-function show(view){document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el.id===view));const mainTab=["chemistry","focus","resource"].includes(view)?"subjects":view;document.querySelectorAll("[data-go]").forEach(el=>el.classList.toggle("active",el.dataset.go===mainTab));if(view==="calendar")renderCalendar();if(view==="subjects")renderSubjects();if(view==="chemistry"){const frame=$("#coach-frame");if(frame&&!frame.getAttribute("src"))frame.setAttribute("src",frame.dataset.src);else if(frame&&frame.contentWindow&&typeof frame.contentWindow.u3BridgeHeight==="function")frame.contentWindow.u3BridgeHeight();renderCoach();}window.scrollTo({top:0,behavior:"auto"});history.replaceState(null,"","#"+view);}
+function show(view){document.querySelectorAll(".screen").forEach(el=>el.classList.toggle("active",el.id===view));const mainTab=["chemistry","focus","resource"].includes(view)?"subjects":view;document.querySelectorAll("[data-go]").forEach(el=>el.classList.toggle("active",el.dataset.go===mainTab));if(view==="calendar")renderCalendar();if(view==="subjects")renderSubjects();if(view==="chemistry"){renderT4Classroom();const frame=$("#coach-frame");if(frame&&!frame.getAttribute("src"))frame.setAttribute("src",frame.dataset.src);else if(frame&&frame.contentWindow&&typeof frame.contentWindow.u3BridgeHeight==="function")frame.contentWindow.u3BridgeHeight();renderCoach();}window.scrollTo({top:0,behavior:"auto"});history.replaceState(null,"","#"+view);}
 function changeDate(d){selected=d;month=new Date(parse(d).getFullYear(),parse(d).getMonth(),1);renderCalendar();}
 document.addEventListener("click",function(e){const nav=e.target.closest("[data-go]");if(nav){show(nav.dataset.go);return;}const resource=e.target.closest("[data-resource]");if(resource){openResource(resource.dataset.resource);return;}const coach=e.target.closest("[data-coach-module]");if(coach){const i=Number(coach.dataset.coachModule);if(Number.isInteger(i)&&i>=0&&i<U3_TITLES.length){show("chemistry");const frame=$("#coach-frame");frame.setAttribute("src","../unit3-coach/?embed=1&module="+i+"&mode="+(coach.dataset.coachMode==="quiz"?"quiz":"teach"));}return;}const date=e.target.closest("[data-date]");if(date){changeDate(date.dataset.date);return;}const filter=e.target.closest("[data-filter]");if(filter){subjectFilter=filter.dataset.filter;renderSubjects();return;}const subject=e.target.closest("[data-subject]");if(subject){subjectFilter=subject.dataset.subject;show("subjects");return;}const del=e.target.closest("[data-remove]");if(del){if(confirm("Delete this custom task?"))commit(s=>{s.custom=s.custom.filter(t=>t.id!==del.dataset.remove);delete s.done[del.dataset.remove];});return;}});
 document.addEventListener("change",function(e){const checked=e.target.closest("[data-check]");if(checked){const id=checked.dataset.check;const val=checked.checked;commit(s=>{if(val)s.done[id]=new Date().toISOString();else delete s.done[id];});}});
