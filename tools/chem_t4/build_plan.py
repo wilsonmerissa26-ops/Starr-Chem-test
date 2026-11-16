@@ -300,7 +300,10 @@ def cards_html():
          '<table class="cards"><tr><th>Reagent</th><th>Card</th></tr>']
     for i, (reag, job, why, ex, wrong) in enumerate(P.CARDS, 1):
         o.append('<tr><td><b>%d. %s</b></td><td><details class="ans"><summary>Its job</summary><div><p><b>Job:</b> %s</p><p><b>Why:</b> %s</p><p><b>Example:</b> %s</p><p><b>Wrong answer to catch:</b> %s</p></div></details></td></tr>' % (i, E(reag), E(job), E(why), E(ex), E(wrong)))
-    o.append('</table><div class="practice"><h4>Tomorrow, on your own: write each reagent\'s job from memory, then the product</h4><ol>')
+    o.append('</table><div class="practice"><h4>Practice today, with your notes</h4><ol>')
+    for q, a in P.CARD_TODAY:
+        o.append('<li>%s<details class="ans"><summary>Answer</summary><div>%s</div></details></li>' % (E(q), E(a)))
+    o.append('</ol><h4>Tomorrow, on your own: write each reagent\'s job from memory, then the product</h4><ol>')
     for q, a in P.CARD_PRACTICE:
         o.append('<li>%s<details class="ans"><summary>Answer (open only after you\'ve worked it cold)</summary><div>%s</div></details></li>' % (E(q), E(a)))
     o.append("</ol></div></section>")
@@ -326,7 +329,8 @@ def page(F):
     for d in P.DAYS:
         o.append('<section class="day" id="d-%s" data-date="%s"><h2>%s</h2><p class="small">Chemistry: %d minutes, also on your calendar. %s</p><ol class="tasks">' % (d["key"], d["date"], E(d["title"]), d["minutes"], E(P.DAY_RULE)))
         for text, link, mins in d["tasks"]:
-            o.append('<li>%s <span class="mins">(%d min)</span>%s</li>' % (E(text), mins, (' <a href="%s">Open the lesson</a>' % link) if link else ""))
+            links = [(link, "Open the lesson")] if isinstance(link, str) else (link or [])
+            o.append('<li>%s <span class="mins">(%d min)</span>%s</li>' % (E(text), mins, (" " + " · ".join('<a href="%s">%s</a>' % (h, E(lbl)) for h, lbl in links)) if links else ""))
         o.append("</ol>")
         if d["extra"]:
             o.append('<p class="small"><b>If time:</b></p><ul class="extra">' + "".join('<li>%s%s</li>' % (E(t), (' <a href="%s">Open the lesson</a>' % l) if l else "") for t, l in d["extra"]) + "</ul>")

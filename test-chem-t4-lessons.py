@@ -499,7 +499,7 @@ with sync_playwright() as pw:
         n_steps = sum(len(qas) for w in CP.WALKS.values() for _, qas in w["steps"])
         n_hints = sum(1 for w in CP.WALKS.values() for _, qas in w["steps"] for qa in qas if qa[2])
         n_prac = sum(len(w["with_help"]) + len(w["on_own"]) for w in CP.WALKS.values())
-        n_ans = n_steps + n_prac + len(CP.CARDS) + len(CP.CARD_PRACTICE) + len(CP.TOPICS)
+        n_ans = n_steps + n_prac + len(CP.CARDS) + len(CP.CARD_TODAY) + len(CP.CARD_PRACTICE) + len(CP.TOPICS)
         check("plan: one answer behind a button for every step, practice problem, card and checklist row", page.locator("details.ans").count() == n_ans, (page.locator("details.ans").count(), n_ans))
         check("plan: one hint button per written hint", page.locator("details.hint").count() == n_hints, (page.locator("details.hint").count(), n_hints))
         for d in CP.DAYS:
@@ -515,6 +515,10 @@ with sync_playwright() as pw:
         check("plan: the spectra to choose from show with the question, before any answer is opened",
               page.evaluate("() => [...document.querySelectorAll('.spectra')].every(s => !s.closest('details'))"))
         check("plan: the synthesis scoring checklist has six items", page.locator("#w-part4 .checklist li").count() == 6)
+        check("plan: the multiple-answer base question is with the reagent cards", "More than one may work" in page.inner_text("#w-cards"))
+        check("plan: Monday's core includes product drawing in the lessons and the epoxide mechanism",
+              "Draw alone" in page.inner_text("#d-mon ol.tasks") and "epoxide" in page.inner_text("#d-mon ol.tasks") and page.locator("#d-mon #w-epoxide").count() == 1)
+        check("plan: Wednesday grades the test inside the 30-minute corrections block", "Grade it with its key first" in page.inner_text("#d-wed ol.tasks"))
         for d in CP.DAYS:
             shown = page.evaluate("k => [...document.querySelectorAll('#d-' + k + ' ol.tasks .mins')].map(e => parseInt(e.textContent.replace(/\\D/g, '')))", d["key"])
             check("plan: %s task minutes add up to the day's %d minutes" % (d["key"], d["minutes"]), sum(shown) == d["minutes"] and len(shown) == len(d["tasks"]), shown)
@@ -523,7 +527,7 @@ with sync_playwright() as pw:
         for d in CP.DAYS:
             m = re.search(r'\["%s","%s","chem","[^"]*","practice",(\d+),' % (d["cal"], d["date"]), src)
             check("plan: calendar entry %s says %d minutes, like the page" % (d["cal"], d["minutes"]), bool(m) and int(m.group(1)) == d["minutes"], m and m.group(1))
-        for href in ("arrows.html", "alkenes.html"):
+        for href in ("arrows.html", "alkenes.html", "alkynes.html"):
             check("plan: link to %s works" % href, page.locator('a[href="%s"]' % href).count() >= 1 and os.path.exists(os.path.join(ROOT, "student-app/lessons/chem-t4", href)))
         check("plan: records nothing (no learning record on the page)", page.evaluate("() => typeof window.LearningRecord") == "undefined")
         check("plan: no script errors", not errs, errs[:2])
