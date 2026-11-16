@@ -283,7 +283,10 @@ def main():
         "arrows": MECH.build(render_fn=render, canon=canon, excluded=EXCLUDED_KEYS, fail=FAIL),
         "structures": STR.build(render_fn=render, canon=canon, excluded=EXCLUDED_KEYS, fail=FAIL),
     }
-    # no molecule may be an independent problem in two lessons
+    # the Test 4 plan page (its chemistry checks add to FAIL; it is written only if everything passes)
+    import build_plan
+    build_plan.check_all(sys.modules[__name__], FAIL)
+    plan_figs = build_plan.figures(sys.modules[__name__], FAIL)
     if FAIL:
         print("BUILD STOPPED. %d problem(s):" % len(FAIL))
         for f in FAIL: print("  - " + f)
@@ -298,6 +301,9 @@ def main():
         n = sum(len(lesson.get(x, [])) for x in ("guided", "independent", "targeted"))
         total += n
         print("Wrote %s (%d items, %d KB)" % (os.path.relpath(path, ROOT), n, os.path.getsize(path) // 1024))
+    with open(build_plan.OUT, "w", encoding="utf-8") as f:
+        f.write(build_plan.page(plan_figs))
+    print("Wrote %s (%d KB)" % (os.path.relpath(build_plan.OUT, ROOT), os.path.getsize(build_plan.OUT) // 1024))
     if os.path.exists(OUT):
         os.remove(OUT)
 
